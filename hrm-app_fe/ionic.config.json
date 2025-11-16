@@ -1,0 +1,7 @@
+{
+  "name": "hrm-app_fe",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

@@ -1,0 +1,97 @@
+<ion-content [fullscreen]="true" class="login-content">
+  <div class="login-wrapper">
+    <ion-grid class="login-grid">
+      <ion-row class="ion-justify-content-center">
+        <ion-col size="12" size-md="8" size-lg="6" size-xl="4">
+          <div class="login-container">
+            <!-- Logo và App Name -->
+            <div class="logo-section">
+              <div class="logo">
+                <div class="logo-h">H</div>
+              </div>
+              <ion-text color="dark">
+                <h1 class="app-name">HRM<span class="plus">+</span></h1>
+              </ion-text>
+            </div>
+
+            <!-- Title -->
+            <ion-text color="dark">
+              <h2 class="login-title">Log in</h2>
+            </ion-text>
+
+            <!-- Already Logged In Message -->
+            <ion-card *ngIf="isAlreadyLoggedIn" class="info-card">
+              <ion-card-content>
+                <ion-item lines="none">
+                  <ion-icon name="information-circle-outline" slot="start" color="primary"></ion-icon>
+                  <ion-label>
+                    <h3>Bạn đã đăng nhập</h3>
+                    <p>Đang chuyển hướng đến trang chủ...</p>
+                  </ion-label>
+                  <ion-button fill="clear" size="small" (click)="clearSession()" slot="end">
+                    Xóa phiên
+                  </ion-button>
+                </ion-item>
+              </ion-card-content>
+            </ion-card>
+
+            <!-- Login Form Card -->
+            <ion-card class="login-card" *ngIf="!isAlreadyLoggedIn">
+              <ion-card-content>
+                <form (ngSubmit)="onLogin()" [formGroup]="loginForm" class="login-form">
+                  <!-- Username Field -->
+                  <ion-item lines="none" class="form-item" [class.item-has-error]="isFieldInvalid('username')">
+                    <ion-label position="stacked" color="medium">Username</ion-label>
+                    <ion-input type="text" formControlName="username" placeholder="Enter your username"
+                      [class.ion-invalid]="isFieldInvalid('username')"></ion-input>
+                    <ion-note slot="error" *ngIf="isFieldInvalid('username')">
+                      Username is required
+                    </ion-note>
+                  </ion-item>
+
+                  <!-- Password Field -->
+                  <ion-item lines="none" class="form-item" [class.item-has-error]="isFieldInvalid('password')">
+                    <ion-label position="stacked" color="medium">Password</ion-label>
+                    <ion-input [type]="showPassword ? 'text' : 'password'" formControlName="password"
+                      placeholder="Enter your password" [class.ion-invalid]="isFieldInvalid('password')">
+                      <ion-button fill="clear" slot="end" (click)="togglePasswordVisibility()"
+                                  class="password-toggle-btn">
+                        <ion-icon slot="icon-only" [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+                      </ion-button>
+                    </ion-input>
+                    <ion-note slot="error" *ngIf="isFieldInvalid('password')">
+                      Password is required (min 6 characters)
+                    </ion-note>
+                  </ion-item>
+
+                  <!-- Error Message -->
+                  <ion-item lines="none" *ngIf="errorMessage" class="error-item">
+                    <ion-icon name="alert-circle-outline" slot="start" color="danger"></ion-icon>
+                    <ion-label>
+                      <p class="error-message">{{ errorMessage }}</p>
+                    </ion-label>
+                  </ion-item>
+
+                  <!-- Login Button -->
+                  <ion-button type="submit" expand="block" class="login-button"
+                    [disabled]="loginForm.invalid || isLoading">
+                    <ion-spinner *ngIf="isLoading" name="crescent" class="ion-margin-end"></ion-spinner>
+                    <span *ngIf="!isLoading">Log in</span>
+                    <span *ngIf="isLoading">Logging in...</span>
+                  </ion-button>
+                </form>
+              </ion-card-content>
+            </ion-card>
+
+            <!-- Forgot Password Link -->
+            <div class="ion-text-center ion-margin-top">
+              <ion-button fill="clear" size="small" (click)="onForgotPassword()" class="forgot-password-btn">
+                Forgot password?
+              </ion-button>
+            </div>
+          </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+</ion-content>
