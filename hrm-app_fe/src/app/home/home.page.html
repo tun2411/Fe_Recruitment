@@ -1,20 +1,76 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
+<ion-header class="custom-header">
+  <ion-toolbar color="primary">
+    <div class="header-content">
+      <ion-avatar class="header-avatar">
+        <ion-icon name="person-outline"></ion-icon>
+      </ion-avatar>
+      <ion-title class="header-title">BÀI ĐĂNG</ion-title>
+      <div class="notification-wrapper" (click)="onNotificationClick()">
+        <ion-icon name="notifications-outline" class="notification-icon"></ion-icon>
+        <ion-badge color="danger" class="notification-badge">{{ notificationCount }}</ion-badge>
+      </div>
+    </div>
+    <br>
+    <ion-searchbar
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearch($event)"
+      placeholder="Tìm kiếm..."
+      class="custom-searchbar"
+      show-clear-button="focus"
+    ></ion-searchbar>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="home-content">
+<!--  <ion-searchbar-->
+<!--    [(ngModel)]="searchTerm"-->
+<!--    (ionInput)="onSearch($event)"-->
+<!--    placeholder="Tìm kiếm..."-->
+<!--    class="custom-searchbar"-->
+<!--    show-clear-button="focus"-->
+<!--  ></ion-searchbar>-->
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+  <div class="action-bar">
+    <ion-button fill="outline" class="action-button" (click)="onSort()">
+      <ion-icon name="arrow-down-outline" slot="start"></ion-icon>
+      ↑↓ Sort
+    </ion-button>
+    <ion-button fill="clear" class="refresh-button" (click)="onRefresh()">
+      <ion-icon name="refresh-outline"></ion-icon>
+    </ion-button>
+    <ion-button fill="outline" class="action-button" (click)="onFilter()">
+      <ion-icon name="filter-outline" slot="start"></ion-icon>
+      Filter
+      <ion-badge color="primary" class="filter-badge">{{ filterCount }}</ion-badge>
+    </ion-button>
   </div>
+
+
+  <div class="posts-container">
+    <ion-card *ngFor="let post of filteredPosts" class="post-card">
+      <ion-card-content>
+        <div class="post-content">
+          <h3 class="post-title">{{ post.title }}</h3>
+          <p class="post-description">{{ post.description }}</p>
+          <div class="post-footer">
+            <span class="post-date">Cập nhật vào {{ post.updatedAt }}</span>
+            <div class="post-actions">
+              <ion-button fill="outline" size="small" (click)="onViewList(post)">
+                List
+              </ion-button>
+              <ion-button fill="solid" color="primary" size="small" (click)="onViewDetail(post)">
+                Detail
+              </ion-button>
+            </div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <ion-fab vertical="bottom" horizontal="center" slot="fixed">
+    <ion-fab-button color="primary" (click)="onCreatePost()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>

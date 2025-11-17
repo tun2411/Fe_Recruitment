@@ -11,6 +11,16 @@ export const routes: Routes = [
       import('./pages/login/login.page').then((m) => m.LoginPage),
   },
   {
+    path: 'create-post',
+    loadComponent: () =>
+      import('./pages/create-post/create-post.page').then((m) => m.CreatePostPage),
+  },
+  {
+    path: 'candidates',
+    loadComponent: () =>
+      import('./pages/candidates/candidates.page').then((m) => m.CandidatesPage),
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full',
