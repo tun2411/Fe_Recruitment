@@ -1,0 +1,152 @@
+<ion-header class="custom-header">
+  <ion-toolbar color="primary">
+    <div class="header-content">
+      <ion-button fill="clear" class="back-button" (click)="onBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+      <ion-title class="header-title">TẠO BÀI ĐĂNG</ion-title>
+      <div class="notification-wrapper" (click)="onNotificationClick()">
+        <ion-icon name="notifications-outline" class="notification-icon"></ion-icon>
+        <ion-badge color="danger" class="notification-badge" *ngIf="notificationCount > 0">
+          {{ notificationCount }}
+        </ion-badge>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="create-post-content">
+  <div class="form-container">
+    <form [formGroup]="createPostForm" (ngSubmit)="onSubmit()">
+      <!-- Tiêu đề -->
+      <div class="form-field">
+        <ion-label class="field-label">Tiêu đề</ion-label>
+        <ion-input
+          formControlName="title"
+          placeholder="Tiêu đề/ Vị trí tuyển dụng"
+          class="custom-input"
+          [class.invalid]="isFieldInvalid('title')"
+        ></ion-input>
+      </div>
+
+      <!-- Mức lương -->
+      <div class="form-field">
+        <ion-label class="field-label">Mức lương</ion-label>
+        <ion-input
+          formControlName="salary"
+          placeholder="8000$ ~ 9000$"
+          class="custom-input"
+          [class.invalid]="isFieldInvalid('salary')"
+        ></ion-input>
+      </div>
+
+      <!-- Địa chỉ -->
+      <div class="form-field">
+        <ion-label class="field-label">Địa chỉ</ion-label>
+        <ion-input
+          formControlName="address"
+          placeholder="Địa chỉ..."
+          class="custom-input"
+          [class.invalid]="isFieldInvalid('address')"
+        ></ion-input>
+      </div>
+
+      <!-- Trạng thái -->
+      <div class="form-field">
+        <ion-label class="field-label">Trạng thái</ion-label>
+        <ion-select
+          formControlName="status"
+          placeholder="Trạng thái"
+          class="custom-select"
+          [class.invalid]="isFieldInvalid('status')"
+        >
+          <ion-select-option *ngFor="let option of statusOptions" [value]="option.value">
+            {{ option.label }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+
+      <!-- Hạn bài đăng -->
+      <div class="form-field">
+        <ion-label class="field-label">Hạn bài đăng</ion-label>
+        <ion-item class="date-picker-wrapper" button="true" id="open-date-modal">
+          <ion-label>
+            <span *ngIf="createPostForm.get('deadline')?.value; else datePlaceholder">
+              {{ formatDate(createPostForm.get('deadline')?.value) }}
+            </span>
+            <ng-template #datePlaceholder>
+              <span class="date-placeholder">Date</span>
+            </ng-template>
+          </ion-label>
+          <ion-icon name="calendar-outline" slot="end"></ion-icon>
+        </ion-item>
+        <ion-modal trigger="open-date-modal" [keepContentsMounted]="true">
+          <ng-template>
+            <ion-header>
+              <ion-toolbar>
+                <ion-title>Chọn ngày</ion-title>
+                <ion-buttons slot="end">
+                  <ion-button (click)="closeDateModal()">Đóng</ion-button>
+                </ion-buttons>
+              </ion-toolbar>
+            </ion-header>
+            <ion-content>
+              <ion-datetime
+                [value]="createPostForm.get('deadline')?.value"
+                presentation="date"
+                [min]="getTodayDate()"
+                (ionChange)="onDateChange($event)"
+              ></ion-datetime>
+            </ion-content>
+          </ng-template>
+        </ion-modal>
+      </div>
+
+      <!-- Vòng tuyển dụng -->
+      <div class="form-field">
+        <ion-label class="field-label">Vòng tuyển dụng</ion-label>
+        <ion-input
+          type="number"
+          formControlName="recruitmentRound"
+          placeholder="Integer"
+          class="custom-input"
+          [class.invalid]="isFieldInvalid('recruitmentRound')"
+        ></ion-input>
+      </div>
+
+      <!-- Nội dung -->
+      <div class="form-field">
+        <ion-label class="field-label">Nội dung</ion-label>
+        <ion-textarea
+          formControlName="content"
+          placeholder="Long text"
+          rows="6"
+          class="custom-textarea"
+          [class.invalid]="isFieldInvalid('content')"
+        ></ion-textarea>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <ion-button
+          fill="outline"
+          class="cancel-button"
+          type="button"
+          (click)="onCancel()"
+        >
+          Cancel
+        </ion-button>
+        <ion-button
+          fill="solid"
+          color="primary"
+          class="confirm-button"
+          type="submit"
+          [disabled]="createPostForm.invalid"
+        >
+          Confirm
+        </ion-button>
+      </div>
+    </form>
+  </div>
+</ion-content>
+

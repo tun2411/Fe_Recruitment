@@ -1,0 +1,256 @@
+.custom-header {
+  ion-toolbar {
+    --background: #3880ff;
+    --color: white;
+    border-radius: 0 0 20px 20px;
+    padding: 0;
+  }
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    width: 100%;
+  }
+
+  .header-avatar {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon {
+      font-size: 24px;
+      color: white;
+    }
+  }
+
+  .header-title {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    font-size: 18px;
+    color: white;
+    margin: 0;
+    text-transform: uppercase;
+  }
+
+  .notification-wrapper {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .notification-icon {
+    font-size: 24px;
+    color: white;
+  }
+
+  .notification-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 10px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+  }
+}
+
+.candidates-content {
+  --background: #f5f5f5;
+}
+
+.custom-searchbar {
+  padding: 12px 16px;
+  --background: white;
+  --border-radius: 12px;
+  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 8px 16px;
+}
+
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  gap: 8px;
+
+  .action-button {
+    flex: 1;
+    --border-radius: 12px;
+    --background: white;
+    --color: #333;
+    font-size: 14px;
+    height: 40px;
+    margin: 0;
+    position: relative;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+
+  .refresh-button {
+    --color: #3880ff;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+
+    ion-icon {
+      font-size: 24px;
+    }
+  }
+
+  .filter-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    font-size: 10px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+  }
+}
+
+.candidates-container {
+  padding: 0 16px 100px;
+}
+
+.candidate-card {
+  margin: 0 0 16px 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+
+  &.card-pass {
+    --background: #e8f5e9;
+    background: #e8f5e9;
+  }
+
+  &.card-fail {
+    --background: #fce4ec;
+    background: #fce4ec;
+  }
+
+  &.card-new {
+    --background: #f5f5f5;
+    background: #f5f5f5;
+  }
+
+  ion-card-content {
+    padding: 16px;
+  }
+
+  .candidate-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+
+    .candidate-info {
+      flex: 1;
+
+      .candidate-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 4px 0;
+        line-height: 1.4;
+      }
+
+      .candidate-position {
+        font-size: 14px;
+        color: #666;
+        margin: 0 0 4px 0;
+        font-weight: 500;
+      }
+
+      .candidate-contact {
+        font-size: 13px;
+        color: #888;
+        margin: 0;
+      }
+    }
+
+    .favorite-button {
+      --color: #ffc107;
+      margin: 0;
+      width: 40px;
+      height: 40px;
+
+      ion-icon {
+        font-size: 24px;
+
+        &.filled {
+          color: #ffc107;
+        }
+      }
+    }
+  }
+
+  .candidate-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+
+    .status-badge {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 16px;
+    }
+
+    .candidate-actions {
+      display: flex;
+      gap: 8px;
+
+      ion-button {
+        --border-radius: 8px;
+        margin: 0;
+        height: 32px;
+        font-size: 12px;
+
+        &.view-button {
+          --border-color: #4caf50;
+          --color: #4caf50;
+          --background: white;
+        }
+
+        &.download-button {
+          --background: #3880ff;
+          --color: white;
+        }
+
+        ion-icon {
+          font-size: 16px;
+        }
+      }
+    }
+  }
+}
+
+ion-fab {
+  margin-bottom: 20px;
+
+  ion-fab-button {
+    --box-shadow: 0 4px 12px rgba(56, 128, 255, 0.4);
+    width: 56px;
+    height: 56px;
+
+    ion-icon {
+      font-size: 28px;
+    }
+  }
+}
+

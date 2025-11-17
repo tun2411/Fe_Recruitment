@@ -1,0 +1,179 @@
+.custom-header {
+  ion-toolbar {
+    --background: #3880ff;
+    --color: white;
+    border-radius: 0 0 20px 20px;
+    padding: 0;
+  }
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    width: 100%;
+  }
+
+  .back-button {
+    --color: white;
+    margin: 0;
+    width: 40px;
+    height: 40px;
+
+    ion-icon {
+      font-size: 24px;
+    }
+  }
+
+  .header-title {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    font-size: 18px;
+    color: white;
+    margin: 0;
+    text-transform: uppercase;
+  }
+
+  .notification-wrapper {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .notification-icon {
+    font-size: 24px;
+    color: white;
+  }
+
+  .notification-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 10px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+  }
+}
+
+.create-post-content {
+  --background: #f5f5f5;
+}
+
+.form-container {
+  background: white;
+  margin: 16px;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-field {
+  margin-bottom: 20px;
+
+  .field-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+  }
+
+  .custom-input,
+  .custom-select,
+  .custom-textarea {
+    --background: #f8f9fa;
+    --border-radius: 12px;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    border: 1px solid #e0e0e0;
+    width: 100%;
+
+    &.invalid {
+      border-color: #eb445a;
+    }
+  }
+
+  .custom-select {
+    --padding-start: 16px;
+    --padding-end: 40px;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid #666;
+    }
+  }
+
+  .custom-textarea {
+    min-height: 120px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+  }
+
+  .date-picker-wrapper {
+    --background: #f8f9fa;
+    --border-radius: 12px;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    margin: 0;
+    width: 100%;
+
+    .date-placeholder {
+      color: #999;
+    }
+
+    ion-icon {
+      color: #666;
+      font-size: 20px;
+    }
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+
+  .cancel-button,
+  .confirm-button {
+    flex: 1;
+    --border-radius: 12px;
+    height: 48px;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  .cancel-button {
+    --border-color: #3880ff;
+    --color: #3880ff;
+    --background: white;
+  }
+
+  .confirm-button {
+    --background: #3880ff;
+    --color: white;
+  }
+}
+

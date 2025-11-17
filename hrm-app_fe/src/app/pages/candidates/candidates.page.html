@@ -1,0 +1,106 @@
+<ion-header class="custom-header">
+  <ion-toolbar color="primary">
+    <div class="header-content">
+      <ion-avatar class="header-avatar">
+        <ion-icon name="person-outline"></ion-icon>
+      </ion-avatar>
+      <ion-title class="header-title">ỨNG VIÊN</ion-title>
+      <div class="notification-wrapper" (click)="onNotificationClick()">
+        <ion-icon name="notifications-outline" class="notification-icon"></ion-icon>
+        <ion-badge color="danger" class="notification-badge" *ngIf="notificationCount > 0">
+          {{ notificationCount }}
+        </ion-badge>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="candidates-content">
+  <!-- Search Bar -->
+  <ion-searchbar
+    [(ngModel)]="searchTerm"
+    (ionInput)="onSearch($event)"
+    placeholder="Tìm kiếm..."
+    class="custom-searchbar"
+    show-clear-button="focus"
+  ></ion-searchbar>
+
+  <!-- Action Bar -->
+  <div class="action-bar">
+    <ion-button fill="outline" class="action-button" (click)="onSort()">
+      <ion-icon name="arrow-down-outline" slot="start"></ion-icon>
+      ↑↓ Sort
+    </ion-button>
+    <ion-button fill="clear" class="refresh-button" (click)="onRefresh()">
+      <ion-icon name="refresh-outline"></ion-icon>
+    </ion-button>
+    <ion-button fill="outline" class="action-button" (click)="onFilter()">
+      <ion-icon name="filter-outline" slot="start"></ion-icon>
+      Filter
+      <ion-badge color="primary" class="filter-badge">{{ filterCount }}</ion-badge>
+    </ion-button>
+  </div>
+
+  <!-- Candidates List -->
+  <div class="candidates-container">
+    <ion-card
+      *ngFor="let candidate of filteredCandidates"
+      [class]="getCardColorClass(candidate.status)"
+      class="candidate-card"
+    >
+      <ion-card-content>
+        <div class="candidate-header">
+          <div class="candidate-info">
+            <h3 class="candidate-name">{{ candidate.fullName }}</h3>
+            <p class="candidate-position">{{ candidate.position }}</p>
+            <p class="candidate-contact">{{ candidate.email }} / {{ candidate.phone }}</p>
+          </div>
+          <ion-button
+            fill="clear"
+            class="favorite-button"
+            (click)="toggleFavorite(candidate)"
+          >
+            <ion-icon
+              [name]="candidate.isFavorite ? 'star' : 'star-outline'"
+              [class.filled]="candidate.isFavorite"
+            ></ion-icon>
+          </ion-button>
+        </div>
+
+        <div class="candidate-footer">
+          <ion-badge [color]="getStatusColor(candidate.status)" class="status-badge">
+            {{ getStatusLabel(candidate) }}
+          </ion-badge>
+          <div class="candidate-actions">
+            <ion-button
+              fill="outline"
+              size="small"
+              class="view-button"
+              (click)="onView(candidate)"
+            >
+              <ion-icon name="eye-outline" slot="start"></ion-icon>
+              View
+            </ion-button>
+            <ion-button
+              fill="solid"
+              color="primary"
+              size="small"
+              class="download-button"
+              (click)="onDownload(candidate)"
+            >
+              <ion-icon name="download-outline"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Floating Action Button -->
+  <ion-fab vertical="bottom" horizontal="center" slot="fixed">
+    <ion-fab-button color="primary" (click)="onAddCandidate()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
+
