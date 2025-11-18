@@ -1,15 +1,12 @@
 <ion-header class="custom-header">
   <ion-toolbar color="primary">
     <div class="header-content">
-      <ion-button fill="clear" class="back-button" (click)="onBack()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </ion-button>
+      <div class="header-icon-circle">
+        <ion-icon name="person-outline"></ion-icon>
+      </div>
       <ion-title class="header-title">TẠO BÀI ĐĂNG</ion-title>
       <div class="notification-wrapper" (click)="onNotificationClick()">
         <ion-icon name="notifications-outline" class="notification-icon"></ion-icon>
-        <ion-badge color="danger" class="notification-badge" *ngIf="notificationCount > 0">
-          {{ notificationCount }}
-        </ion-badge>
       </div>
     </div>
   </ion-toolbar>
@@ -34,7 +31,7 @@
         <ion-label class="field-label">Mức lương</ion-label>
         <ion-input
           formControlName="salary"
-          placeholder="8000$ ~ 9000$"
+          placeholder="$$$"
           class="custom-input"
           [class.invalid]="isFieldInvalid('salary')"
         ></ion-input>
@@ -69,37 +66,17 @@
       <!-- Hạn bài đăng -->
       <div class="form-field">
         <ion-label class="field-label">Hạn bài đăng</ion-label>
-        <ion-item class="date-picker-wrapper" button="true" id="open-date-modal">
+        <ion-item button="true" id="open-date-modal" class="date-picker-wrapper" [class.invalid]="isFieldInvalid('deadline')">
           <ion-label>
-            <span *ngIf="createPostForm.get('deadline')?.value; else datePlaceholder">
+            <span *ngIf="createPostForm.get('deadline')?.value; else datePlaceholder" class="date-value">
               {{ formatDate(createPostForm.get('deadline')?.value) }}
             </span>
             <ng-template #datePlaceholder>
-              <span class="date-placeholder">Date</span>
+              <span class="date-placeholder">Chọn ngày</span>
             </ng-template>
           </ion-label>
           <ion-icon name="calendar-outline" slot="end"></ion-icon>
         </ion-item>
-        <ion-modal trigger="open-date-modal" [keepContentsMounted]="true">
-          <ng-template>
-            <ion-header>
-              <ion-toolbar>
-                <ion-title>Chọn ngày</ion-title>
-                <ion-buttons slot="end">
-                  <ion-button (click)="closeDateModal()">Đóng</ion-button>
-                </ion-buttons>
-              </ion-toolbar>
-            </ion-header>
-            <ion-content>
-              <ion-datetime
-                [value]="createPostForm.get('deadline')?.value"
-                presentation="date"
-                [min]="getTodayDate()"
-                (ionChange)="onDateChange($event)"
-              ></ion-datetime>
-            </ion-content>
-          </ng-template>
-        </ion-modal>
       </div>
 
       <!-- Vòng tuyển dụng -->
@@ -108,10 +85,25 @@
         <ion-input
           type="number"
           formControlName="recruitmentRound"
-          placeholder="Integer"
+          placeholder=""
           class="custom-input"
           [class.invalid]="isFieldInvalid('recruitmentRound')"
         ></ion-input>
+      </div>
+
+      <!-- Form tự động -->
+      <div class="form-field">
+        <ion-label class="field-label">Form tự động</ion-label>
+        <ion-select
+          formControlName="autoForm"
+          placeholder="Form 1"
+          class="custom-select"
+          [class.invalid]="isFieldInvalid('autoForm')"
+        >
+          <ion-select-option *ngFor="let option of autoFormOptions" [value]="option.value">
+            {{ option.label }}
+          </ion-select-option>
+        </ion-select>
       </div>
 
       <!-- Nội dung -->
@@ -119,7 +111,7 @@
         <ion-label class="field-label">Nội dung</ion-label>
         <ion-textarea
           formControlName="content"
-          placeholder="Long text"
+          placeholder=""
           rows="6"
           class="custom-textarea"
           [class.invalid]="isFieldInvalid('content')"
@@ -129,7 +121,8 @@
       <!-- Action Buttons -->
       <div class="action-buttons">
         <ion-button
-          fill="outline"
+          fill="solid"
+          color="primary"
           class="cancel-button"
           type="button"
           (click)="onCancel()"
@@ -150,3 +143,31 @@
   </div>
 </ion-content>
 
+<!-- Date Picker Modal -->
+<ion-modal #dateModal trigger="open-date-modal">
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Chọn ngày hết hạn</ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="dateModal.dismiss()">
+          <ion-icon name="close-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content class="date-picker-content">
+    <ion-datetime
+      presentation="date"
+      [min]="minDate"
+      [value]="createPostForm.get('deadline')?.value || minDate"
+      (ionChange)="onDateChange($event)"
+      showDefaultButtons="false"
+      class="date-picker-modal"
+    >
+      <ion-buttons slot="buttons">
+        <ion-button fill="clear" (click)="dateModal.dismiss()">Hủy</ion-button>
+        <ion-button fill="solid" color="primary" (click)="confirmDate(dateModal)">Xác nhận</ion-button>
+      </ion-buttons>
+    </ion-datetime>
+  </ion-content>
+</ion-modal>

@@ -1,27 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
 import { Router } from '@angular/router';
 import {
   IonContent,
-  IonInput,
   IonButton,
   IonIcon,
   IonCard,
   IonCardContent,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardSubtitle,
   IonItem,
   IonLabel,
-  IonNote,
-  IonList,
-  IonAvatar,
   IonText,
   IonGrid,
   IonRow,
@@ -32,10 +19,10 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  eyeOutline,
-  eyeOffOutline,
   alertCircleOutline,
   informationCircleOutline,
+  logoGoogle,
+  logoFacebook,
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 
@@ -46,47 +33,37 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [
     IonContent,
-    IonInput,
     IonButton,
     IonIcon,
     IonCard,
     IonCardContent,
     IonItem,
     IonLabel,
-    IonNote,
     IonText,
     IonGrid,
     IonRow,
     IonCol,
     IonSpinner,
     CommonModule,
-    ReactiveFormsModule,
   ],
 })
 export class LoginPage implements OnInit {
-  loginForm: FormGroup;
-  showPassword = false;
   isLoading = false;
   errorMessage = '';
   isAlreadyLoggedIn = false;
+  loginProvider: 'google' | 'facebook' | null = null;
 
   constructor(
-    private formBuilder: FormBuilder,
     private authService: AuthService,
     private router: Router,
     private loadingController: LoadingController,
     private toastController: ToastController
   ) {
     addIcons({
-      eyeOutline,
-      eyeOffOutline,
       alertCircleOutline,
       informationCircleOutline,
-    });
-
-    this.loginForm = this.formBuilder.group({
-      username: ['', [Validators.required]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      logoGoogle,
+      logoFacebook,
     });
   }
 
@@ -120,86 +97,106 @@ export class LoginPage implements OnInit {
     await toast.present();
   }
 
-  togglePasswordVisibility() {
-    this.showPassword = !this.showPassword;
-  }
-
-  isFieldInvalid(fieldName: string): boolean {
-    const field = this.loginForm.get(fieldName);
-    return !!(field && field.invalid && (field.dirty || field.touched));
-  }
-
-  async onLogin() {
-    if (this.loginForm.invalid) {
-      this.markFormGroupTouched();
-      return;
-    }
-
+  async onGoogleLogin() {
     this.isLoading = true;
     this.errorMessage = '';
+    this.loginProvider = 'google';
 
     const loading = await this.loadingController.create({
-      message: 'Logging in...',
+      message: 'Đang đăng nhập bằng Google...',
       spinner: 'crescent',
     });
     await loading.present();
 
-    const credentials = {
-      username: this.loginForm.value.username,
-      password: this.loginForm.value.password,
-    };
-
-    this.authService.login(credentials).subscribe({
-      next: async (response) => {
+    try {
+      // TODO: Implement Google OAuth login
+      // This is a placeholder - you'll need to integrate with your OAuth provider
+      // Example: await this.authService.loginWithGoogle();
+      
+      // Simulate API call (replace with actual implementation)
+      setTimeout(async () => {
         await loading.dismiss();
         this.isLoading = false;
-
-        // Hiển thị message từ backend hoặc message mặc định
-        const successMessage = response.message || 'Đăng nhập thành công!';
+        this.loginProvider = null;
 
         const toast = await this.toastController.create({
-          message: successMessage,
+          message: 'Đăng nhập bằng Google thành công!',
           duration: 2000,
           color: 'success',
           position: 'top',
         });
         await toast.present();
 
+        this.router.navigate(['/home']).catch((error) => {
+          console.error('Navigation error after login:', error);
+        });
+      }, 1500);
+    } catch (error: any) {
+      await loading.dismiss();
+      this.isLoading = false;
+      this.loginProvider = null;
+
+      this.errorMessage = error.message || 'Đăng nhập bằng Google thất bại. Vui lòng thử lại.';
+
+      const toast = await this.toastController.create({
+        message: this.errorMessage,
+        duration: 3000,
+        color: 'danger',
+        position: 'top',
+      });
+      await toast.present();
+    }
+  }
+
+  async onFacebookLogin() {
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.loginProvider = 'facebook';
+
+    const loading = await this.loadingController.create({
+      message: 'Đang đăng nhập bằng Facebook...',
+      spinner: 'crescent',
+    });
+    await loading.present();
+
+    try {
+      // TODO: Implement Facebook OAuth login
+      // This is a placeholder - you'll need to integrate with your OAuth provider
+      // Example: await this.authService.loginWithFacebook();
+      
+      // Simulate API call (replace with actual implementation)
+      setTimeout(async () => {
+        await loading.dismiss();
+        this.isLoading = false;
+        this.loginProvider = null;
+
+        const toast = await this.toastController.create({
+          message: 'Đăng nhập bằng Facebook thành công!',
+          duration: 2000,
+          color: 'success',
+          position: 'top',
+        });
+        await toast.present();
 
         this.router.navigate(['/home']).catch((error) => {
           console.error('Navigation error after login:', error);
         });
-      },
-      error: async (error) => {
-        await loading.dismiss();
-        this.isLoading = false;
+      }, 1500);
+    } catch (error: any) {
+      await loading.dismiss();
+      this.isLoading = false;
+      this.loginProvider = null;
 
+      this.errorMessage = error.message || 'Đăng nhập bằng Facebook thất bại. Vui lòng thử lại.';
 
-        if (error.status === 401) {
-          this.errorMessage = 'Invalid username or password';
-        } else if (error.status === 0) {
-          this.errorMessage =
-            'Cannot connect to server. Please check your connection.';
-        } else {
-          this.errorMessage =
-            error.error?.message || 'Login failed. Please try again.';
-        }
-
-        const toast = await this.toastController.create({
-          message: this.errorMessage,
-          duration: 3000,
-          color: 'danger',
-          position: 'top',
-        });
-        await toast.present();
-      },
-    });
-  }
-
-  onForgotPassword() {
-    // Navigate to forgot password page (cần tạo page này nếu chưa có)
-    console.log('Forgot password clicked');
-    // this.router.navigate(['/forgot-password']);
+      const toast = await this.toastController.create({
+        message: this.errorMessage,
+        duration: 3000,
+        color: 'danger',
+        position: 'top',
+      });
+      await toast.present();
+    }
   }
 
   async clearSession() {
@@ -217,10 +214,4 @@ export class LoginPage implements OnInit {
     window.location.reload();
   }
 
-  private markFormGroupTouched() {
-    Object.keys(this.loginForm.controls).forEach((key) => {
-      const control = this.loginForm.get(key);
-      control?.markAsTouched();
-    });
-  }
 }

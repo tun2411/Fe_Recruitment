@@ -43,6 +43,13 @@
 
   <!-- Candidates List -->
   <div class="candidates-container">
+    <!-- Empty State -->
+    <div *ngIf="filteredCandidates.length === 0" class="empty-state">
+      <ion-icon name="person-outline" class="empty-icon"></ion-icon>
+      <p class="empty-message">Chưa có ứng viên nào ứng tuyển cho bài đăng này</p>
+    </div>
+
+    <!-- Candidates Cards -->
     <ion-card
       *ngFor="let candidate of filteredCandidates"
       [class]="getCardColorClass(candidate.status)"

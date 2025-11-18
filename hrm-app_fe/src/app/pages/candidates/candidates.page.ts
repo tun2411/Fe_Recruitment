@@ -16,6 +16,8 @@ import {
   IonAvatar,
   IonFab,
   IonFabButton,
+  LoadingController,
+  ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -30,9 +32,13 @@ import {
   eyeOutline,
   downloadOutline,
 } from 'ionicons/icons';
+import { ApplicationService, Application } from '../../services/application.service';
+import { JobPostService } from '../../services/job-post.service';
+import { environment } from '../../../environments/environment';
 
 export interface Candidate {
   id: number;
+  applicationId: number;
   fullName: string;
   position: string;
   email: string;
@@ -40,6 +46,9 @@ export interface Candidate {
   status: 'pass' | 'fail' | 'new';
   round: number;
   isFavorite: boolean;
+  cvFileId?: number;
+  cvFilePath?: string;
+  cvFileName?: string;
 }
 
 @Component({
@@ -72,10 +81,15 @@ export class CandidatesPage implements OnInit {
   notificationCount: number = 2;
   filterCount: number = 2;
   postId: number | null = null;
+  jobTitle: string = '';
 
   constructor(
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private applicationService: ApplicationService,
+    private jobPostService: JobPostService,
+    private loadingController: LoadingController,
+    private toastController: ToastController
   ) {
     addIcons({
       notificationsOutline,
@@ -95,65 +109,119 @@ export class CandidatesPage implements OnInit {
     // Lấy postId từ query params nếu có
     this.route.queryParams.subscribe((params) => {
       this.postId = params['postId'] ? parseInt(params['postId']) : null;
-      this.loadCandidates();
+      if (this.postId) {
+        this.loadJobTitle();
+        this.loadCandidates();
+      } else {
+        // Nếu không có postId, hiển thị thông báo
+        this.showToast('Không tìm thấy bài đăng', 'warning');
+        this.candidates = [];
+        this.filteredCandidates = [];
+      }
     });
   }
 
-  loadCandidates() {
-    // Fix cứng data ứng viên
-    this.candidates = [
-      {
-        id: 1,
-        fullName: 'Nguyễn Văn A',
-        position: 'Senior Developer',
-        email: 'nguyenvana@email.com',
-        phone: '0123456789',
-        status: 'pass',
-        round: 1,
-        isFavorite: false,
+  /**
+   * Load job title để hiển thị position cho ứng viên
+   */
+  loadJobTitle() {
+    if (!this.postId) return;
+
+    this.jobPostService.getJobPostById(this.postId).subscribe({
+      next: (jobPost) => {
+        this.jobTitle = jobPost.title;
+        // Cập nhật position cho tất cả candidates nếu đã load
+        if (this.candidates.length > 0) {
+          this.candidates.forEach(candidate => {
+            candidate.position = this.jobTitle;
+          });
+          this.filteredCandidates = [...this.candidates];
+        }
       },
-      {
-        id: 2,
-        fullName: 'Trần Thị B',
-        position: 'UI/UX Designer',
-        email: 'tranthib@email.com',
-        phone: '0987654321',
-        status: 'fail',
-        round: 1,
-        isFavorite: true,
+      error: (error) => {
+        console.error('Error loading job title:', error);
       },
-      {
-        id: 3,
-        fullName: 'Lê Văn C',
-        position: 'Frontend Developer',
-        email: 'levanc@email.com',
-        phone: '0111222333',
-        status: 'new',
-        round: 0,
-        isFavorite: true,
+    });
+  }
+
+  /**
+   * Load danh sách ứng viên từ API
+   */
+  async loadCandidates() {
+    if (!this.postId) {
+      this.candidates = [];
+      this.filteredCandidates = [];
+      return;
+    }
+
+    const loading = await this.loadingController.create({
+      message: 'Đang tải danh sách ứng viên...',
+      spinner: 'crescent',
+    });
+    await loading.present();
+
+    this.applicationService.getApplicationsByJobId(this.postId).subscribe({
+      next: (applications: Application[]) => {
+        // Map Application từ API thành Candidate để hiển thị
+        this.candidates = applications.map((app) => this.mapApplicationToCandidate(app));
+        this.filteredCandidates = [...this.candidates];
+        loading.dismiss();
+
+        if (this.candidates.length === 0) {
+          this.showToast('Chưa có ứng viên nào ứng tuyển cho bài đăng này', 'info');
+        }
       },
-      {
-        id: 4,
-        fullName: 'Phạm Thị D',
-        position: 'Backend Developer',
-        email: 'phamthid@email.com',
-        phone: '0444555666',
-        status: 'pass',
-        round: 2,
-        isFavorite: false,
+      error: async (error) => {
+        loading.dismiss();
+        console.error('Error loading candidates:', error);
+        this.showToast('Không thể tải danh sách ứng viên. Vui lòng thử lại sau.', 'danger');
+        this.candidates = [];
+        this.filteredCandidates = [];
       },
-      {
-        id: 5,
-        fullName: 'Hoàng Văn E',
-        position: 'Full Stack Developer',
-        email: 'hoangvane@email.com',
-        phone: '0777888999',
-        status: 'new',
-        round: 0,
-        isFavorite: false,
-      },
-    ];
-    this.filteredCandidates = [...this.candidates];
+    });
+  }
+
+  /**
+   * Chuyển đổi Application từ API thành Candidate để hiển thị
+   */
+  private mapApplicationToCandidate(application: Application): Candidate {
+    // Map status từ API sang status của Candidate
+    let status: 'pass' | 'fail' | 'new' = 'new';
+    if (application.status === 'new_status' || application.status === 'new') {
+      status = 'new';
+    } else if (application.status === 'pass' || application.status === 'passed') {
+      status = 'pass';
+    } else if (application.status === 'fail' || application.status === 'failed') {
+      status = 'fail';
+    }
+
+    return {
+      id: application.candidateId,
+      applicationId: application.applicationId,
+      fullName: application.candidateFullName,
+      position: this.jobTitle || 'Ứng viên',
+      email: application.candidateEmail,
+      phone: application.candidatePhone,
+      status: status,
+      round: application.currentRoundIndex,
+      isFavorite: false,
+      cvFileId: application.cvFileId,
+      cvFilePath: application.cvFilePath,
+      cvFileName: application.cvFileName,
+    };
+  }
+
+  /**
+   * Hiển thị toast message
+   */
+  private async showToast(message: string, color: string = 'primary') {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000,
+      color: color,
+      position: 'top',
+    });
+    await toast.present();
   }
 
   onSearch(event: any) {
@@ -183,9 +251,7 @@ export class CandidatesPage implements OnInit {
   }
 
   onRefresh() {
-    setTimeout(() => {
-      this.loadCandidates();
-    }, 1000);
+    this.loadCandidates();
   }
 
   onFilter() {
@@ -202,7 +268,27 @@ export class CandidatesPage implements OnInit {
   }
 
   onDownload(candidate: Candidate) {
-    console.log('Download candidate CV:', candidate.id);
+    if (candidate.cvFilePath) {
+      // Tạo URL để download CV
+      // cvFilePath từ API có dạng: /uploads/cv/cv_004.pdf
+      // Cần tạo full URL đến backend server
+      let downloadUrl = candidate.cvFilePath;
+      
+      if (!candidate.cvFilePath.startsWith('http')) {
+        // Nếu dùng proxy, backend URL là http://localhost:8080
+        // Nếu không dùng proxy, lấy từ environment
+        const backendUrl = environment.apiUrl.startsWith('http') 
+          ? environment.apiUrl.replace('/api', '')
+          : 'http://localhost:8080';
+        downloadUrl = `${backendUrl}${candidate.cvFilePath}`;
+      }
+      
+      // Mở link download trong tab mới
+      window.open(downloadUrl, '_blank');
+      console.log('Download CV:', candidate.cvFileName || candidate.cvFilePath);
+    } else {
+      this.showToast('Không tìm thấy file CV', 'warning');
+    }
   }
 
   onNotificationClick() {

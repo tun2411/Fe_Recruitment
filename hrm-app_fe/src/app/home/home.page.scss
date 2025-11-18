@@ -71,8 +71,9 @@
   padding: 12px 16px;
   --background: #ffffff;
   --color: #333;
-  --placeholder-color: #999;
+  --placeholder-color: #ffffff;
   --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --border-radius: 12px;
 
   .searchbar-input {
     background: #ffffff !important;

@@ -2,8 +2,9 @@
   ion-toolbar {
     --background: #3880ff;
     --color: white;
-    border-radius: 0 0 20px 20px;
+    border-radius: 0 0 16px 16px;
     padding: 0;
+    min-height: 60px;
   }
 
   .header-content {
@@ -14,14 +15,19 @@
     width: 100%;
   }
 
-  .back-button {
-    --color: white;
-    margin: 0;
+  .header-icon-circle {
     width: 40px;
     height: 40px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 
     ion-icon {
       font-size: 24px;
+      color: #3880ff;
     }
   }
 
@@ -43,21 +49,12 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    flex-shrink: 0;
   }
 
   .notification-icon {
     font-size: 24px;
     color: white;
-  }
-
-  .notification-badge {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    font-size: 10px;
-    min-width: 18px;
-    height: 18px;
-    border-radius: 9px;
   }
 }
 
@@ -67,10 +64,10 @@
 
 .form-container {
   background: white;
-  margin: 16px;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 0;
+  border-radius: 0;
+  padding: 20px 16px;
+  box-shadow: none;
 }
 
 .form-field {
@@ -81,42 +78,56 @@
     font-size: 14px;
     font-weight: 500;
     color: #333;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
   .custom-input,
   .custom-select,
   .custom-textarea {
-    --background: #f8f9fa;
-    --border-radius: 12px;
-    --padding-start: 16px;
-    --padding-end: 16px;
+    --background: #ffffff;
+    --color: #000000;
+    --border-radius: 8px;
+    --padding-start: 12px;
+    --padding-end: 12px;
     --padding-top: 12px;
     --padding-bottom: 12px;
     border: 1px solid #e0e0e0;
     width: 100%;
+    font-size: 14px;
+    color: #000000;
 
     &.invalid {
       border-color: #eb445a;
     }
+
+    &::placeholder {
+      color: #999999;
+    }
   }
 
   .custom-select {
-    --padding-start: 16px;
+    --padding-start: 12px;
     --padding-end: 40px;
+    --color: #000000;
     position: relative;
+    color: #000000;
 
     &::after {
       content: '';
       position: absolute;
-      right: 16px;
+      right: 12px;
       top: 50%;
       transform: translateY(-50%);
       width: 0;
       height: 0;
-      border-left: 6px solid transparent;
-      border-right: 6px solid transparent;
-      border-top: 6px solid #666;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid #666;
+      pointer-events: none;
+    }
+
+    &::part(text) {
+      color: #000000;
     }
   }
 
@@ -127,24 +138,120 @@
   }
 
   .date-picker-wrapper {
-    --background: #f8f9fa;
-    --border-radius: 12px;
-    --padding-start: 16px;
-    --padding-end: 16px;
+    --background: #ffffff;
+    --border-radius: 8px;
+    --padding-start: 12px;
+    --padding-end: 12px;
     --padding-top: 12px;
     --padding-bottom: 12px;
     border: 1px solid #e0e0e0;
-    border-radius: 12px;
+    border-radius: 8px;
     margin: 0;
     width: 100%;
+    --color: #000000;
+
+    &.invalid {
+      border-color: #eb445a;
+    }
 
     .date-placeholder {
-      color: #999;
+      color: #999999;
+    }
+
+    .date-value {
+      color: #000000;
     }
 
     ion-icon {
       color: #666;
-      font-size: 20px;
+      font-size: 18px;
+    }
+  }
+}
+
+// Date Picker Modal Styles
+ion-modal {
+  --width: 90%;
+  --max-width: 420px;
+  --height: auto;
+  --max-height: 90vh;
+  --border-radius: 16px;
+  --box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --backdrop-opacity: 0.4;
+}
+
+.date-picker-content {
+  --background: #ffffff;
+  --padding: 0;
+  --overflow: visible;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.date-picker-modal {
+  width: 100%;
+  flex: 1;
+  --background: #ffffff;
+  --color: #1f2937;
+  display: block;
+  min-height: 400px;
+  
+  // Style cho selected day
+  --calendar-day-selected-background: #3880ff;
+  --calendar-day-selected-color: #ffffff;
+  
+  // Style cho today
+  --calendar-day-today-background: transparent;
+  --calendar-day-today-color: #3880ff;
+  --calendar-day-today-border-color: #3880ff;
+  --calendar-day-today-border-width: 2px;
+  --calendar-day-today-border-style: solid;
+  
+  // Style cho disabled days
+  --calendar-day-disabled-color: #d1d5db;
+  --calendar-day-disabled-opacity: 0.5;
+  
+  // Style cho days outside current month
+  --calendar-day-prev-month-color: #d1d5db;
+  --calendar-day-next-month-color: #d1d5db;
+  
+  // Style cho week header
+  --calendar-weekday-color: #6b7280;
+  --calendar-weekday-font-weight: 600;
+  --calendar-weekday-font-size: 12px;
+  
+  // Style cho month/year header
+  --datetime-month-year-color: #1f2937;
+  --datetime-month-year-font-weight: 600;
+  --datetime-month-year-font-size: 16px;
+  
+  // Style cho navigation buttons
+  --datetime-navigation-button-color: #3880ff;
+}
+
+// Style cho buttons trong datetime
+ion-datetime ion-buttons {
+  padding: 12px 16px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+  
+  ion-button {
+    font-weight: 500;
+    text-transform: none;
+    margin: 0;
+    height: 40px;
+    
+    &[fill="clear"] {
+      --color: #6b7280;
+    }
+    
+    &[fill="solid"] {
+      --background: #3880ff;
+      --color: #ffffff;
     }
   }
 }
@@ -153,27 +260,18 @@
   display: flex;
   gap: 12px;
   margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #f0f0f0;
+  padding: 0;
 
   .cancel-button,
   .confirm-button {
     flex: 1;
-    --border-radius: 12px;
+    --border-radius: 8px;
     height: 48px;
     font-weight: 500;
     margin: 0;
-  }
-
-  .cancel-button {
-    --border-color: #3880ff;
-    --color: #3880ff;
-    --background: white;
-  }
-
-  .confirm-button {
     --background: #3880ff;
     --color: white;
+    text-transform: none;
   }
 }
 

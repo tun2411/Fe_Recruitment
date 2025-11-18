@@ -8,6 +8,7 @@ import {
   IonTitle,
   IonContent,
   IonButton,
+  IonButtons,
   IonIcon,
   IonInput,
   IonTextarea,
@@ -17,9 +18,6 @@ import {
   IonLabel,
   IonModal,
   IonDatetime,
-  IonBadge,
-  IonAvatar,
-  IonButtons,
   ToastController,
   LoadingController,
 } from '@ionic/angular/standalone';
@@ -30,6 +28,7 @@ import {
   arrowBackOutline,
   calendarOutline,
   chevronDownOutline,
+  closeOutline,
 } from 'ionicons/icons';
 
 @Component({
@@ -55,19 +54,24 @@ import {
     IonLabel,
     IonModal,
     IonDatetime,
-    IonBadge,
-    IonAvatar,
     IonButtons,
   ],
 })
 export class CreatePostPage implements OnInit {
   createPostForm: FormGroup;
   notificationCount: number = 2;
+  minDate: string = '';
 
   statusOptions = [
     { value: 'active', label: 'Đang hoạt động' },
     { value: 'pending', label: 'Chờ duyệt' },
     { value: 'closed', label: 'Đã đóng' },
+  ];
+
+  autoFormOptions = [
+    { value: 'form1', label: 'Form 1' },
+    { value: 'form2', label: 'Form 2' },
+    { value: 'form3', label: 'Form 3' },
   ];
 
   constructor(
@@ -82,6 +86,7 @@ export class CreatePostPage implements OnInit {
       arrowBackOutline,
       calendarOutline,
       chevronDownOutline,
+      closeOutline,
     });
 
     this.createPostForm = this.formBuilder.group({
@@ -91,14 +96,16 @@ export class CreatePostPage implements OnInit {
       status: ['', [Validators.required]],
       deadline: ['', [Validators.required]],
       recruitmentRound: ['', [Validators.required, Validators.min(1)]],
+      autoForm: ['', [Validators.required]],
       content: ['', [Validators.required]],
     });
   }
 
-  ngOnInit() {}
-
-  getTodayDate(): string {
-    return new Date().toISOString();
+  ngOnInit() {
+    // Khởi tạo minDate một lần để tránh ExpressionChangedAfterItHasBeenCheckedError
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    this.minDate = today.toISOString();
   }
 
   formatDate(dateString: string): string {
@@ -113,11 +120,18 @@ export class CreatePostPage implements OnInit {
 
   onDateChange(event: any) {
     const dateValue = event.detail.value;
-    this.createPostForm.patchValue({ deadline: dateValue });
+    if (dateValue) {
+      // Chuyển đổi thành ISO string và đặt thời gian về 00:00:00
+      const date = new Date(dateValue);
+      date.setHours(0, 0, 0, 0);
+      const isoString = date.toISOString();
+      this.createPostForm.patchValue({ deadline: isoString });
+      this.createPostForm.get('deadline')?.markAsTouched();
+    }
   }
 
-  closeDateModal() {
-    // Modal will close automatically when clicking outside or using the close button
+  confirmDate(dateModal: IonModal) {
+    dateModal.dismiss();
   }
 
   onBack() {

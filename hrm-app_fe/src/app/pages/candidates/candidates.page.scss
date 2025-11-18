@@ -122,6 +122,27 @@
 
 .candidates-container {
   padding: 0 16px 100px;
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+
+    .empty-icon {
+      font-size: 64px;
+      color: #ccc;
+      margin-bottom: 16px;
+    }
+
+    .empty-message {
+      font-size: 16px;
+      color: #888;
+      margin: 0;
+    }
+  }
 }
 
 .candidate-card {

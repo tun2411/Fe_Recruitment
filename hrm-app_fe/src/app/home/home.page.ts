@@ -16,6 +16,8 @@ import {
   IonFabButton,
   IonBadge,
   IonAvatar,
+  LoadingController,
+  ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -26,6 +28,7 @@ import {
   addOutline,
   personOutline,
 } from 'ionicons/icons';
+import { JobPostService, JobPost } from '../services/job-post.service';
 
 export interface Post {
   id: number;
@@ -64,7 +67,12 @@ export class HomePage implements OnInit {
   notificationCount: number = 2;
   filterCount: number = 2;
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private jobPostService: JobPostService,
+    private loadingController: LoadingController,
+    private toastController: ToastController
+  ) {
     addIcons({
       notificationsOutline,
       arrowDownOutline,
@@ -79,40 +87,60 @@ export class HomePage implements OnInit {
     this.loadPosts();
   }
 
-  loadPosts() {
-    this.posts = [
-      {
-        id: 1,
-        title: 'Thông báo về chính sách nghỉ phép mới',
-        description: 'Công ty đã cập nhật chính sách nghỉ phép năm 2024 với nhiều thay đổi quan trọng...',
-        updatedAt: '2024-01-15 10:30',
+  /**
+   * Chuyển đổi JobPost từ API thành Post để hiển thị
+   */
+  private mapJobPostToPost(jobPost: JobPost): Post {
+    // Format date từ ISO string sang định dạng dễ đọc
+    const date = new Date(jobPost.updatedAt);
+    const formattedDate = date.toLocaleString('vi-VN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    return {
+      id: jobPost.id,
+      title: jobPost.title,
+      description: jobPost.description || '',
+      updatedAt: formattedDate,
+    };
+  }
+
+  async loadPosts() {
+    const loading = await this.loadingController.create({
+      message: 'Đang tải dữ liệu...',
+      spinner: 'crescent',
+    });
+    await loading.present();
+
+    // Gọi API để lấy job posts với status=active
+    this.jobPostService.getJobPosts('active').subscribe({
+      next: (jobPosts: JobPost[]) => {
+        // Chuyển đổi JobPost thành Post
+        this.posts = jobPosts.map((jobPost) => this.mapJobPostToPost(jobPost));
+        this.filteredPosts = [...this.posts];
+        loading.dismiss();
       },
-      {
-        id: 2,
-        title: 'Lịch đào tạo nhân viên tháng 2',
-        description: 'Phòng HR thông báo lịch đào tạo các khóa học kỹ năng mềm và chuyên môn...',
-        updatedAt: '2024-01-14 14:20',
+      error: async (error) => {
+        loading.dismiss();
+        console.error('Error loading job posts:', error);
+
+        // Hiển thị thông báo lỗi
+        const toast = await this.toastController.create({
+          message: 'Không thể tải dữ liệu. Vui lòng thử lại sau.',
+          duration: 3000,
+          color: 'danger',
+          position: 'top',
+        });
+        await toast.present();
+
+        this.posts = [];
+        this.filteredPosts = [];
       },
-      {
-        id: 3,
-        title: 'Thông báo tuyển dụng vị trí mới',
-        description: 'Công ty đang tuyển dụng các vị trí: Developer, Designer, Marketing...',
-        updatedAt: '2024-01-13 09:15',
-      },
-      {
-        id: 4,
-        title: 'Kế hoạch team building quý 1',
-        description: 'Thông báo về chương trình team building dự kiến tổ chức vào cuối tháng 3...',
-        updatedAt: '2024-01-12 16:45',
-      },
-      {
-        id: 5,
-        title: 'Cập nhật quy định làm việc từ xa',
-        description: 'Công ty ban hành quy định mới về chế độ làm việc từ xa và hybrid...',
-        updatedAt: '2024-01-11 11:00',
-      },
-    ];
-    this.filteredPosts = [...this.posts];
+    });
   }
 
   onSearch(event: any) {
@@ -139,12 +167,11 @@ export class HomePage implements OnInit {
   }
 
   onRefresh(event?: any) {
-    setTimeout(() => {
-      this.loadPosts();
+    this.loadPosts().then(() => {
       if (event?.target) {
         event.target.complete();
       }
-    }, 1000);
+    });
   }
 
   onFilter() {
