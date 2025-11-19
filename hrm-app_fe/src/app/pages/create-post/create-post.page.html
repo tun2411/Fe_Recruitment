@@ -29,12 +29,28 @@
       <!-- Mức lương -->
       <div class="form-field">
         <ion-label class="field-label">Mức lương</ion-label>
-        <ion-input
-          formControlName="salary"
-          placeholder="$$$"
-          class="custom-input"
-          [class.invalid]="isFieldInvalid('salary')"
-        ></ion-input>
+        <div class="salary-range-container">
+          <div class="salary-input-wrapper">
+            <ion-label class="salary-label">Từ</ion-label>
+            <ion-input
+              formControlName="salaryFrom"
+              placeholder="VNĐ"
+              type="number"
+              class="custom-input"
+              [class.invalid]="isFieldInvalid('salaryFrom')"
+            ></ion-input>
+          </div>
+          <div class="salary-input-wrapper">
+            <ion-label class="salary-label">Đến</ion-label>
+            <ion-input
+              formControlName="salaryTo"
+              placeholder="VNĐ"
+              type="number"
+              class="custom-input"
+              [class.invalid]="isFieldInvalid('salaryTo')"
+            ></ion-input>
+          </div>
+        </div>
       </div>
 
       <!-- Địa chỉ -->
@@ -46,6 +62,34 @@
           class="custom-input"
           [class.invalid]="isFieldInvalid('address')"
         ></ion-input>
+      </div>
+
+      <!-- Số kinh nghiệm tối thiểu -->
+      <div class="form-field">
+        <ion-label class="field-label">Số kinh nghiệm tối thiểu</ion-label>
+        <div class="experience-container">
+          <div class="experience-input-wrapper">
+            <ion-input
+              formControlName="minExperience"
+              type="number"
+              class="custom-input"
+              [class.invalid]="isFieldInvalid('minExperience')"
+            ></ion-input>
+          </div>
+          <div class="experience-unit-wrapper">
+            <ion-label class="experience-unit-label">Đơn vị</ion-label>
+            <ion-select
+              formControlName="experienceUnit"
+              placeholder="Năm / tháng"
+              class="custom-select"
+              [class.invalid]="isFieldInvalid('experienceUnit')"
+            >
+              <ion-select-option *ngFor="let option of experienceUnitOptions" [value]="option.value">
+                {{ option.label }}
+              </ion-select-option>
+            </ion-select>
+          </div>
+        </div>
       </div>
 
       <!-- Trạng thái -->
@@ -94,21 +138,6 @@
           class="custom-input"
           [class.invalid]="isFieldInvalid('recruitmentRound')"
         ></ion-input>
-      </div>
-
-      <!-- Form tự động -->
-      <div class="form-field">
-        <ion-label class="field-label">Form tự động</ion-label>
-        <ion-select
-          formControlName="autoForm"
-          placeholder="Form 1"
-          class="custom-select"
-          [class.invalid]="isFieldInvalid('autoForm')"
-        >
-          <ion-select-option *ngFor="let option of autoFormOptions" [value]="option.value">
-            {{ option.label }}
-          </ion-select-option>
-        </ion-select>
       </div>
 
       <!-- Nội dung -->

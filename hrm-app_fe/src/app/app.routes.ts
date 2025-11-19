@@ -21,6 +21,11 @@ export const routes: Routes = [
       import('./pages/candidates/candidates.page').then((m) => m.CandidatesPage),
   },
   {
+    path: 'edit-post/:id',
+    loadComponent: () =>
+      import('./pages/edit-post/edit-post.page').then((m) => m.EditPostPage),
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full',

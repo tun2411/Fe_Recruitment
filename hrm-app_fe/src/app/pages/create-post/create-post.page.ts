@@ -33,8 +33,9 @@ import {
 import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatInputModule} from "@angular/material/input";
 import {MatDatepickerModule} from "@angular/material/datepicker";
-import {MatNativeDateModule} from "@angular/material/core";
+import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
 import {MatIconModule} from "@angular/material/icon";
+import {CustomDateAdapter, CUSTOM_DATE_FORMATS} from "./custom-date-adapter";
 
 @Component({
   selector: 'app-create-post',
@@ -63,8 +64,12 @@ import {MatIconModule} from "@angular/material/icon";
     MatFormFieldModule,
     MatInputModule,
     MatDatepickerModule,
-    MatNativeDateModule,
     MatIconModule,
+  ],
+  providers: [
+    { provide: DateAdapter, useClass: CustomDateAdapter },
+    { provide: MAT_DATE_FORMATS, useValue: CUSTOM_DATE_FORMATS },
+    { provide: MAT_DATE_LOCALE, useValue: 'vi-VN' },
   ],
 })
 export class CreatePostPage implements OnInit {
@@ -79,10 +84,9 @@ export class CreatePostPage implements OnInit {
     { value: 'closed', label: 'Đã đóng' },
   ];
 
-  autoFormOptions = [
-    { value: 'form1', label: 'Form 1' },
-    { value: 'form2', label: 'Form 2' },
-    { value: 'form3', label: 'Form 3' },
+  experienceUnitOptions = [
+    { value: 'year', label: 'Năm' },
+    { value: 'month', label: 'Tháng' },
   ];
 
   constructor(
@@ -102,12 +106,14 @@ export class CreatePostPage implements OnInit {
 
     this.createPostForm = this.formBuilder.group({
       title: ['', [Validators.required]],
-      salary: ['', [Validators.required]],
+      salaryFrom: ['', [Validators.required]],
+      salaryTo: ['', [Validators.required]],
       address: ['', [Validators.required]],
+      minExperience: [''],
+      experienceUnit: ['year'],
       status: ['', [Validators.required]],
       deadline: ['', [Validators.required]],
       recruitmentRound: ['', [Validators.required, Validators.min(1)]],
-      autoForm: ['', [Validators.required]],
       content: ['', [Validators.required]],
     });
   }
@@ -144,11 +150,10 @@ export class CreatePostPage implements OnInit {
 
   onDatePickerChange(event: any) {
     if (event.value) {
-      // Chuyển đổi thành ISO string và đặt thời gian về 00:00:00
+      // Lưu Date object để Material Datepicker hiển thị đúng format dd/mm/yyyy
       const date = new Date(event.value);
       date.setHours(0, 0, 0, 0);
-      const isoString = date.toISOString();
-      this.createPostForm.patchValue({ deadline: isoString });
+      this.createPostForm.patchValue({ deadline: date });
       this.createPostForm.get('deadline')?.markAsTouched();
     }
   }

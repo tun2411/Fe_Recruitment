@@ -48,6 +48,12 @@ export class JobPostService {
     );
   }
 
+  updateJobPost(id: number, jobPost: Partial<JobPost>): Observable<JobPost> {
+    return this.http.put<JobPost>(`${this.apiUrl}/${id}`, jobPost).pipe(
+      catchError(this.handleError<JobPost>(`updateJobPost id=${id}`))
+    );
+  }
+
   /**
    * Error Handler - Xử lý lỗi chung cho tất cả requests
    */

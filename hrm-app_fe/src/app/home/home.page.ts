@@ -185,7 +185,7 @@ export class HomePage implements OnInit {
   }
 
   onViewDetail(post: Post) {
-    console.log('View detail for post:', post.id);
+    this.router.navigate(['/edit-post', post.id]);
   }
 
   onCreatePost() {
