@@ -30,6 +30,11 @@ import {
   chevronDownOutline,
   closeOutline,
 } from 'ionicons/icons';
+import {MatFormFieldModule} from "@angular/material/form-field";
+import {MatInputModule} from "@angular/material/input";
+import {MatDatepickerModule} from "@angular/material/datepicker";
+import {MatNativeDateModule} from "@angular/material/core";
+import {MatIconModule} from "@angular/material/icon";
 
 @Component({
   selector: 'app-create-post',
@@ -55,12 +60,18 @@ import {
     IonModal,
     IonDatetime,
     IonButtons,
+    MatFormFieldModule,
+    MatInputModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatIconModule,
   ],
 })
 export class CreatePostPage implements OnInit {
   createPostForm: FormGroup;
   notificationCount: number = 2;
   minDate: string = '';
+  minDateValue: Date = new Date();
 
   statusOptions = [
     { value: 'active', label: 'Đang hoạt động' },
@@ -106,6 +117,7 @@ export class CreatePostPage implements OnInit {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     this.minDate = today.toISOString();
+    this.minDateValue = today;
   }
 
   formatDate(dateString: string): string {
@@ -130,6 +142,17 @@ export class CreatePostPage implements OnInit {
     }
   }
 
+  onDatePickerChange(event: any) {
+    if (event.value) {
+      // Chuyển đổi thành ISO string và đặt thời gian về 00:00:00
+      const date = new Date(event.value);
+      date.setHours(0, 0, 0, 0);
+      const isoString = date.toISOString();
+      this.createPostForm.patchValue({ deadline: isoString });
+      this.createPostForm.get('deadline')?.markAsTouched();
+    }
+  }
+
   confirmDate(dateModal: IonModal) {
     dateModal.dismiss();
   }
@@ -145,7 +168,7 @@ export class CreatePostPage implements OnInit {
   async onSubmit() {
     if (this.createPostForm.invalid) {
       this.markFormGroupTouched();
-      
+
       const toast = await this.toastController.create({
         message: 'Vui lòng điền đầy đủ thông tin',
         duration: 2000,
@@ -165,7 +188,7 @@ export class CreatePostPage implements OnInit {
     // Simulate API call
     setTimeout(async () => {
       await loading.dismiss();
-      
+
       const toast = await this.toastController.create({
         message: 'Tạo bài đăng thành công!',
         duration: 2000,

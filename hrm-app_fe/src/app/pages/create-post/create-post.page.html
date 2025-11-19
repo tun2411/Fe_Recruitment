@@ -66,18 +66,23 @@
       <!-- Hạn bài đăng -->
       <div class="form-field">
         <ion-label class="field-label">Hạn bài đăng</ion-label>
-        <ion-item button="true" id="open-date-modal" class="date-picker-wrapper" [class.invalid]="isFieldInvalid('deadline')">
-          <ion-label>
-            <span *ngIf="createPostForm.get('deadline')?.value; else datePlaceholder" class="date-value">
-              {{ formatDate(createPostForm.get('deadline')?.value) }}
-            </span>
-            <ng-template #datePlaceholder>
-              <span class="date-placeholder">Chọn ngày</span>
-            </ng-template>
-          </ion-label>
-          <ion-icon name="calendar-outline" slot="end"></ion-icon>
-        </ion-item>
+        <mat-form-field appearance="outline" class="datepicker-field">
+          <input
+            matInput
+            [matDatepicker]="picker"
+            formControlName="deadline"
+            placeholder="Chọn ngày"
+            readonly
+            [class.invalid]="isFieldInvalid('deadline')"
+            (dateChange)="onDatePickerChange($event)">
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="picker">
+          </mat-datepicker-toggle>
+          <mat-datepicker #picker [startAt]="minDateValue"></mat-datepicker>
+        </mat-form-field>
       </div>
+
 
       <!-- Vòng tuyển dụng -->
       <div class="form-field">
