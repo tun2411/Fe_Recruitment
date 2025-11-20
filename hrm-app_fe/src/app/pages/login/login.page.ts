@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import {
   IonContent,
   IonButton,
@@ -25,6 +26,8 @@ import {
   logoFacebook,
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
+import { GoogleSignInService } from '../../services/google-signin.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -55,7 +58,9 @@ export class LoginPage implements OnInit {
 
   constructor(
     private authService: AuthService,
+    private googleSignInService: GoogleSignInService,
     private router: Router,
+    private http: HttpClient,
     private loadingController: LoadingController,
     private toastController: ToastController
   ) {
@@ -84,7 +89,36 @@ export class LoginPage implements OnInit {
           this.isAlreadyLoggedIn = false;
         });
       }, 1500);
+    } else {
+      // Khởi tạo Google Sign-In khi component load
+      // Retry nếu lần đầu fail (đặc biệt cho Android)
+      this.initializeGoogleSignInWithRetry();
     }
+  }
+
+  /**
+   * Khởi tạo Google Sign-In với retry logic (cho Android)
+   */
+  private initializeGoogleSignInWithRetry(retryCount = 0, maxRetries = 3): void {
+    this.googleSignInService.initialize()
+      .then(() => {
+        console.log('Google Sign-In initialized successfully');
+      })
+      .catch((error) => {
+        console.warn('Google Sign-In initialization failed (attempt', retryCount + 1, '):', error);
+        
+        if (retryCount < maxRetries) {
+          // Retry sau 2 giây
+          setTimeout(() => {
+            console.log('Retrying Google Sign-In initialization...');
+            this.initializeGoogleSignInWithRetry(retryCount + 1, maxRetries);
+          }, 2000);
+        } else {
+          console.error('Google Sign-In initialization failed after', maxRetries, 'attempts');
+          // Không hiển thị lỗi cho user, chỉ log
+          // User vẫn có thể thử click button để trigger lại
+        }
+      });
   }
 
   async showRedirectMessage() {
@@ -109,28 +143,65 @@ export class LoginPage implements OnInit {
     await loading.present();
 
     try {
-      // TODO: Implement Google OAuth login
-      // This is a placeholder - you'll need to integrate with your OAuth provider
-      // Example: await this.authService.loginWithGoogle();
-      
-      // Simulate API call (replace with actual implementation)
-      setTimeout(async () => {
-        await loading.dismiss();
-        this.isLoading = false;
-        this.loginProvider = null;
+      // Sử dụng Google Sign-In Service để lấy idToken thật
+      this.googleSignInService.signIn()
+        .then(async (idToken: string) => {
+          // Gọi API Google login với idToken
+          const googleLoginRequest = {
+            idToken: idToken,
+            // accessToken và refreshToken là optional, không cần gửi
+          };
 
-        const toast = await this.toastController.create({
-          message: 'Đăng nhập bằng Google thành công!',
-          duration: 2000,
-          color: 'success',
-          position: 'top',
-        });
-        await toast.present();
+          this.authService.googleLogin(googleLoginRequest).subscribe({
+            next: async () => {
+              await loading.dismiss();
+              this.isLoading = false;
+              this.loginProvider = null;
 
-        this.router.navigate(['/home']).catch((error) => {
-          console.error('Navigation error after login:', error);
+              const toast = await this.toastController.create({
+                message: 'Đăng nhập bằng Google thành công!',
+                duration: 2000,
+                color: 'success',
+                position: 'top',
+              });
+              await toast.present();
+
+              this.router.navigate(['/home']).catch((error) => {
+                console.error('Navigation error after login:', error);
+              });
+            },
+            error: async (error: any) => {
+              await loading.dismiss();
+              this.isLoading = false;
+              this.loginProvider = null;
+
+              this.errorMessage = error.message || 'Đăng nhập bằng Google thất bại. Vui lòng thử lại.';
+
+              const toast = await this.toastController.create({
+                message: this.errorMessage,
+                duration: 3000,
+                color: 'danger',
+                position: 'top',
+              });
+              await toast.present();
+            },
+          });
+        })
+        .catch(async (error: any) => {
+          await loading.dismiss();
+          this.isLoading = false;
+          this.loginProvider = null;
+
+          this.errorMessage = error.message || 'Không thể đăng nhập bằng Google. Vui lòng thử lại.';
+
+          const toast = await this.toastController.create({
+            message: this.errorMessage,
+            duration: 3000,
+            color: 'danger',
+            position: 'top',
+          });
+          await toast.present();
         });
-      }, 1500);
     } catch (error: any) {
       await loading.dismiss();
       this.isLoading = false;

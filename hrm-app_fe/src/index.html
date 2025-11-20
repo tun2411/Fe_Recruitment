@@ -11,12 +11,31 @@
   <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="format-detection" content="telephone=no" />
   <meta name="msapplication-tap-highlight" content="no" />
+  
+  <!-- Content Security Policy - Cho phép Google scripts -->
+  <!-- Lưu ý: CSP trên Android WebView có thể bị ignore, nhưng vẫn nên set để tương thích -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com https://*.google.com;
+    style-src 'self' 'unsafe-inline' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com https://*.google.com;
+    img-src 'self' data: https: blob:;
+    font-src 'self' data: https:;
+    connect-src 'self' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com https://*.google.com http://* https://*;
+    frame-src 'self' https://accounts.google.com https://*.google.com;
+    child-src 'self' https://accounts.google.com https://*.google.com;
+    worker-src 'self' blob:;
+  ">
 
   <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
 
   <!-- add to homescreen for ios -->
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  <!-- Google Sign-In API -->
+  <!-- KHÔNG dùng async defer trên Android WebView vì có thể gây CORS issues -->
+  <!-- Script sẽ được load động bởi GoogleSignInService -->
+  <!-- <script src="https://accounts.google.com/gsi/client" async defer></script> -->
 </head>
 
 <body>

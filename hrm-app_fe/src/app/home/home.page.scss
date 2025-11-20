@@ -126,6 +126,13 @@
 
 .posts-container {
   padding: 0 16px 100px;
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    font-size: 14px;
+  }
 }
 
 .post-card {

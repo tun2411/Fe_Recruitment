@@ -2,12 +2,35 @@
 // `ng build` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
+// Import Capacitor để detect platform
+import { Capacitor } from '@capacitor/core';
+
+// =====================================================
+// ⚠️ BƯỚC 2: CẬP NHẬT IP CỦA MÁY TÍNH BẠN Ở ĐÂY!
+// =====================================================
+// Để lấy IP:
+//   - Windows: Mở CMD và chạy `ipconfig`, tìm IPv4 Address
+//   - Mac/Linux: Chạy `ifconfig` hoặc `ip addr`
+// IP thường có dạng: 192.168.1.X hoặc 192.168.0.X
+// =====================================================
+const YOUR_COMPUTER_IP = '192.168.1.9'; // ⚠️ THAY ĐỔI IP NÀY THÀNH IP CỦA BẠN!
+// =====================================================
+
+// Tự động detect platform và set API URL
+function getApiUrl(): string {
+  // Nếu chạy trên Android/iOS (Capacitor)
+  if (Capacitor.isNativePlatform()) {
+    return `http://${YOUR_COMPUTER_IP}:8080/api`;
+  }
+
+  // Nếu chạy trên web browser (development)
+  // Sử dụng proxy hoặc localhost
+  return '/api'; // Proxy sẽ forward đến http://localhost:8080/api
+}
+
 export const environment = {
   production: false,
-  // Sử dụng relative path khi dùng proxy, hoặc full URL khi không dùng proxy
-  apiUrl: '/api', // Proxy sẽ forward đến http://localhost:8080/api
-  // Nếu không dùng proxy, uncomment dòng dưới:
-  // apiUrl: 'http://localhost:8080/api',
+  apiUrl: getApiUrl(),
 };
 
 /*

@@ -185,14 +185,25 @@ export class CandidatesPage implements OnInit {
    * Chuyển đổi Application từ API thành Candidate để hiển thị
    */
   private mapApplicationToCandidate(application: Application): Candidate {
-    // Map status từ API sang status của Candidate
+    // Map status từ API (NEW, IN_PROCESS, PASS, FAIL) sang status của Candidate
     let status: 'pass' | 'fail' | 'new' = 'new';
-    if (application.status === 'new_status' || application.status === 'new') {
+    const statusUpper = application.status?.toUpperCase();
+    if (statusUpper === 'NEW' || statusUpper === 'IN_PROCESS') {
       status = 'new';
-    } else if (application.status === 'pass' || application.status === 'passed') {
+    } else if (statusUpper === 'PASS' || statusUpper === 'PASSED') {
       status = 'pass';
-    } else if (application.status === 'fail' || application.status === 'failed') {
+    } else if (statusUpper === 'FAIL' || statusUpper === 'FAILED') {
       status = 'fail';
+    }
+
+    // Backend trả về cvUrl thay vì cvFilePath, cvFileName, cvFileId
+    // Parse cvUrl để lấy fileName nếu cần
+    let cvFileName = '';
+    let cvFilePath = application.cvUrl || '';
+    if (cvFilePath) {
+      // Extract filename from URL path
+      const pathParts = cvFilePath.split('/');
+      cvFileName = pathParts[pathParts.length - 1] || '';
     }
 
     return {
@@ -205,9 +216,8 @@ export class CandidatesPage implements OnInit {
       status: status,
       round: application.currentRoundIndex,
       isFavorite: false,
-      cvFileId: application.cvFileId,
-      cvFilePath: application.cvFilePath,
-      cvFileName: application.cvFileName,
+      cvFilePath: cvFilePath, // Sử dụng cvUrl từ backend
+      cvFileName: cvFileName,
     };
   }
 
@@ -269,12 +279,11 @@ export class CandidatesPage implements OnInit {
 
   onDownload(candidate: Candidate) {
     if (candidate.cvFilePath) {
-      // Tạo URL để download CV
-      // cvFilePath từ API có dạng: /uploads/cv/cv_004.pdf
-      // Cần tạo full URL đến backend server
+      // Backend trả về cvUrl (có thể là relative path hoặc full URL)
       let downloadUrl = candidate.cvFilePath;
       
-      if (!candidate.cvFilePath.startsWith('http')) {
+      // Nếu là relative path (bắt đầu bằng /), cần thêm backend URL
+      if (downloadUrl.startsWith('/') && !downloadUrl.startsWith('http')) {
         // Nếu dùng proxy, backend URL là http://localhost:8080
         // Nếu không dùng proxy, lấy từ environment
         const backendUrl = environment.apiUrl.startsWith('http') 

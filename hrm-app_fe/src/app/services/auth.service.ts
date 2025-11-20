@@ -4,6 +4,30 @@ import { Observable, BehaviorSubject, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 
+// Interfaces theo DTO backend
+export interface GoogleLoginRequest {
+  idToken?: string;
+  accessToken?: string;
+  refreshToken?: string;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface UserDto {
+  id: number;
+  email: string;
+  fullName: string;
+}
+
+export interface AuthResponse {
+  token: string; // Access token
+  refreshToken: string; // Refresh token for long-lived sessions
+  user: UserDto;
+}
+
+// Interfaces cũ để backward compatibility
 export interface LoginRequest {
   username: string;
   password: string;
@@ -19,9 +43,10 @@ export interface LoginResponse {
 }
 
 export interface UserInfo {
-  username: string;
+  username?: string;
   email: string;
-  role: string;
+  fullName?: string;
+  role?: string;
 }
 
 @Injectable({
@@ -30,6 +55,7 @@ export interface UserInfo {
 export class AuthService {
   private apiUrl = environment.apiUrl;
   private tokenKey = 'auth_token';
+  private refreshTokenKey = 'refresh_token';
   private userInfoKey = 'user_info';
   private currentUserSubject = new BehaviorSubject<UserInfo | null>(
     this.getUserInfo()
@@ -38,8 +64,70 @@ export class AuthService {
 
   constructor(private http: HttpClient, private router: Router) {}
 
+  /**
+   * POST /api/auth/google - Đăng nhập bằng Google OAuth
+   * @param request GoogleLoginRequest với idToken hoặc accessToken
+   * @returns Observable<AuthResponse>
+   */
+  googleLogin(request: GoogleLoginRequest): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/auth/google`, request)
+      .pipe(
+        tap((response) => {
+          if (response.token) {
+            // Lưu access token
+            this.setToken(response.token);
+            
+            // Lưu refresh token nếu có
+            if (response.refreshToken) {
+              this.setRefreshToken(response.refreshToken);
+            }
+            
+            // Lưu thông tin user
+            const userInfo: UserInfo = {
+              email: response.user.email,
+              fullName: response.user.fullName,
+            };
+            this.setUserInfo(userInfo);
+            this.currentUserSubject.next(userInfo);
+          }
+        })
+      );
+  }
+
+  /**
+   * POST /api/auth/refresh-token - Refresh access token
+   * @param request RefreshTokenRequest với refreshToken
+   * @returns Observable<AuthResponse>
+   */
+  refreshToken(request: RefreshTokenRequest): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/auth/refresh-token`, request)
+      .pipe(
+        tap((response) => {
+          if (response.token) {
+            // Lưu access token mới
+            this.setToken(response.token);
+            
+            // Lưu refresh token mới nếu có
+            if (response.refreshToken) {
+              this.setRefreshToken(response.refreshToken);
+            }
+            
+            // Cập nhật thông tin user
+            const userInfo: UserInfo = {
+              email: response.user.email,
+              fullName: response.user.fullName,
+            };
+            this.setUserInfo(userInfo);
+            this.currentUserSubject.next(userInfo);
+          }
+        })
+      );
+  }
+
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    // Gọi API thật
+    // Gọi API thật (nếu có endpoint login truyền thống)
     return this.http
       .post<LoginResponse>(`${this.apiUrl}/auth/login`, credentials)
       .pipe(
@@ -63,6 +151,7 @@ export class AuthService {
 
   logout(): void {
     this.clearToken();
+    this.clearRefreshToken();
     this.clearUserInfo();
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
@@ -78,6 +167,18 @@ export class AuthService {
 
   clearToken(): void {
     localStorage.removeItem(this.tokenKey);
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.refreshTokenKey);
+  }
+
+  private setRefreshToken(refreshToken: string): void {
+    localStorage.setItem(this.refreshTokenKey, refreshToken);
+  }
+
+  clearRefreshToken(): void {
+    localStorage.removeItem(this.refreshTokenKey);
   }
 
   getUserInfo(): UserInfo | null {

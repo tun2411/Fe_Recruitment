@@ -40,7 +40,23 @@
 
 
   <div class="posts-container">
-    <ion-card *ngFor="let post of filteredPosts" class="post-card">
+    <!-- Debug info (có thể xóa sau) -->
+    <div style="padding: 10px; background: #f0f0f0; margin: 10px; border-radius: 5px; font-size: 12px;">
+      <strong>Debug:</strong> 
+      Total posts: {{ posts.length }}, 
+      Filtered: {{ filteredPosts.length }}
+    </div>
+
+    <!-- Hiển thị thông báo khi không có posts -->
+    <div *ngIf="filteredPosts.length === 0" class="empty-state">
+      <p>Chưa có bài đăng nào. Hãy tạo bài đăng mới!</p>
+      <ion-button fill="outline" (click)="onCreatePost()">
+        Tạo bài đăng
+      </ion-button>
+    </div>
+
+    <!-- Danh sách posts -->
+    <ion-card *ngFor="let post of filteredPosts; trackBy: trackByPostId" class="post-card">
       <ion-card-content>
         <div class="post-content">
           <h3 class="post-title">{{ post.title }}</h3>

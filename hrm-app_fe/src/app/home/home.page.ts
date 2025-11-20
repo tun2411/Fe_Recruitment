@@ -92,14 +92,24 @@ export class HomePage implements OnInit {
    */
   private mapJobPostToPost(jobPost: JobPost): Post {
     // Format date từ ISO string sang định dạng dễ đọc
-    const date = new Date(jobPost.updatedAt);
-    const formattedDate = date.toLocaleString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    // Nếu updatedAt là chuỗi rỗng hoặc không hợp lệ, dùng "Chưa cập nhật"
+    let formattedDate = 'Chưa cập nhật';
+    if (jobPost.updatedAt && jobPost.updatedAt.trim() !== '') {
+      try {
+        const date = new Date(jobPost.updatedAt);
+        if (!isNaN(date.getTime())) {
+          formattedDate = date.toLocaleString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+        }
+      } catch (e) {
+        console.warn('Error formatting date:', e);
+      }
+    }
 
     return {
       id: jobPost.id,
@@ -116,12 +126,28 @@ export class HomePage implements OnInit {
     });
     await loading.present();
 
-    // Gọi API để lấy job posts với status=active
-    this.jobPostService.getJobPosts('active').subscribe({
+    // Gọi API để lấy TẤT CẢ job posts của business (không filter status)
+    // Sử dụng getAllJobPosts để tự động load nhiều pages nếu cần
+    this.jobPostService.getAllJobPosts(undefined).subscribe({
       next: (jobPosts: JobPost[]) => {
+        console.log('[HomePage] Loaded job posts:', jobPosts);
+        console.log('[HomePage] Job posts count:', jobPosts?.length || 0);
+
+        // Kiểm tra nếu không có jobs
+        if (!jobPosts || jobPosts.length === 0) {
+          console.warn('[HomePage] No job posts found');
+          this.posts = [];
+          this.filteredPosts = [];
+          loading.dismiss();
+          return;
+        }
+
         // Chuyển đổi JobPost thành Post
         this.posts = jobPosts.map((jobPost) => this.mapJobPostToPost(jobPost));
         this.filteredPosts = [...this.posts];
+        console.log('[HomePage] Mapped posts:', this.posts);
+        console.log('[HomePage] Filtered posts:', this.filteredPosts);
+        console.log('[HomePage] Posts count:', this.posts.length);
         loading.dismiss();
       },
       error: async (error) => {
@@ -130,7 +156,8 @@ export class HomePage implements OnInit {
 
         // Hiển thị thông báo lỗi
         const toast = await this.toastController.create({
-          message: 'Không thể tải dữ liệu. Vui lòng thử lại sau.',
+          message:
+            error.message || 'Không thể tải dữ liệu. Vui lòng thử lại sau.',
           duration: 3000,
           color: 'danger',
           position: 'top',
@@ -194,5 +221,12 @@ export class HomePage implements OnInit {
 
   onNotificationClick() {
     console.log('Notification clicked');
+  }
+
+  /**
+   * TrackBy function để optimize *ngFor
+   */
+  trackByPostId(index: number, post: Post): number {
+    return post.id;
   }
 }

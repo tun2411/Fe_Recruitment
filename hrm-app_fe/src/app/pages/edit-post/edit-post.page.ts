@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import {
   IonHeader,
   IonToolbar,
@@ -35,13 +35,13 @@ import {MatInputModule} from "@angular/material/input";
 import {MatDatepickerModule} from "@angular/material/datepicker";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
 import {MatIconModule} from "@angular/material/icon";
-import {CustomDateAdapter, CUSTOM_DATE_FORMATS} from "./custom-date-adapter";
-import { JobPostService, CreateJobRequest, JobRoundDTO } from '../../services/job-post.service';
+import {CustomDateAdapter, CUSTOM_DATE_FORMATS} from "../create-post/custom-date-adapter";
+import { JobPostService, UpdateJobRequest, JobResponse, JobRoundDTO } from '../../services/job-post.service';
 
 @Component({
-  selector: 'app-create-post',
-  templateUrl: './create-post.page.html',
-  styleUrls: ['./create-post.page.scss'],
+  selector: 'app-edit-post',
+  templateUrl: './edit-post.page.html',
+  styleUrls: ['./edit-post.page.scss'],
   standalone: true,
   imports: [
     CommonModule,
@@ -73,11 +73,13 @@ import { JobPostService, CreateJobRequest, JobRoundDTO } from '../../services/jo
     { provide: MAT_DATE_LOCALE, useValue: 'vi-VN' },
   ],
 })
-export class CreatePostPage implements OnInit {
-  createPostForm: FormGroup;
+export class EditPostPage implements OnInit {
+  editPostForm: FormGroup;
   notificationCount: number = 2;
   minDate: string = '';
   minDateValue: Date = new Date();
+  jobId: number | null = null;
+  jobData: JobResponse | null = null;
 
   statusOptions = [
     { value: 'active', label: 'Đang hoạt động' },
@@ -93,6 +95,7 @@ export class CreatePostPage implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
+    private route: ActivatedRoute,
     private jobPostService: JobPostService,
     private toastController: ToastController,
     private loadingController: LoadingController
@@ -106,26 +109,88 @@ export class CreatePostPage implements OnInit {
       closeOutline,
     });
 
-    this.createPostForm = this.formBuilder.group({
+    this.editPostForm = this.formBuilder.group({
       title: ['', [Validators.required]],
-      salaryFrom: ['', [Validators.required]],
-      salaryTo: ['', [Validators.required]],
+      salaryFrom: [''],
+      salaryTo: [''],
       address: ['', [Validators.required]],
       minExperience: [''],
       experienceUnit: ['year'],
       status: ['', [Validators.required]],
-      deadline: ['', [Validators.required]],
+      deadline: [''],
       recruitmentRound: ['', [Validators.required, Validators.min(1)]],
       content: ['', [Validators.required]],
     });
   }
 
   ngOnInit() {
-    // Khởi tạo minDate một lần để tránh ExpressionChangedAfterItHasBeenCheckedError
+    // Khởi tạo minDate
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     this.minDate = today.toISOString();
     this.minDateValue = today;
+
+    // Lấy jobId từ route params
+    this.route.params.subscribe((params) => {
+      this.jobId = params['id'] ? parseInt(params['id']) : null;
+      if (this.jobId) {
+        this.loadJobData();
+      } else {
+        this.showToast('Không tìm thấy ID bài đăng', 'danger');
+        this.router.navigate(['/home']);
+      }
+    });
+  }
+
+  async loadJobData() {
+    if (!this.jobId) return;
+
+    const loading = await this.loadingController.create({
+      message: 'Đang tải dữ liệu...',
+      spinner: 'crescent',
+    });
+    await loading.present();
+
+    this.jobPostService.getJobPostById(this.jobId).subscribe({
+      next: (job: JobResponse) => {
+        this.jobData = job;
+        this.populateForm(job);
+        loading.dismiss();
+      },
+      error: async (error) => {
+        loading.dismiss();
+        this.showToast(error.message || 'Không thể tải dữ liệu bài đăng', 'danger');
+        this.router.navigate(['/home']);
+      },
+    });
+  }
+
+  populateForm(job: JobResponse) {
+    // Backend trả về salaryFrom và salaryTo trực tiếp (number), không phải salaryRange string
+    let salaryFrom = '';
+    let salaryTo = '';
+    if (job.salaryFrom !== undefined && job.salaryFrom !== null) {
+      salaryFrom = job.salaryFrom.toString();
+    }
+    if (job.salaryTo !== undefined && job.salaryTo !== null) {
+      salaryTo = job.salaryTo.toString();
+    }
+
+    this.editPostForm.patchValue({
+      title: job.title || '',
+      salaryFrom: salaryFrom,
+      salaryTo: salaryTo,
+      address: job.location || '',
+      status: job.status || 'active',
+      recruitmentRound: job.roundCount || 1,
+      content: job.description || '',
+    });
+
+    // Set deadline nếu có publishedAt
+    if (job.publishedAt) {
+      const deadlineDate = new Date(job.publishedAt);
+      this.editPostForm.patchValue({ deadline: deadlineDate });
+    }
   }
 
   formatDate(dateString: string): string {
@@ -141,22 +206,20 @@ export class CreatePostPage implements OnInit {
   onDateChange(event: any) {
     const dateValue = event.detail.value;
     if (dateValue) {
-      // Chuyển đổi thành ISO string và đặt thời gian về 00:00:00
       const date = new Date(dateValue);
       date.setHours(0, 0, 0, 0);
       const isoString = date.toISOString();
-      this.createPostForm.patchValue({ deadline: isoString });
-      this.createPostForm.get('deadline')?.markAsTouched();
+      this.editPostForm.patchValue({ deadline: isoString });
+      this.editPostForm.get('deadline')?.markAsTouched();
     }
   }
 
   onDatePickerChange(event: any) {
     if (event.value) {
-      // Lưu Date object để Material Datepicker hiển thị đúng format dd/mm/yyyy
       const date = new Date(event.value);
       date.setHours(0, 0, 0, 0);
-      this.createPostForm.patchValue({ deadline: date });
-      this.createPostForm.get('deadline')?.markAsTouched();
+      this.editPostForm.patchValue({ deadline: date });
+      this.editPostForm.get('deadline')?.markAsTouched();
     }
   }
 
@@ -173,7 +236,7 @@ export class CreatePostPage implements OnInit {
   }
 
   async onSubmit() {
-    if (this.createPostForm.invalid) {
+    if (this.editPostForm.invalid || !this.jobId) {
       this.markFormGroupTouched();
 
       const toast = await this.toastController.create({
@@ -187,15 +250,14 @@ export class CreatePostPage implements OnInit {
     }
 
     const loading = await this.loadingController.create({
-      message: 'Đang tạo bài đăng...',
+      message: 'Đang cập nhật bài đăng...',
       spinner: 'crescent',
     });
     await loading.present();
 
-    // Lấy giá trị từ form
-    const formValue = this.createPostForm.value;
+    const formValue = this.editPostForm.value;
     
-    // Parse salaryFrom và salaryTo từ form (backend yêu cầu số, không phải string)
+    // Parse salaryFrom và salaryTo từ form (backend yêu cầu number)
     let salaryFrom: number | undefined = undefined;
     let salaryTo: number | undefined = undefined;
     if (formValue.salaryFrom) {
@@ -205,19 +267,24 @@ export class CreatePostPage implements OnInit {
       salaryTo = parseInt(formValue.salaryTo) || undefined;
     }
 
-    // Tạo rounds từ recruitmentRound
+    // Tạo rounds từ recruitmentRound (hoặc giữ nguyên rounds hiện tại)
     const roundCount = formValue.recruitmentRound || 1;
-    const rounds: JobRoundDTO[] = [];
-    for (let i = 0; i < roundCount; i++) {
-      rounds.push({
-        roundIndex: i, // Backend yêu cầu bắt đầu từ 0
-        roundName: `Vòng ${i + 1}`,
-        isConfirmed: false,
-      });
+    let rounds: JobRoundDTO[] | undefined = undefined;
+    
+    // Nếu roundCount thay đổi, tạo rounds mới
+    if (this.jobData && roundCount !== this.jobData.roundCount) {
+      rounds = [];
+      for (let i = 0; i < roundCount; i++) {
+        rounds.push({
+          roundIndex: i, // Backend yêu cầu bắt đầu từ 0
+          roundName: `Vòng ${i + 1}`,
+          isConfirmed: false,
+        });
+      }
     }
 
-    // Tạo CreateJobRequest theo đúng format backend
-    const createJobRequest: CreateJobRequest = {
+    // Tạo UpdateJobRequest theo đúng format backend
+    const updateJobRequest: UpdateJobRequest = {
       title: formValue.title,
       description: formValue.content || '',
       location: formValue.address || undefined,
@@ -228,12 +295,12 @@ export class CreatePostPage implements OnInit {
     };
 
     // Gọi API
-    this.jobPostService.createJob(createJobRequest).subscribe({
+    this.jobPostService.updateJobPost(this.jobId, updateJobRequest).subscribe({
       next: async (response) => {
         await loading.dismiss();
 
         const toast = await this.toastController.create({
-          message: `Tạo bài đăng thành công! (ID: ${response.jobId}, Số vòng: ${response.roundCount})`,
+          message: response.message || 'Cập nhật bài đăng thành công!',
           duration: 3000,
           color: 'success',
           position: 'top',
@@ -247,7 +314,7 @@ export class CreatePostPage implements OnInit {
         await loading.dismiss();
 
         const toast = await this.toastController.create({
-          message: error.message || 'Tạo bài đăng thất bại. Vui lòng thử lại.',
+          message: error.message || 'Cập nhật bài đăng thất bại. Vui lòng thử lại.',
           duration: 3000,
           color: 'danger',
           position: 'top',
@@ -262,15 +329,26 @@ export class CreatePostPage implements OnInit {
   }
 
   isFieldInvalid(fieldName: string): boolean {
-    const field = this.createPostForm.get(fieldName);
+    const field = this.editPostForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
   private markFormGroupTouched() {
-    Object.keys(this.createPostForm.controls).forEach((key) => {
-      const control = this.createPostForm.get(key);
+    Object.keys(this.editPostForm.controls).forEach((key) => {
+      const control = this.editPostForm.get(key);
       control?.markAsTouched();
     });
   }
+
+  private async showToast(message: string, color: string = 'primary') {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000,
+      color: color,
+      position: 'top',
+    });
+    await toast.present();
+  }
 }
+
 

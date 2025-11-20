@@ -9,6 +9,13 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/hrm-app_fe/android" />
+            <option value="$PROJECT_DIR$/hrm-app_fe/android/app" />
+            <option value="$PROJECT_DIR$/hrm-app_fe/android/capacitor-cordova-android-plugins" />
+            <option value="$PROJECT_DIR$/hrm-app_fe/node_modules/@capacitor/android/capacitor" />
+            <option value="$PROJECT_DIR$/hrm-app_fe/node_modules/@capacitor/app/android" />
+            <option value="$PROJECT_DIR$/hrm-app_fe/node_modules/@capacitor/haptics/android" />
+            <option value="$PROJECT_DIR$/hrm-app_fe/node_modules/@capacitor/keyboard/android" />
+            <option value="$PROJECT_DIR$/hrm-app_fe/node_modules/@capacitor/status-bar/android" />
           </set>
         </option>
       </GradleProjectSettings>

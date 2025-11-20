@@ -4,10 +4,10 @@ import { Observable, throwError, of } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
-// Định nghĩa Interface cho Application theo API response
+// Định nghĩa Interface cho Application theo API response (CandidateApplicationResponse từ backend)
 export interface Application {
   applicationId: number;
-  status: string;
+  status: string; // NEW, IN_PROCESS, PASS, FAIL
   currentRoundIndex: number;
   submittedAt: string;
   updatedAt: string;
@@ -15,11 +15,7 @@ export interface Application {
   candidateEmail: string;
   candidateFullName: string;
   candidatePhone: string;
-  cvFileId: number;
-  cvFileName: string;
-  cvFilePath: string;
-  cvFileType: string;
-  cvFileSize: number;
+  cvUrl: string; // Backend trả về cvUrl thay vì cvFilePath, cvFileName, cvFileId
 }
 
 @Injectable({
@@ -31,7 +27,7 @@ export class ApplicationService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Lấy danh sách applications theo job ID
+   * GET /api/applications/job/{job_id} - Lấy danh sách applications theo job ID
    */
   getApplicationsByJobId(jobId: number): Observable<Application[]> {
     return this.http.get<Application[]>(`${this.apiUrl}/job/${jobId}`).pipe(
