@@ -26,6 +26,16 @@ export const routes: Routes = [
       import('./pages/edit-post/edit-post.page').then((m) => m.EditPostPage),
   },
   {
+    path: 'dashboard',
+    loadComponent: () =>
+      import('./pages/dashboard/dashboard.page').then((m) => m.DashboardPage),
+  },
+  {
+    path: 'personal-info',
+    loadComponent: () =>
+      import('./pages/personal-info/personal-info.page').then((m) => m.PersonalInfoPage),
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full',

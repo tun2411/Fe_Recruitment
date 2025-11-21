@@ -1,0 +1,113 @@
+<ion-header class="dashboard-header">
+  <ion-toolbar>
+    <div class="header-content">
+      <div class="profile-icon" (click)="onProfileClick()">
+        <ion-icon name="person-circle-outline"></ion-icon>
+      </div>
+      <ion-title class="header-title">Dashboard</ion-title>
+      <div class="settings-icon" (click)="onSettingsClick()">
+        <ion-icon name="settings-outline"></ion-icon>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="dashboard-content">
+  <!-- Key Metrics Section -->
+  <div class="metrics-section">
+    <div class="metrics-grid">
+      <!-- Open Jobs -->
+      <ion-card class="metric-card">
+        <ion-card-content>
+          <div class="metric-content">
+            <ion-icon name="briefcase-outline" class="metric-icon"></ion-icon>
+            <div class="metric-info">
+              <span class="metric-label">Open Jobs</span>
+              <span class="metric-value">{{ metrics.openJobs }}</span>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- New Candidates -->
+      <ion-card class="metric-card">
+        <ion-card-content>
+          <div class="metric-content">
+            <ion-icon name="people-outline" class="metric-icon"></ion-icon>
+            <div class="metric-info">
+              <span class="metric-label">New Candidates</span>
+              <span class="metric-value">{{ metrics.newCandidates }}</span>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Passed -->
+      <ion-card class="metric-card">
+        <ion-card-content>
+          <div class="metric-content">
+            <ion-icon name="checkmark-circle-outline" class="metric-icon green"></ion-icon>
+            <div class="metric-info">
+              <span class="metric-label">Passed</span>
+              <span class="metric-value">{{ metrics.passed }}</span>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Failed -->
+      <ion-card class="metric-card">
+        <ion-card-content>
+          <div class="metric-content">
+            <ion-icon name="close-circle-outline" class="metric-icon red"></ion-icon>
+            <div class="metric-info">
+              <span class="metric-label">Failed</span>
+              <span class="metric-value">{{ metrics.failed }}</span>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+
+  <!-- Recent Activity Section -->
+  <div class="activity-section">
+    <h2 class="section-title">Recent Activity</h2>
+    <div class="activity-list">
+      <ion-card *ngFor="let activity of recentActivities" class="activity-card">
+        <ion-card-content>
+          <div class="activity-content">
+            <div class="activity-icon-wrapper">
+              <ion-icon 
+                [name]="activity.icon" 
+                [class]="'activity-icon ' + activity.iconColor">
+              </ion-icon>
+              <span class="activity-dot" [class]="'dot-' + activity.dotColor"></span>
+            </div>
+            <div class="activity-text">
+              <p class="activity-title">{{ activity.title }}</p>
+              <p class="activity-time">{{ activity.time }}</p>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+</ion-content>
+
+<!-- Bottom Navigation Bar -->
+<div class="bottom-nav">
+  <div class="nav-item active" (click)="navigateToDashboard()">
+    <ion-icon name="grid-outline"></ion-icon>
+    <span>Dashboard</span>
+  </div>
+  <div class="nav-item" (click)="navigateToJobs()">
+    <ion-icon name="briefcase-outline"></ion-icon>
+    <span>Jobs</span>
+  </div>
+  <div class="nav-item" (click)="navigateToMessages()">
+    <ion-icon name="mail-outline"></ion-icon>
+    <span>Mail</span>
+  </div>
+</div>
+

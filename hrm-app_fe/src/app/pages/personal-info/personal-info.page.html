@@ -1,0 +1,76 @@
+<div class="personal-label">cá nhân</div>
+<ion-header class="custom-header">
+  <ion-toolbar color="primary">
+    <div class="header-content">
+      <div class="header-icon-circle">
+        <ion-icon name="person-outline"></ion-icon>
+      </div>
+      <ion-title class="header-title">THÔNG TIN CÁ NHÂN</ion-title>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="personal-info-content">
+  <div class="form-container">
+    <form [formGroup]="personalInfoForm">
+      <!-- Tên Công ty/ Doanh nghiệp -->
+      <div class="form-field">
+        <ion-label class="field-label">Tên Công ty/ Doanh nghiệp</ion-label>
+        <ion-input
+          formControlName="companyName"
+          placeholder="Tên công ty"
+          class="custom-input"
+          [class.invalid]="isFieldInvalid('companyName')"
+        ></ion-input>
+      </div>
+
+      <!-- Số điện thoại -->
+      <div class="form-field">
+        <ion-label class="field-label">Số điện thoại</ion-label>
+        <ion-input
+          formControlName="phoneNumber"
+          placeholder="Số điện thoại"
+          type="tel"
+          class="custom-input"
+          [class.invalid]="isFieldInvalid('phoneNumber')"
+        ></ion-input>
+      </div>
+
+      <!-- Email -->
+      <div class="form-field">
+        <ion-label class="field-label">Email</ion-label>
+        <ion-input
+          formControlName="email"
+          placeholder="Email"
+          type="email"
+          class="custom-input"
+          [class.invalid]="isFieldInvalid('email')"
+        ></ion-input>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <ion-button
+          fill="solid"
+          color="primary"
+          class="back-button"
+          type="button"
+          (click)="onBack()"
+        >
+          Back
+        </ion-button>
+        <ion-button
+          fill="solid"
+          color="primary"
+          class="update-button"
+          type="button"
+          (click)="onUpdate()"
+          [disabled]="personalInfoForm.invalid"
+        >
+          Update
+        </ion-button>
+      </div>
+    </form>
+  </div>
+</ion-content>
+

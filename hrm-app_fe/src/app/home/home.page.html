@@ -1,32 +1,36 @@
+<div class="main-label">Main</div>
 <ion-header class="custom-header">
   <ion-toolbar color="primary">
     <div class="header-content">
-      <ion-avatar class="header-avatar">
+      <div class="header-icon-circle">
         <ion-icon name="person-outline"></ion-icon>
-      </ion-avatar>
+      </div>
       <ion-title class="header-title">BÀI ĐĂNG</ion-title>
       <div class="notification-wrapper" (click)="onNotificationClick()">
         <ion-icon name="notifications-outline" class="notification-icon"></ion-icon>
         <ion-badge color="danger" class="notification-badge">{{ notificationCount }}</ion-badge>
       </div>
     </div>
-    <br>
-    <ion-searchbar
-      [(ngModel)]="searchTerm"
-      (ionInput)="onSearch($event)"
-      placeholder="Tìm kiếm..."
-      class="custom-searchbar"
-      show-clear-button="focus"
-    ></ion-searchbar>
   </ion-toolbar>
 </ion-header>
+
+<div class="search-container">
+  <ion-searchbar
+    [(ngModel)]="searchTerm"
+    (ionInput)="onSearch($event)"
+    placeholder="Tìm kiếm..."
+    class="custom-searchbar"
+    show-clear-button="focus"
+  ></ion-searchbar>
+</div>
 
 <ion-content [fullscreen]="true" class="home-content">
 
   <div class="action-bar">
     <ion-button fill="outline" class="action-button" (click)="onSort()">
       <ion-icon name="arrow-down-outline" slot="start"></ion-icon>
-      ↑↓ Sort
+      Sort
+      <ion-icon name="chevron-down-outline" slot="end" class="chevron-icon"></ion-icon>
     </ion-button>
     <ion-button fill="clear" class="refresh-button" (click)="onRefresh()">
       <ion-icon name="refresh-outline"></ion-icon>
@@ -40,13 +44,6 @@
 
 
   <div class="posts-container">
-    <!-- Debug info (có thể xóa sau) -->
-    <div style="padding: 10px; background: #f0f0f0; margin: 10px; border-radius: 5px; font-size: 12px;">
-      <strong>Debug:</strong> 
-      Total posts: {{ posts.length }}, 
-      Filtered: {{ filteredPosts.length }}
-    </div>
-
     <!-- Hiển thị thông báo khi không có posts -->
     <div *ngIf="filteredPosts.length === 0" class="empty-state">
       <p>Chưa có bài đăng nào. Hãy tạo bài đăng mới!</p>
@@ -59,8 +56,23 @@
     <ion-card *ngFor="let post of filteredPosts; trackBy: trackByPostId" class="post-card">
       <ion-card-content>
         <div class="post-content">
-          <h3 class="post-title">{{ post.title }}</h3>
-          <p class="post-description">{{ post.description }}</p>
+          <div class="post-header">
+            <div class="post-info">
+              <div class="post-field">
+                <span class="field-label">Tiêu đề</span>
+                <span class="field-value">{{ post.title || 'Tiêu đề' }}</span>
+              </div>
+              <div class="post-field">
+                <span class="field-label">mức lương</span>
+                <span class="field-value">{{ post.salary || 'mức lương' }}</span>
+              </div>
+              <div class="post-field">
+                <span class="field-label">địa chỉ</span>
+                <span class="field-value">{{ post.address || 'địa chỉ' }}</span>
+              </div>
+            </div>
+            <ion-badge color="danger" class="post-badge">20</ion-badge>
+          </div>
           <div class="post-footer">
             <span class="post-date">Cập nhật vào {{ post.updatedAt }}</span>
             <div class="post-actions">
@@ -75,11 +87,34 @@
         </div>
       </ion-card-content>
     </ion-card>
+
+    <!-- Pagination dots -->
+    <div class="pagination-dots">
+      <span class="dot active"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </div>
   </div>
 
-  <ion-fab vertical="bottom" horizontal="center" slot="fixed">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="create-fab">
     <ion-fab-button color="primary" (click)="onCreatePost()">
       <ion-icon name="add-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 </ion-content>
+
+<!-- Bottom Navigation Bar -->
+<div class="bottom-nav">
+  <div class="nav-item" (click)="navigateToDashboard()">
+    <ion-icon name="grid-outline"></ion-icon>
+    <span>Dashboard</span>
+  </div>
+  <div class="nav-item active">
+    <ion-icon name="briefcase-outline"></ion-icon>
+    <span>Jobs</span>
+  </div>
+  <div class="nav-item">
+    <ion-icon name="mail-outline"></ion-icon>
+    <span>Mail</span>
+  </div>
+</div>

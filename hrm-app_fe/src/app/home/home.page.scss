@@ -1,9 +1,17 @@
+.main-label {
+  padding: 8px 16px 4px;
+  font-size: 14px;
+  color: #999;
+  font-weight: 500;
+}
+
 .custom-header {
   ion-toolbar {
     --background: #3880ff;
     --color: white;
-    border-radius: 0 0 20px 20px;
+    border-radius: 0 0 16px 16px;
     padding: 0;
+    min-height: 60px;
   }
 
   .header-content {
@@ -14,17 +22,19 @@
     width: 100%;
   }
 
-  .header-avatar {
+  .header-icon-circle {
     width: 40px;
     height: 40px;
-    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    background: white;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 
     ion-icon {
       font-size: 24px;
-      color: white;
+      color: #3880ff;
     }
   }
 
@@ -35,6 +45,7 @@
     font-size: 18px;
     color: white;
     margin: 0;
+    text-transform: uppercase;
   }
 
   .notification-wrapper {
@@ -45,6 +56,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    flex-shrink: 0;
   }
 
   .notification-icon {
@@ -63,17 +75,23 @@
   }
 }
 
+.search-container {
+  padding: 12px 16px;
+  background: #f5f5f5;
+}
+
 .home-content {
   --background: #f5f5f5;
+  padding-bottom: 80px; // Space cho bottom nav
 }
 
 .custom-searchbar {
-  padding: 12px 16px;
   --background: #ffffff;
   --color: #333;
-  --placeholder-color: #ffffff;
+  --placeholder-color: #999;
   --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   --border-radius: 12px;
+  padding: 0;
 
   .searchbar-input {
     background: #ffffff !important;
@@ -99,6 +117,11 @@
 
     ion-icon {
       font-size: 18px;
+    }
+
+    .chevron-icon {
+      font-size: 14px;
+      margin-left: 4px;
     }
   }
 
@@ -140,29 +163,54 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   --background: white;
+  border: 1px solid #e0e0e0;
 
   ion-card-content {
     padding: 16px;
   }
 
   .post-content {
-    .post-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
-      margin: 0 0 8px 0;
-      line-height: 1.4;
+    .post-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
     }
 
-    .post-description {
-      font-size: 14px;
-      color: #666;
-      margin: 0 0 12px 0;
-      line-height: 1.5;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+    .post-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .post-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .field-label {
+        font-size: 12px;
+        color: #999;
+        text-transform: lowercase;
+      }
+
+      .field-value {
+        font-size: 14px;
+        color: #333;
+        font-weight: 500;
+      }
+    }
+
+    .post-badge {
+      font-size: 12px;
+      min-width: 32px;
+      height: 24px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
 
     .post-footer {
@@ -202,8 +250,29 @@
   }
 }
 
-ion-fab {
-  margin-bottom: 20px;
+.pagination-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 0;
+  margin-top: 8px;
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ddd;
+    transition: background 0.3s;
+
+    &.active {
+      background: #3880ff;
+    }
+  }
+}
+
+.create-fab {
+  margin-bottom: 90px; // Space cho bottom nav
+  margin-right: 16px;
 
   ion-fab-button {
     --box-shadow: 0 4px 12px rgba(56, 128, 255, 0.4);
@@ -212,6 +281,52 @@ ion-fab {
 
     ion-icon {
       font-size: 28px;
+    }
+  }
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0;
+  z-index: 100;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: color 0.3s;
+
+    ion-icon {
+      font-size: 24px;
+      color: #999;
+    }
+
+    span {
+      font-size: 12px;
+      color: #999;
+    }
+
+    &.active {
+      ion-icon {
+        color: #3880ff;
+      }
+
+      span {
+        color: #3880ff;
+        font-weight: 500;
+      }
     }
   }
 }

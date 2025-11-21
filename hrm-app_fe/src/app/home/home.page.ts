@@ -27,6 +27,10 @@ import {
   filterOutline,
   addOutline,
   personOutline,
+  chevronDownOutline,
+  gridOutline,
+  briefcaseOutline,
+  mailOutline,
 } from 'ionicons/icons';
 import { JobPostService, JobPost } from '../services/job-post.service';
 
@@ -35,6 +39,8 @@ export interface Post {
   title: string;
   description: string;
   updatedAt: string;
+  salary?: string;
+  address?: string;
 }
 
 @Component({
@@ -80,6 +86,10 @@ export class HomePage implements OnInit {
       filterOutline,
       addOutline,
       personOutline,
+      chevronDownOutline,
+      gridOutline,
+      briefcaseOutline,
+      mailOutline,
     });
   }
 
@@ -111,11 +121,19 @@ export class HomePage implements OnInit {
       }
     }
 
+    // Parse salaryRange nếu có
+    let salary = '';
+    if (jobPost.salaryRange) {
+      salary = jobPost.salaryRange;
+    }
+
     return {
       id: jobPost.id,
       title: jobPost.title,
       description: jobPost.description || '',
       updatedAt: formattedDate,
+      salary: salary,
+      address: jobPost.location || '',
     };
   }
 
@@ -221,6 +239,10 @@ export class HomePage implements OnInit {
 
   onNotificationClick() {
     console.log('Notification clicked');
+  }
+
+  navigateToDashboard() {
+    this.router.navigate(['/dashboard']);
   }
 
   /**
