@@ -11,6 +11,10 @@ export interface GoogleLoginRequest {
   refreshToken?: string;
 }
 
+export interface FacebookLoginRequest {
+  accessToken: string;
+}
+
 export interface RefreshTokenRequest {
   refreshToken: string;
 }
@@ -72,6 +76,37 @@ export class AuthService {
   googleLogin(request: GoogleLoginRequest): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(`${this.apiUrl}/auth/google`, request)
+      .pipe(
+        tap((response) => {
+          if (response.token) {
+            // Lưu access token
+            this.setToken(response.token);
+            
+            // Lưu refresh token nếu có
+            if (response.refreshToken) {
+              this.setRefreshToken(response.refreshToken);
+            }
+            
+            // Lưu thông tin user
+            const userInfo: UserInfo = {
+              email: response.user.email,
+              fullName: response.user.fullName,
+            };
+            this.setUserInfo(userInfo);
+            this.currentUserSubject.next(userInfo);
+          }
+        })
+      );
+  }
+
+  /**
+   * POST /api/auth/facebook - Đăng nhập bằng Facebook OAuth
+   * @param request FacebookLoginRequest với accessToken
+   * @returns Observable<AuthResponse>
+   */
+  facebookLogin(request: FacebookLoginRequest): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/auth/facebook`, request)
       .pipe(
         tap((response) => {
           if (response.token) {

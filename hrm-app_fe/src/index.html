@@ -12,17 +12,17 @@
   <meta name="format-detection" content="telephone=no" />
   <meta name="msapplication-tap-highlight" content="no" />
   
-  <!-- Content Security Policy - Cho phép Google scripts -->
+  <!-- Content Security Policy - Cho phép Google và Facebook scripts -->
   <!-- Lưu ý: CSP trên Android WebView có thể bị ignore, nhưng vẫn nên set để tương thích -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:;
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com https://*.google.com;
-    style-src 'self' 'unsafe-inline' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com https://*.google.com;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com https://*.google.com https://connect.facebook.net https://*.facebook.com;
+    style-src 'self' 'unsafe-inline' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com https://*.google.com https://connect.facebook.net https://*.facebook.com;
     img-src 'self' data: https: blob:;
     font-src 'self' data: https:;
-    connect-src 'self' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com https://*.google.com http://* https://*;
-    frame-src 'self' https://accounts.google.com https://*.google.com;
-    child-src 'self' https://accounts.google.com https://*.google.com;
+    connect-src 'self' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com https://*.google.com https://graph.facebook.com https://*.facebook.com http://* https://*;
+    frame-src 'self' https://accounts.google.com https://*.google.com https://www.facebook.com https://*.facebook.com;
+    child-src 'self' https://accounts.google.com https://*.google.com https://www.facebook.com https://*.facebook.com;
     worker-src 'self' blob:;
   ">
 
@@ -33,9 +33,20 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   <!-- Google Sign-In API -->
-  <!-- KHÔNG dùng async defer trên Android WebView vì có thể gây CORS issues -->
-  <!-- Script sẽ được load động bởi GoogleSignInService -->
-  <!-- <script src="https://accounts.google.com/gsi/client" async defer></script> -->
+  <!-- Load script trực tiếp trong HTML - cách đơn giản nhất và hoạt động tốt nhất trên Android WebView -->
+  <!-- Không dùng async defer vì có thể gây timing issues trên WebView -->
+  <script src="https://accounts.google.com/gsi/client" async></script>
+
+  <!-- Facebook SDK -->
+  <!-- Load Facebook SDK để hỗ trợ Facebook Login -->
+  <script>
+    window.fbAsyncInit = function() {
+      // FB.init sẽ được gọi trong FacebookSignInService sau khi App ID được config
+      console.log('Facebook SDK loaded');
+    };
+  </script>
+  <script async defer crossorigin="anonymous" 
+    src="https://connect.facebook.net/en_US/sdk.js"></script>
 </head>
 
 <body>

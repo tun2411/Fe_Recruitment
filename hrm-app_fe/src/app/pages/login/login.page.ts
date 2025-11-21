@@ -27,6 +27,7 @@ import {
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 import { GoogleSignInService } from '../../services/google-signin.service';
+import { FacebookSignInService } from '../../services/facebook-signin.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -59,6 +60,7 @@ export class LoginPage implements OnInit {
   constructor(
     private authService: AuthService,
     private googleSignInService: GoogleSignInService,
+    private facebookSignInService: FacebookSignInService,
     private router: Router,
     private http: HttpClient,
     private loadingController: LoadingController,
@@ -93,6 +95,9 @@ export class LoginPage implements OnInit {
       // Khởi tạo Google Sign-In khi component load
       // Retry nếu lần đầu fail (đặc biệt cho Android)
       this.initializeGoogleSignInWithRetry();
+      
+      // Khởi tạo Facebook Sign-In khi component load
+      this.initializeFacebookSignInWithRetry();
     }
   }
 
@@ -115,6 +120,31 @@ export class LoginPage implements OnInit {
           }, 2000);
         } else {
           console.error('Google Sign-In initialization failed after', maxRetries, 'attempts');
+          // Không hiển thị lỗi cho user, chỉ log
+          // User vẫn có thể thử click button để trigger lại
+        }
+      });
+  }
+
+  /**
+   * Khởi tạo Facebook Sign-In với retry logic (cho Android)
+   */
+  private initializeFacebookSignInWithRetry(retryCount = 0, maxRetries = 3): void {
+    this.facebookSignInService.initialize()
+      .then(() => {
+        console.log('Facebook Sign-In initialized successfully');
+      })
+      .catch((error) => {
+        console.warn('Facebook Sign-In initialization failed (attempt', retryCount + 1, '):', error);
+        
+        if (retryCount < maxRetries) {
+          // Retry sau 2 giây
+          setTimeout(() => {
+            console.log('Retrying Facebook Sign-In initialization...');
+            this.initializeFacebookSignInWithRetry(retryCount + 1, maxRetries);
+          }, 2000);
+        } else {
+          console.error('Facebook Sign-In initialization failed after', maxRetries, 'attempts');
           // Không hiển thị lỗi cho user, chỉ log
           // User vẫn có thể thử click button để trigger lại
         }
@@ -231,28 +261,64 @@ export class LoginPage implements OnInit {
     await loading.present();
 
     try {
-      // TODO: Implement Facebook OAuth login
-      // This is a placeholder - you'll need to integrate with your OAuth provider
-      // Example: await this.authService.loginWithFacebook();
-      
-      // Simulate API call (replace with actual implementation)
-      setTimeout(async () => {
-        await loading.dismiss();
-        this.isLoading = false;
-        this.loginProvider = null;
+      // Sử dụng Facebook Sign-In Service để lấy access token thật
+      this.facebookSignInService.signIn()
+        .then(async (accessToken: string) => {
+          // Gọi API Facebook login với access token
+          const facebookLoginRequest = {
+            accessToken: accessToken,
+          };
 
-        const toast = await this.toastController.create({
-          message: 'Đăng nhập bằng Facebook thành công!',
-          duration: 2000,
-          color: 'success',
-          position: 'top',
-        });
-        await toast.present();
+          this.authService.facebookLogin(facebookLoginRequest).subscribe({
+            next: async () => {
+              await loading.dismiss();
+              this.isLoading = false;
+              this.loginProvider = null;
 
-        this.router.navigate(['/home']).catch((error) => {
-          console.error('Navigation error after login:', error);
+              const toast = await this.toastController.create({
+                message: 'Đăng nhập bằng Facebook thành công!',
+                duration: 2000,
+                color: 'success',
+                position: 'top',
+              });
+              await toast.present();
+
+              this.router.navigate(['/home']).catch((error) => {
+                console.error('Navigation error after login:', error);
+              });
+            },
+            error: async (error: any) => {
+              await loading.dismiss();
+              this.isLoading = false;
+              this.loginProvider = null;
+
+              this.errorMessage = error.message || 'Đăng nhập bằng Facebook thất bại. Vui lòng thử lại.';
+
+              const toast = await this.toastController.create({
+                message: this.errorMessage,
+                duration: 3000,
+                color: 'danger',
+                position: 'top',
+              });
+              await toast.present();
+            },
+          });
+        })
+        .catch(async (error: any) => {
+          await loading.dismiss();
+          this.isLoading = false;
+          this.loginProvider = null;
+
+          this.errorMessage = error.message || 'Không thể đăng nhập bằng Facebook. Vui lòng thử lại.';
+
+          const toast = await this.toastController.create({
+            message: this.errorMessage,
+            duration: 3000,
+            color: 'danger',
+            position: 'top',
+          });
+          await toast.present();
         });
-      }, 1500);
     } catch (error: any) {
       await loading.dismiss();
       this.isLoading = false;
