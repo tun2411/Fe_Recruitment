@@ -1,5 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
+import { Platform } from '@ionic/angular';
+
+// LƯU Ý: @codetrix-studio/capacitor-google-auth chỉ tương thích với Capacitor 6
+// Project đang dùng Capacitor 7, nên không dùng plugin
+// Sử dụng web-based approach (hoạt động tốt trên web, Android, iOS với Client ID đúng)
+// Web-based approach không cần plugin, chỉ cần Google JavaScript SDK (đã load trong index.html)
 
 declare global {
   interface Window {
@@ -11,16 +17,47 @@ declare global {
   providedIn: 'root',
 })
 export class GoogleSignInService {
-  private readonly GOOGLE_CLIENT_ID =
+  // Client ID cho Web (development và production)
+  private readonly GOOGLE_CLIENT_ID_WEB =
     '314046144776-pfepr9d4bj6btmjfnd4kqjo6qciu5te9.apps.googleusercontent.com';
+
+  // Client ID cho Android - CẦN TẠO TRONG GOOGLE CONSOLE
+  // Xem hướng dẫn trong GOOGLE_SIGNIN_SETUP.md
+  private readonly GOOGLE_CLIENT_ID_ANDROID =
+    '314046144776-8obdffstu3en9ighi2j1khar67d4q9d7.apps.googleusercontent.com';
+
+  // Client ID cho iOS - CẦN TẠO TRONG GOOGLE CONSOLE
+  // Xem hướng dẫn trong GOOGLE_SIGNIN_SETUP.md
+  private readonly GOOGLE_CLIENT_ID_IOS =
+    'YOUR_IOS_CLIENT_ID_HERE.apps.googleusercontent.com';
+
   private isInitialized = false;
   private currentResolve: ((idToken: string) => void) | null = null;
   private currentReject: ((error: any) => void) | null = null;
 
+  constructor(private platform: Platform) {}
+
   /**
-   * Khởi tạo Google Sign-In API
+   * Khởi tạo Google Sign-In
+   * - Web: Dùng JavaScript SDK (window.google)
+   * - Android/iOS: Dùng Capacitor Google Auth plugin (nếu có) hoặc web-based approach
    */
-  initialize(): Promise<void> {
+  async initialize(): Promise<void> {
+    const isNative = Capacitor.isNativePlatform();
+    const isAndroid = isNative && Capacitor.getPlatform() === 'android';
+    const isIOS = isNative && Capacitor.getPlatform() === 'ios';
+
+    // Luôn dùng web-based approach (hoạt động tốt trên web, Android, iOS với Client ID đúng)
+    await this.initializeWebAuth();
+  }
+
+  // Native auth methods đã được loại bỏ vì plugin không tương thích với Capacitor 7
+  // Sử dụng web-based approach cho tất cả platforms (web, Android, iOS)
+
+  /**
+   * Khởi tạo Google Sign-In cho web platform
+   */
+  private async initializeWebAuth(): Promise<void> {
     return new Promise((resolve, reject) => {
       // Kiểm tra nếu Google API đã load
       if (
@@ -28,18 +65,93 @@ export class GoogleSignInService {
         window.google.accounts &&
         window.google.accounts.id
       ) {
-        this.initializeGoogleSignIn();
+        console.log('Google Sign-In API already available, initializing...');
+        this.initializeGoogleSignInWeb();
         resolve();
         return;
       }
 
-      // Đảm bảo script được load (đặc biệt quan trọng cho Android)
+      // Đảm bảo script được load
+      console.log('Ensuring Google Sign-In script is loaded...');
       this.ensureGoogleScriptLoaded()
         .then(() => {
-          // Đợi Google API load - tăng timeout cho Android
-          let attempts = 0;
-          const maxAttempts = 200; // 20 giây với interval 100ms
+          console.log('Google Sign-In script loaded, initializing...');
+          this.initializeGoogleSignInWeb();
+          resolve();
+        })
+        .catch((error) => {
+          console.error('Failed to load Google Sign-In script:', error);
+          reject(error);
+        });
+    });
+  }
 
+  /**
+   * Đảm bảo Google Sign-In script được load trên web
+   */
+  private ensureGoogleScriptLoaded(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Kiểm tra xem Google API đã sẵn sàng chưa
+      if (
+        window.google &&
+        window.google.accounts &&
+        window.google.accounts.id
+      ) {
+        console.log('Google Sign-In API already available');
+        resolve();
+        return;
+      }
+
+      // Kiểm tra xem script đã tồn tại chưa
+      const existingScript = document.querySelector(
+        'script[src*="accounts.google.com/gsi/client"]'
+      );
+
+      if (existingScript) {
+        // Script đã có, đợi Google API sẵn sàng
+        // Tăng timeout cho Android WebView (có thể chậm hơn)
+        let attempts = 0;
+        const maxAttempts = 200; // 20 giây cho Android WebView
+        const checkInterval = setInterval(() => {
+          attempts++;
+          if (
+            window.google &&
+            window.google.accounts &&
+            window.google.accounts.id
+          ) {
+            clearInterval(checkInterval);
+            console.log(
+              'Google Sign-In API loaded after',
+              attempts * 100,
+              'ms'
+            );
+            resolve();
+          } else if (attempts >= maxAttempts) {
+            clearInterval(checkInterval);
+            console.error(
+              'Google Sign-In script timeout after',
+              maxAttempts * 100,
+              'ms'
+            );
+            reject(
+              new Error(
+                'Google Sign-In script timeout. Please check your internet connection.'
+              )
+            );
+          }
+        }, 100);
+      } else {
+        // Script chưa có, thử load lại
+        console.log('Google Sign-In script not found, loading...');
+        const script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.type = 'text/javascript';
+        script.onload = () => {
+          console.log('Google Sign-In script loaded, waiting for API...');
+          // Đợi API sẵn sàng sau khi script load
+          let attempts = 0;
+          const maxAttempts = 200; // 20 giây
           const checkInterval = setInterval(() => {
             attempts++;
             if (
@@ -48,245 +160,101 @@ export class GoogleSignInService {
               window.google.accounts.id
             ) {
               clearInterval(checkInterval);
-              this.initializeGoogleSignIn();
+              console.log(
+                'Google Sign-In API ready after',
+                attempts * 100,
+                'ms'
+              );
               resolve();
             } else if (attempts >= maxAttempts) {
               clearInterval(checkInterval);
-              console.error(
-                'Google Sign-In API failed to load after',
-                maxAttempts * 100,
-                'ms'
-              );
               reject(
                 new Error(
-                  'Google Sign-In API failed to load. Please check your internet connection and try again.'
+                  'Google Sign-In API failed to initialize after script loaded.'
                 )
               );
             }
           }, 100);
-        })
-        .catch((error) => {
-          console.error('Failed to load Google Sign-In script:', error);
+        };
+        script.onerror = () => {
+          console.error('Failed to load Google Sign-In script');
           reject(
             new Error(
               'Failed to load Google Sign-In script. Please check your internet connection.'
             )
           );
-        });
-    });
-  }
-
-  /**
-   * Đảm bảo Google Sign-In script được load (quan trọng cho Android WebView)
-   */
-  private ensureGoogleScriptLoaded(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      // Kiểm tra xem script đã tồn tại và đã load chưa
-      const existingScript = document.querySelector(
-        'script[src*="accounts.google.com/gsi/client"]'
-      ) as HTMLScriptElement;
-
-      if (existingScript) {
-        // Script đã có trong DOM
-        if (
-          window.google &&
-          window.google.accounts &&
-          window.google.accounts.id
-        ) {
-          // Đã load xong
-          resolve();
-          return;
-        }
-
-        // Script có nhưng chưa load xong, đợi thêm
-        const checkLoaded = setInterval(() => {
-          if (
-            window.google &&
-            window.google.accounts &&
-            window.google.accounts.id
-          ) {
-            clearInterval(checkLoaded);
-            resolve();
-          }
-        }, 100);
-
-        // Timeout sau 5 giây
-        setTimeout(() => {
-          clearInterval(checkLoaded);
-          // Thử load lại script
-          this.loadGoogleScriptDynamically().then(resolve).catch(reject);
-        }, 5000);
-      } else {
-        // Script chưa có, load mới
-        this.loadGoogleScriptDynamically().then(resolve).catch(reject);
+        };
+        document.head.appendChild(script);
       }
     });
   }
 
   /**
-   * Load Google Sign-In script dynamically với error handling tốt hơn
-   * Được tối ưu cho Android WebView
+   * Initialize Google Sign-In cho web
+   * Cũng dùng cho Android/iOS nếu không có native plugin
    */
-  private loadGoogleScriptDynamically(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      // Kiểm tra nếu đang chạy trên Android
-      const isAndroid =
-        Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
-
-      // Đảm bảo document đã sẵn sàng (quan trọng cho Android WebView)
-      const ensureDocumentReady = (callback: () => void) => {
-        if (
-          document.readyState === 'complete' ||
-          document.readyState === 'interactive'
-        ) {
-          // Đợi thêm một chút để đảm bảo WebView đã sẵn sàng
-          setTimeout(callback, isAndroid ? 500 : 100);
-        } else {
-          document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(callback, isAndroid ? 500 : 100);
-          });
-        }
-      };
-
-      ensureDocumentReady(() => {
-        // Xóa script cũ nếu có (để tránh conflict)
-        const oldScript = document.querySelector(
-          'script[src*="accounts.google.com/gsi/client"]'
-        );
-        if (oldScript) {
-          oldScript.remove();
-        }
-
-        // Tạo script mới
-        const script = document.createElement('script');
-        script.src = 'https://accounts.google.com/gsi/client';
-        script.async = true;
-        script.defer = false; // Không dùng defer để có thể handle onload
-        // KHÔNG dùng crossOrigin vì script tags không cần CORS khi load từ external domain
-        // crossOrigin sẽ trigger CORS check và bị block bởi Google
-        script.type = 'text/javascript';
-
-        // Thêm integrity và crossorigin nếu không phải Android (có thể gây vấn đề trên WebView)
-        if (!isAndroid) {
-          // Có thể thêm integrity check cho web browser
-        }
-
-        let scriptLoaded = false;
-        let apiReady = false;
-
-        // Handle khi script load thành công
-        script.onload = () => {
-          scriptLoaded = true;
-          console.log('Google Sign-In script loaded successfully');
-
-          // Đợi lâu hơn cho Android WebView
-          const initialDelay = isAndroid ? 1000 : 500;
-          const checkInterval = isAndroid ? 150 : 100;
-          const maxAttempts = isAndroid ? 100 : 50; // 15 giây cho Android, 5 giây cho web
-
-          setTimeout(() => {
-            if (
-              window.google &&
-              window.google.accounts &&
-              window.google.accounts.id
-            ) {
-              apiReady = true;
-              resolve();
-            } else {
-              // Đợi thêm với polling
-              let attempts = 0;
-              const checkIntervalId = setInterval(() => {
-                attempts++;
-                if (
-                  window.google &&
-                  window.google.accounts &&
-                  window.google.accounts.id
-                ) {
-                  apiReady = true;
-                  clearInterval(checkIntervalId);
-                  resolve();
-                } else if (attempts >= maxAttempts) {
-                  clearInterval(checkIntervalId);
-                  if (!apiReady) {
-                    reject(
-                      new Error('Google API not available after script loaded')
-                    );
-                  }
-                }
-              }, checkInterval);
-            }
-          }, initialDelay);
-        };
-
-        // Handle khi script load thất bại
-        script.onerror = (error) => {
-          console.error('Failed to load Google Sign-In script:', error);
-          // Trên Android, có thể là vấn đề network hoặc CSP
-          const errorMessage = isAndroid
-            ? 'Failed to load Google Sign-In script. Please check your internet connection and ensure the app has network permissions.'
-            : 'Failed to load Google Sign-In script. Check internet connection.';
-          reject(new Error(errorMessage));
-        };
-
-        // Thêm script vào head
-        try {
-          if (document.head) {
-            document.head.appendChild(script);
-          } else {
-            // Fallback: thêm vào body nếu head chưa có
-            document.body.appendChild(script);
-          }
-        } catch (e) {
-          console.error('Error appending script:', e);
-          reject(new Error('Failed to append Google Sign-In script to DOM'));
-          return;
-        }
-
-        // Timeout dài hơn cho Android
-        const timeoutDuration = isAndroid ? 20000 : 10000;
-        setTimeout(() => {
-          if (!scriptLoaded) {
-            reject(
-              new Error(
-                'Google Sign-In script load timeout (script not loaded)'
-              )
-            );
-          } else if (
-            !apiReady &&
-            (!window.google ||
-              !window.google.accounts ||
-              !window.google.accounts.id)
-          ) {
-            reject(
-              new Error('Google Sign-In script load timeout (API not ready)')
-            );
-          }
-        }, timeoutDuration);
-      });
-    });
-  }
-
-  private initializeGoogleSignIn(): void {
+  private initializeGoogleSignInWeb(): void {
     if (this.isInitialized) {
       return;
     }
 
     try {
-      // Initialize với callback để handle credential response
+      // Lấy Client ID đúng cho platform
+      const clientId = this.getClientIdForPlatform();
+
       window.google.accounts.id.initialize({
-        client_id: this.GOOGLE_CLIENT_ID,
+        client_id: clientId,
         callback: (response: any) => {
           this.handleCredentialResponse(response);
         },
         auto_select: false,
       });
       this.isInitialized = true;
+      console.log('Google Sign-In initialized with Client ID:', clientId);
     } catch (error) {
       console.error('Error initializing Google Sign-In:', error);
       throw error;
     }
   }
 
+  /**
+   * Lấy Client ID đúng cho platform hiện tại
+   */
+  private getClientIdForPlatform(): string {
+    const isNative = Capacitor.isNativePlatform();
+    const isAndroid = isNative && Capacitor.getPlatform() === 'android';
+    const isIOS = isNative && Capacitor.getPlatform() === 'ios';
+
+    if (isAndroid) {
+      if (
+        this.GOOGLE_CLIENT_ID_ANDROID.includes('YOUR_ANDROID_CLIENT_ID_HERE')
+      ) {
+        console.warn(
+          '⚠️ Android Client ID chưa được config! ' +
+            'Vui lòng tạo OAuth Client ID cho Android trong Google Console. ' +
+            'Đang sử dụng Web Client ID (có thể không hoạt động).'
+        );
+        return this.GOOGLE_CLIENT_ID_WEB;
+      }
+      return this.GOOGLE_CLIENT_ID_ANDROID;
+    } else if (isIOS) {
+      if (this.GOOGLE_CLIENT_ID_IOS.includes('YOUR_IOS_CLIENT_ID_HERE')) {
+        console.warn(
+          '⚠️ iOS Client ID chưa được config! ' +
+            'Vui lòng tạo OAuth Client ID cho iOS trong Google Console. ' +
+            'Đang sử dụng Web Client ID (có thể không hoạt động).'
+        );
+        return this.GOOGLE_CLIENT_ID_WEB;
+      }
+      return this.GOOGLE_CLIENT_ID_IOS;
+    }
+
+    return this.GOOGLE_CLIENT_ID_WEB;
+  }
+
+  /**
+   * Handle credential response từ web
+   */
   private handleCredentialResponse(response: any): void {
     if (response.credential && this.currentResolve) {
       this.currentResolve(response.credential);
@@ -300,33 +268,64 @@ export class GoogleSignInService {
   }
 
   /**
-   * Trigger Google Sign-In và trả về Promise với idToken
+   * Đăng nhập bằng Google
+   * Trả về idToken để gửi lên backend
+   * Tương tự như FacebookSignInService.signIn() trả về accessToken
    */
-  signIn(): Promise<string> {
+  async signIn(): Promise<string> {
+    if (!this.isInitialized) {
+      await this.initialize();
+    }
+
+    // Luôn dùng web-based approach (hoạt động tốt trên web, Android, iOS với Client ID đúng)
+    return this.signInWeb();
+  }
+
+  // Native sign-in method đã được loại bỏ vì plugin không tương thích với Capacitor 7
+  // Sử dụng web-based approach cho tất cả platforms
+
+  /**
+   * Đăng nhập trên web platform
+   */
+  private signInWeb(): Promise<string> {
     return new Promise((resolve, reject) => {
-      // Đảm bảo đã initialize
       if (!this.isInitialized) {
         this.initialize()
           .then(() => {
-            this.performSignIn(resolve, reject);
+            this.performSignInWeb(resolve, reject);
           })
           .catch(reject);
       } else {
-        this.performSignIn(resolve, reject);
+        this.performSignInWeb(resolve, reject);
       }
     });
   }
 
-  private performSignIn(
+  /**
+   * Thực hiện đăng nhập trên web
+   * Tương tự như FacebookSignInService.signIn() - trả về token để gửi lên backend
+   */
+  private performSignInWeb(
     resolve: (idToken: string) => void,
     reject: (error: any) => void
   ): void {
     try {
-      // Lưu callbacks
+      // Kiểm tra Google API đã sẵn sàng chưa
+      if (
+        !window.google ||
+        !window.google.accounts ||
+        !window.google.accounts.id
+      ) {
+        reject(
+          new Error('Google Sign-In API chưa sẵn sàng. Vui lòng thử lại sau.')
+        );
+        return;
+      }
+
       this.currentResolve = resolve;
       this.currentReject = reject;
 
-      // Tạo một button container ẩn để render Google button
+      // Tạo button container ẩn
       let buttonContainer = document.getElementById(
         'google-signin-trigger-container'
       );
@@ -342,11 +341,14 @@ export class GoogleSignInService {
         document.body.appendChild(buttonContainer);
       }
 
-      // Clear container trước
       buttonContainer.innerHTML = '';
 
-      // Render Google Sign-In button vào container
+      // Lấy Client ID đúng cho platform
+      const clientId = this.getClientIdForPlatform();
+
+      // Render Google button với Client ID đúng
       window.google.accounts.id.renderButton(buttonContainer, {
+        client_id: clientId, // Đảm bảo dùng Client ID đúng
         theme: 'outline',
         size: 'large',
         text: 'signin_with',
@@ -354,54 +356,50 @@ export class GoogleSignInService {
         width: '300',
       });
 
-      // Sau khi render, tìm và click button
+      // Click button sau khi render
       setTimeout(() => {
-        // Tìm button được render bởi Google
         const googleButton = buttonContainer.querySelector(
           'div[role="button"]'
         ) as HTMLElement;
         if (googleButton) {
-          // Trigger click event
+          console.log('Clicking Google Sign-In button...');
           googleButton.click();
         } else {
-          // Fallback: thử dùng One Tap prompt
+          // Fallback: dùng prompt nếu button không render được
+          console.log('Button not found, using prompt...');
           window.google.accounts.id.prompt((notification: any) => {
             if (
               notification.isNotDisplayed() ||
               notification.isSkippedMoment() ||
               notification.isDismissedMoment()
             ) {
-              // Nếu One Tap không hiển thị, thử lại với button
-              setTimeout(() => {
-                const retryButton = buttonContainer.querySelector(
-                  'div[role="button"]'
-                ) as HTMLElement;
-                if (retryButton) {
-                  retryButton.click();
-                } else {
-                  reject(
-                    new Error(
-                      'Không thể hiển thị Google Sign-In. Vui lòng thử lại sau.'
-                    )
-                  );
-                }
-              }, 500);
+              reject(
+                new Error(
+                  'Không thể hiển thị Google Sign-In. Vui lòng thử lại sau.'
+                )
+              );
             }
           });
         }
       }, 300);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error performing Google Sign-In:', error);
       reject(error);
     }
   }
 
   /**
-   * Kiểm tra xem Google API đã sẵn sàng chưa
+   * Kiểm tra xem Google Sign-In đã sẵn sàng chưa
    */
   isReady(): boolean {
-    return (
-      this.isInitialized &&
-      !!(window.google && window.google.accounts && window.google.accounts.id)
-    );
+    const isNative = Capacitor.isNativePlatform();
+    if (isNative) {
+      return this.isInitialized;
+    } else {
+      return (
+        this.isInitialized &&
+        !!(window.google && window.google.accounts && window.google.accounts.id)
+      );
+    }
   }
 }

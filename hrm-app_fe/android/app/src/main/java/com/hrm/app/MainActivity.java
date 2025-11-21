@@ -79,12 +79,60 @@ public class MainActivity extends BridgeActivity {
                 cookieManager.setAcceptThirdPartyCookies(webView, true);
                 cookieManager.setAcceptCookie(true);
                 
+                // Inject Google Sign-In script nếu chưa có
+                // Đợi page load xong rồi inject script
+                // Script đã được load từ index.html, nhưng inject thêm để đảm bảo
+                webView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        injectGoogleSignInScript(webView);
+                    }
+                }, 3000); // Đợi 3 giây để page và script từ index.html load xong
+                
                 Log.d(TAG, "WebView configured successfully for Google Sign-In");
             } else {
                 Log.w(TAG, "WebView is null, cannot configure");
             }
         } catch (Exception e) {
             Log.e(TAG, "Error configuring WebView", e);
+        }
+    }
+
+    /**
+     * Inject Google Sign-In script vào WebView nếu chưa có
+     * Sử dụng JavaScript để inject script, đảm bảo hoạt động trên Android WebView
+     */
+    private void injectGoogleSignInScript(WebView webView) {
+        try {
+            // Đơn giản hóa script injection để tránh lỗi syntax
+            // Chỉ inject nếu script chưa tồn tại
+            String checkScript = 
+                "(function() {" +
+                "  try {" +
+                "    var hasScript = document.querySelector('script[src*=\"accounts.google.com/gsi/client\"]');" +
+                "    var hasGoogle = window.google && window.google.accounts && window.google.accounts.id;" +
+                "    if (!hasScript && !hasGoogle) {" +
+                "      console.log('[MainActivity] Injecting Google Sign-In script...');" +
+                "      var script = document.createElement('script');" +
+                "      script.src = 'https://accounts.google.com/gsi/client';" +
+                "      script.async = true;" +
+                "      script.type = 'text/javascript';" +
+                "      script.onload = function() { console.log('[MainActivity] Google Sign-In script loaded'); };" +
+                "      script.onerror = function() { console.error('[MainActivity] Google Sign-In script failed to load'); };" +
+                "      var head = document.head || document.getElementsByTagName('head')[0];" +
+                "      if (head) { head.appendChild(script); }" +
+                "    } else if (hasGoogle) {" +
+                "      console.log('[MainActivity] Google Sign-In API already available');" +
+                "    }" +
+                "  } catch(e) { console.error('[MainActivity] Error:', e); }" +
+                "})();";
+            
+            // Execute JavaScript trên WebView
+            webView.evaluateJavascript(checkScript, null);
+            
+            Log.d(TAG, "Attempted to inject Google Sign-In script");
+        } catch (Exception e) {
+            Log.e(TAG, "Error injecting Google Sign-In script", e);
         }
     }
 }
