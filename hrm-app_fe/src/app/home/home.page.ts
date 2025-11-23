@@ -31,8 +31,13 @@ import {
   gridOutline,
   briefcaseOutline,
   mailOutline,
+  timeOutline,
+  cashOutline,
+  locationOutline,
 } from 'ionicons/icons';
-import { JobPostService, JobPost } from '../services/job-post.service';
+import { JobPostService, JobPost, JobResponse } from '../services/job-post.service';
+import { forkJoin, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 
 export interface Post {
   id: number;
@@ -41,6 +46,8 @@ export interface Post {
   updatedAt: string;
   salary?: string;
   address?: string;
+  workTime?: string;
+  roundCount?: number;
 }
 
 @Component({
@@ -90,6 +97,9 @@ export class HomePage implements OnInit {
       gridOutline,
       briefcaseOutline,
       mailOutline,
+      timeOutline,
+      cashOutline,
+      locationOutline,
     });
   }
 
@@ -98,20 +108,20 @@ export class HomePage implements OnInit {
   }
 
   /**
-   * Chuyển đổi JobPost từ API thành Post để hiển thị
+   * Chuyển đổi JobResponse từ API thành Post để hiển thị
    */
-  private mapJobPostToPost(jobPost: JobPost): Post {
+  private mapJobResponseToPost(job: JobResponse): Post {
     // Format date từ ISO string sang định dạng dễ đọc
-    // Nếu updatedAt là chuỗi rỗng hoặc không hợp lệ, dùng "Chưa cập nhật"
     let formattedDate = 'Chưa cập nhật';
-    if (jobPost.updatedAt && jobPost.updatedAt.trim() !== '') {
+    if (job.updatedAt && job.updatedAt.trim() !== '') {
       try {
-        const date = new Date(jobPost.updatedAt);
+        const date = new Date(job.updatedAt);
         if (!isNaN(date.getTime())) {
-          formattedDate = date.toLocaleString('vi-VN', {
+          formattedDate = date.toLocaleDateString('vi-VN', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
+          }) + ' ' + date.toLocaleTimeString('vi-VN', {
             hour: '2-digit',
             minute: '2-digit',
           });
@@ -121,20 +131,50 @@ export class HomePage implements OnInit {
       }
     }
 
-    // Parse salaryRange nếu có
+    // Format salary từ salaryFrom và salaryTo
     let salary = '';
-    if (jobPost.salaryRange) {
-      salary = jobPost.salaryRange;
+    if (job.salaryFrom !== undefined && job.salaryFrom !== null) {
+      if (job.salaryTo !== undefined && job.salaryTo !== null) {
+        // Format: "10.000.000 - 20.000.000 VNĐ"
+        salary = `${this.formatCurrency(job.salaryFrom)} - ${this.formatCurrency(job.salaryTo)} VNĐ`;
+      } else {
+        // Chỉ có salaryFrom
+        salary = `Từ ${this.formatCurrency(job.salaryFrom)} VNĐ`;
+      }
+    } else if (job.salaryTo !== undefined && job.salaryTo !== null) {
+      // Chỉ có salaryTo
+      salary = `Đến ${this.formatCurrency(job.salaryTo)} VNĐ`;
+    } else {
+      salary = 'Thỏa thuận';
     }
 
+    // Format workTime
+    const workTimeMap: { [key: string]: string } = {
+      'fulltime': 'Fulltime',
+      'parttime': 'Parttime',
+      'internship': 'Internship',
+      'contract': 'Contract',
+      'freelance': 'Freelance',
+    };
+    const workTime = job.workTime ? (workTimeMap[job.workTime.toLowerCase()] || job.workTime) : '';
+
     return {
-      id: jobPost.id,
-      title: jobPost.title,
-      description: jobPost.description || '',
+      id: job.id,
+      title: job.title,
+      description: job.description || '',
       updatedAt: formattedDate,
       salary: salary,
-      address: jobPost.location || '',
+      address: job.location || '',
+      workTime: workTime,
+      roundCount: job.roundCount,
     };
+  }
+
+  /**
+   * Format số tiền thành định dạng có dấu chấm ngăn cách
+   */
+  private formatCurrency(amount: number): string {
+    return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   }
 
   async loadPosts() {
@@ -160,13 +200,55 @@ export class HomePage implements OnInit {
           return;
         }
 
-        // Chuyển đổi JobPost thành Post
-        this.posts = jobPosts.map((jobPost) => this.mapJobPostToPost(jobPost));
-        this.filteredPosts = [...this.posts];
-        console.log('[HomePage] Mapped posts:', this.posts);
-        console.log('[HomePage] Filtered posts:', this.filteredPosts);
-        console.log('[HomePage] Posts count:', this.posts.length);
-        loading.dismiss();
+        // Load chi tiết cho từng job để có đầy đủ thông tin (salary, location, workTime, updatedAt)
+        const detailRequests = jobPosts.map((jobPost) =>
+          this.jobPostService.getJobPostById(jobPost.id).pipe(
+            catchError((error) => {
+              console.warn(`[HomePage] Failed to load details for job ${jobPost.id}:`, error);
+              // Trả về null nếu lỗi, sẽ được filter sau
+              return of(null);
+            })
+          )
+        );
+
+        // Load tất cả chi tiết song song
+        forkJoin(detailRequests).subscribe({
+          next: (jobDetails: (JobResponse | null)[]) => {
+            // Filter bỏ các job null và map sang Post
+            this.posts = jobDetails
+              .filter((job): job is JobResponse => job !== null)
+              .map((job) => this.mapJobResponseToPost(job));
+            
+            this.filteredPosts = [...this.posts];
+            console.log('[HomePage] Mapped posts with details:', this.posts);
+            loading.dismiss();
+          },
+          error: async (error) => {
+            loading.dismiss();
+            console.error('[HomePage] Error loading job details:', error);
+            
+            // Fallback: sử dụng dữ liệu cơ bản nếu không load được chi tiết
+            this.posts = jobPosts.map((jobPost) => ({
+              id: jobPost.id,
+              title: jobPost.title,
+              description: jobPost.description || '',
+              updatedAt: 'Chưa cập nhật',
+              salary: 'Thỏa thuận',
+              address: jobPost.location || '',
+              workTime: '',
+              roundCount: jobPost.roundCount,
+            }));
+            this.filteredPosts = [...this.posts];
+            
+            const toast = await this.toastController.create({
+              message: 'Đã tải danh sách nhưng một số thông tin chi tiết chưa có',
+              duration: 2000,
+              color: 'warning',
+              position: 'top',
+            });
+            await toast.present();
+          },
+        });
       },
       error: async (error) => {
         loading.dismiss();

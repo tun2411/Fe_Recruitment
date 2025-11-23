@@ -1,39 +1,67 @@
 .main-label {
-  padding: 8px 16px 4px;
-  font-size: 14px;
-  color: #999;
-  font-weight: 500;
+  display: none; // Ẩn label "Main" để giao diện gọn hơn
 }
 
 .custom-header {
   ion-toolbar {
-    --background: #3880ff;
+    --background: linear-gradient(135deg, #3880ff 0%, #2c6dd5 50%, #1e5bb8 100%);
     --color: white;
-    border-radius: 0 0 16px 16px;
+    border-radius: 0 0 24px 24px;
     padding: 0;
-    min-height: 60px;
+    min-height: 64px;
+    box-shadow: 0 4px 12px rgba(56, 128, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+
+    // Thêm pattern overlay nhẹ
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
   }
 
   .header-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 16px;
+    padding: 12px 20px;
     width: 100%;
+    position: relative;
+    z-index: 1;
   }
 
   .header-icon-circle {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: white;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    cursor: pointer;
+
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
 
     ion-icon {
-      font-size: 24px;
+      font-size: 22px;
       color: #3880ff;
     }
   }
@@ -41,60 +69,91 @@
   .header-title {
     flex: 1;
     text-align: center;
-    font-weight: 600;
-    font-size: 18px;
+    font-weight: 700;
+    font-size: 20px;
     color: white;
     margin: 0;
     text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .notification-wrapper {
     position: relative;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     flex-shrink: 0;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(1.1);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
   }
 
   .notification-icon {
-    font-size: 24px;
+    font-size: 26px;
     color: white;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
   }
 
   .notification-badge {
     position: absolute;
-    top: 4px;
-    right: 4px;
-    font-size: 10px;
-    min-width: 18px;
-    height: 18px;
-    border-radius: 9px;
+    top: 2px;
+    right: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    z-index: 2;
   }
 }
 
 .search-container {
   padding: 12px 16px;
-  background: #f5f5f5;
+  background: linear-gradient(to bottom, #f8f9fa 0%, #f5f5f5 100%);
+  border-bottom: 1px solid #e9ecef;
 }
 
 .home-content {
   --background: #f5f5f5;
   padding-bottom: 80px; // Space cho bottom nav
+  --padding-top: 0;
+  --padding-start: 0;
+  --padding-end: 0;
 }
 
 .custom-searchbar {
   --background: #ffffff;
   --color: #333;
   --placeholder-color: #999;
-  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  --border-radius: 12px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --border-radius: 14px;
   padding: 0;
+  transition: box-shadow 0.3s ease;
+
+  &:focus-within {
+    --box-shadow: 0 4px 12px rgba(56, 128, 255, 0.15);
+  }
 
   .searchbar-input {
     background: #ffffff !important;
+    font-size: 15px;
   }
 }
 
@@ -102,8 +161,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  gap: 8px;
+  padding: 10px 16px;
+  gap: 10px;
+  background: white;
+  border-bottom: 1px solid #f0f0f0;
+  margin: 0;
 
   .action-button {
     flex: 1;
@@ -111,9 +173,16 @@
     --background: white;
     --color: #333;
     font-size: 14px;
-    height: 40px;
+    font-weight: 500;
+    height: 42px;
     margin: 0;
     position: relative;
+    --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+
+    &:hover {
+      --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
 
     ion-icon {
       font-size: 18px;
@@ -127,9 +196,14 @@
 
   .refresh-button {
     --color: #3880ff;
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     margin: 0;
+    transition: transform 0.3s ease;
+
+    &:active {
+      transform: rotate(180deg);
+    }
 
     ion-icon {
       font-size: 24px;
@@ -141,32 +215,49 @@
     top: -4px;
     right: -4px;
     font-size: 10px;
+    font-weight: 600;
     min-width: 18px;
     height: 18px;
     border-radius: 9px;
+    box-shadow: 0 2px 4px rgba(56, 128, 255, 0.3);
   }
 }
 
 .posts-container {
-  padding: 0 16px 100px;
+  padding: 12px 16px 100px;
 
   .empty-state {
     text-align: center;
-    padding: 40px 20px;
+    padding: 60px 20px;
     color: #999;
-    font-size: 14px;
+    font-size: 15px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+    ion-button {
+      margin-top: 20px;
+      --border-radius: 12px;
+    }
   }
 }
 
 .post-card {
-  margin: 0 0 16px 0;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 0 0 20px 0;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   --background: white;
-  border: 1px solid #e0e0e0;
+  border: none;
+  transition: all 0.3s ease;
+  overflow: hidden;
+
+  &:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
 
   ion-card-content {
-    padding: 16px;
+    padding: 20px;
   }
 
   .post-content {
@@ -187,30 +278,93 @@
     .post-field {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
 
       .field-label {
-        font-size: 12px;
-        color: #999;
-        text-transform: lowercase;
+        font-size: 11px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        ion-icon {
+          font-size: 14px;
+          color: #3880ff;
+        }
       }
 
       .field-value {
         font-size: 14px;
-        color: #333;
+        color: #1a1a1a;
         font-weight: 500;
+        line-height: 1.4;
+      }
+
+      &.title-field {
+        margin-bottom: 4px;
+        
+        .field-value {
+          font-size: 18px;
+          font-weight: 700;
+          color: #1a1a1a;
+          line-height: 1.3;
+          letter-spacing: -0.3px;
+        }
+      }
+
+      &.salary-field {
+        .field-value {
+          color: #2e7d32;
+          font-weight: 600;
+          font-size: 15px;
+        }
+      }
+
+      &.address-field {
+        .field-value {
+          color: #555;
+        }
+      }
+    }
+
+    .post-field-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin: 8px 0;
+
+      .post-field {
+        flex: 1;
+        min-width: 140px;
+
+        .worktime-badge {
+          display: inline-block;
+          padding: 4px 10px;
+          background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+          color: #1565c0;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          box-shadow: 0 2px 4px rgba(21, 101, 192, 0.1);
+        }
       }
     }
 
     .post-badge {
-      font-size: 12px;
-      min-width: 32px;
-      height: 24px;
-      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      min-width: 36px;
+      height: 28px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+      margin-left: 8px;
     }
 
     .post-footer {
@@ -218,16 +372,25 @@
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px;
-      padding-top: 12px;
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
       border-top: 1px solid #f0f0f0;
 
       .post-date {
         font-size: 12px;
-        color: #999;
+        color: #666;
         flex: 1;
         min-width: 150px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 500;
+
+        ion-icon {
+          font-size: 16px;
+          color: #3880ff;
+        }
       }
 
       .post-actions {
@@ -235,14 +398,32 @@
         gap: 8px;
 
         ion-button {
-          --border-radius: 8px;
+          --border-radius: 10px;
           margin: 0;
-          height: 32px;
-          font-size: 12px;
+          height: 36px;
+          font-size: 13px;
+          font-weight: 500;
+          text-transform: none;
+          transition: all 0.2s ease;
 
           &[fill="outline"] {
-            --border-color: #ddd;
+            --border-color: #e0e0e0;
+            --border-width: 1.5px;
             --color: #666;
+            
+            &:hover {
+              --border-color: #3880ff;
+              --color: #3880ff;
+              --background: #f5f8ff;
+            }
+          }
+
+          &[fill="solid"] {
+            --box-shadow: 0 2px 8px rgba(56, 128, 255, 0.3);
+            
+            &:hover {
+              --box-shadow: 0 4px 12px rgba(56, 128, 255, 0.4);
+            }
           }
         }
       }
@@ -275,12 +456,22 @@
   margin-right: 16px;
 
   ion-fab-button {
-    --box-shadow: 0 4px 12px rgba(56, 128, 255, 0.4);
-    width: 56px;
-    height: 56px;
+    --box-shadow: 0 6px 16px rgba(56, 128, 255, 0.4);
+    width: 60px;
+    height: 60px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      --box-shadow: 0 8px 20px rgba(56, 128, 255, 0.5);
+      transform: scale(1.05);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
 
     ion-icon {
-      font-size: 28px;
+      font-size: 30px;
     }
   }
 }

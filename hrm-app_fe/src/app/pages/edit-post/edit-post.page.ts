@@ -92,6 +92,14 @@ export class EditPostPage implements OnInit {
     { value: 'month', label: 'Tháng' },
   ];
 
+  workTimeOptions = [
+    { value: 'fulltime', label: 'Fulltime' },
+    { value: 'parttime', label: 'Parttime' },
+    { value: 'internship', label: 'Internship' },
+    { value: 'contract', label: 'Contract' },
+    { value: 'freelance', label: 'Freelance' },
+  ];
+
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
@@ -116,6 +124,7 @@ export class EditPostPage implements OnInit {
       address: ['', [Validators.required]],
       minExperience: [''],
       experienceUnit: ['year'],
+      workTime: [''],
       status: ['', [Validators.required]],
       deadline: [''],
       recruitmentRound: ['', [Validators.required, Validators.min(1)]],
@@ -176,18 +185,35 @@ export class EditPostPage implements OnInit {
       salaryTo = job.salaryTo.toString();
     }
 
+    // Parse yoe (years of experience) từ backend
+    let minExperience = '';
+    if (job.yoe !== undefined && job.yoe !== null) {
+      minExperience = job.yoe.toString();
+    }
+
+    // Lấy unit từ backend
+    const experienceUnit = job.unit || 'year';
+
     this.editPostForm.patchValue({
       title: job.title || '',
       salaryFrom: salaryFrom,
       salaryTo: salaryTo,
       address: job.location || '',
+      minExperience: minExperience,
+      experienceUnit: experienceUnit,
+      workTime: job.workTime || '',
       status: job.status || 'active',
       recruitmentRound: job.roundCount || 1,
       content: job.description || '',
     });
 
-    // Set deadline nếu có publishedAt
-    if (job.publishedAt) {
+    // Set deadline từ job.deadline (LocalDateTime format từ backend)
+    if (job.deadline) {
+      // Parse LocalDateTime string (yyyy-MM-ddTHH:mm:ss) thành Date object
+      const deadlineDate = new Date(job.deadline);
+      this.editPostForm.patchValue({ deadline: deadlineDate });
+    } else if (job.publishedAt) {
+      // Fallback: sử dụng publishedAt nếu không có deadline
       const deadlineDate = new Date(job.publishedAt);
       this.editPostForm.patchValue({ deadline: deadlineDate });
     }
@@ -267,6 +293,27 @@ export class EditPostPage implements OnInit {
       salaryTo = parseInt(formValue.salaryTo) || undefined;
     }
 
+    // Parse yoe (years of experience) từ minExperience (backend yêu cầu Double/number)
+    let yoe: number | undefined = undefined;
+    if (formValue.minExperience) {
+      yoe = parseFloat(formValue.minExperience) || undefined;
+    }
+
+    // Lấy unit từ experienceUnit
+    const unit: string | undefined = formValue.experienceUnit || undefined;
+
+    // Format deadline thành LocalDateTime format (yyyy-MM-ddTHH:mm:ss)
+    let deadline: string | undefined = undefined;
+    if (formValue.deadline) {
+      const deadlineDate = new Date(formValue.deadline);
+      deadlineDate.setHours(0, 0, 0, 0);
+      // Format: yyyy-MM-ddTHH:mm:ss (LocalDateTime format)
+      const year = deadlineDate.getFullYear();
+      const month = String(deadlineDate.getMonth() + 1).padStart(2, '0');
+      const day = String(deadlineDate.getDate()).padStart(2, '0');
+      deadline = `${year}-${month}-${day}T00:00:00`;
+    }
+
     // Tạo rounds từ recruitmentRound (hoặc giữ nguyên rounds hiện tại)
     const roundCount = formValue.recruitmentRound || 1;
     let rounds: JobRoundDTO[] | undefined = undefined;
@@ -290,8 +337,12 @@ export class EditPostPage implements OnInit {
       location: formValue.address || undefined,
       salaryFrom: salaryFrom,
       salaryTo: salaryTo,
+      workTime: formValue.workTime || undefined,
+      yoe: yoe,
+      unit: unit,
       rounds: rounds,
       status: formValue.status || 'active',
+      deadline: deadline,
     };
 
     // Gọi API

@@ -39,6 +39,7 @@ export interface JobResponse {
   unit?: string;
   roundCount: number;
   status: string;
+  deadline?: string; // LocalDateTime format từ backend
   publishedAt: string;
   applyUrl?: string;
   createdAt: string;
@@ -57,6 +58,7 @@ export interface CreateJobRequest {
   unit?: string;
   rounds: JobRoundDTO[];
   status?: string;
+  deadline?: string; // LocalDateTime format: yyyy-MM-ddTHH:mm:ss
 }
 
 export interface CreateJobResponse {
@@ -75,6 +77,7 @@ export interface UpdateJobRequest {
   unit?: string;
   rounds?: JobRoundDTO[];
   status?: string;
+  deadline?: string; // LocalDateTime format: yyyy-MM-ddTHH:mm:ss
 }
 
 export interface MessageResponse {

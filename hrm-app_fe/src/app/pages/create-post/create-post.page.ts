@@ -90,6 +90,14 @@ export class CreatePostPage implements OnInit {
     { value: 'month', label: 'Tháng' },
   ];
 
+  workTimeOptions = [
+    { value: 'fulltime', label: 'Fulltime' },
+    { value: 'parttime', label: 'Parttime' },
+    { value: 'internship', label: 'Internship' },
+    { value: 'contract', label: 'Contract' },
+    { value: 'freelance', label: 'Freelance' },
+  ];
+
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
@@ -113,6 +121,7 @@ export class CreatePostPage implements OnInit {
       address: ['', [Validators.required]],
       minExperience: [''],
       experienceUnit: ['year'],
+      workTime: ['', [Validators.required]],
       status: ['', [Validators.required]],
       deadline: ['', [Validators.required]],
       recruitmentRound: ['', [Validators.required, Validators.min(1)]],
@@ -205,6 +214,27 @@ export class CreatePostPage implements OnInit {
       salaryTo = parseInt(formValue.salaryTo) || undefined;
     }
 
+    // Parse yoe (years of experience) từ minExperience (backend yêu cầu Double/number)
+    let yoe: number | undefined = undefined;
+    if (formValue.minExperience) {
+      yoe = parseFloat(formValue.minExperience) || undefined;
+    }
+
+    // Lấy unit từ experienceUnit
+    const unit: string | undefined = formValue.experienceUnit || undefined;
+
+    // Format deadline thành LocalDateTime format (yyyy-MM-ddTHH:mm:ss)
+    let deadline: string | undefined = undefined;
+    if (formValue.deadline) {
+      const deadlineDate = new Date(formValue.deadline);
+      deadlineDate.setHours(0, 0, 0, 0);
+      // Format: yyyy-MM-ddTHH:mm:ss (LocalDateTime format)
+      const year = deadlineDate.getFullYear();
+      const month = String(deadlineDate.getMonth() + 1).padStart(2, '0');
+      const day = String(deadlineDate.getDate()).padStart(2, '0');
+      deadline = `${year}-${month}-${day}T00:00:00`;
+    }
+
     // Tạo rounds từ recruitmentRound
     const roundCount = formValue.recruitmentRound || 1;
     const rounds: JobRoundDTO[] = [];
@@ -223,8 +253,12 @@ export class CreatePostPage implements OnInit {
       location: formValue.address || undefined,
       salaryFrom: salaryFrom,
       salaryTo: salaryTo,
+      workTime: formValue.workTime || undefined,
+      yoe: yoe,
+      unit: unit,
       rounds: rounds,
       status: formValue.status || 'active',
+      deadline: deadline,
     };
 
     // Gọi API

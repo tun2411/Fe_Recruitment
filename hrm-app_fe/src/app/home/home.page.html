@@ -25,7 +25,6 @@
 </div>
 
 <ion-content [fullscreen]="true" class="home-content">
-
   <div class="action-bar">
     <ion-button fill="outline" class="action-button" (click)="onSort()">
       <ion-icon name="arrow-down-outline" slot="start"></ion-icon>
@@ -58,23 +57,37 @@
         <div class="post-content">
           <div class="post-header">
             <div class="post-info">
-              <div class="post-field">
-                <span class="field-label">Tiêu đề</span>
+              <div class="post-field title-field">
                 <span class="field-value">{{ post.title || 'Tiêu đề' }}</span>
               </div>
-              <div class="post-field">
-                <span class="field-label">mức lương</span>
-                <span class="field-value">{{ post.salary || 'mức lương' }}</span>
+              <div class="post-field-row">
+                <div class="post-field salary-field">
+                  <span class="field-label">
+                    <ion-icon name="cash-outline"></ion-icon>
+                    Mức lương
+                  </span>
+                  <span class="field-value">{{ post.salary || 'Thỏa thuận' }}</span>
+                </div>
+                <div class="post-field" *ngIf="post.workTime">
+                  <span class="field-label">Loại hình</span>
+                  <span class="field-value worktime-badge">{{ post.workTime }}</span>
+                </div>
               </div>
-              <div class="post-field">
-                <span class="field-label">địa chỉ</span>
-                <span class="field-value">{{ post.address || 'địa chỉ' }}</span>
+              <div class="post-field address-field">
+                <span class="field-label">
+                  <ion-icon name="location-outline"></ion-icon>
+                  Địa chỉ
+                </span>
+                <span class="field-value">{{ post.address || 'Chưa có địa chỉ' }}</span>
               </div>
             </div>
-            <ion-badge color="danger" class="post-badge">20</ion-badge>
+            <ion-badge color="danger" class="post-badge" *ngIf="post.roundCount">{{ post.roundCount }}</ion-badge>
           </div>
           <div class="post-footer">
-            <span class="post-date">Cập nhật vào {{ post.updatedAt }}</span>
+            <span class="post-date">
+              <ion-icon name="time-outline"></ion-icon>
+              {{ post.updatedAt }}
+            </span>
             <div class="post-actions">
               <ion-button fill="outline" size="small" (click)="onViewList(post)">
                 List
