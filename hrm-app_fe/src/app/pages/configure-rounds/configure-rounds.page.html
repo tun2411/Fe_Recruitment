@@ -1,0 +1,109 @@
+<ion-header class="custom-header">
+  <ion-toolbar color="primary">
+    <div class="header-content">
+      <ion-button fill="clear" (click)="onBack()" class="back-button">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+      <ion-title class="header-title">CẤU HÌNH VÒNG</ion-title>
+      <div style="width: 48px;"></div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="configure-rounds-content">
+  <div class="form-container">
+    <form [formGroup]="roundsForm" (ngSubmit)="onSubmit()">
+      <div formArrayName="rounds" *ngFor="let round of roundsArray.controls; let i = index">
+        <div [formGroupName]="i" class="round-card">
+          <div class="round-header">
+            <h3 class="round-title">Vòng {{ i + 1 }}</h3>
+          </div>
+
+          <div class="round-content">
+            <!-- Tên vòng -->
+            <div class="form-field">
+              <ion-label class="field-label">Tên vòng</ion-label>
+              <ion-input
+                formControlName="roundName"
+                placeholder="Nhập tên vòng"
+                class="custom-input"
+                [class.invalid]="round.get('roundName')?.invalid && (round.get('roundName')?.dirty || round.get('roundName')?.touched)"
+              ></ion-input>
+            </div>
+
+            <!-- Email template PASS -->
+            <div class="form-field">
+              <ion-label class="field-label">Mẫu email PASS</ion-label>
+              <ion-item
+                button
+                (click)="onEmailTemplateClick('pass', i)"
+                class="template-item"
+              >
+                <ion-label>
+                  <span class="template-placeholder">
+                    {{ round.get('passEmailTemplate')?.value || '... (cho phép nhập)' }}
+                  </span>
+                </ion-label>
+                <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+              </ion-item>
+            </div>
+
+            <!-- Email template FAIL -->
+            <div class="form-field">
+              <ion-label class="field-label">Mẫu email FAIL</ion-label>
+              <ion-item
+                button
+                (click)="onEmailTemplateClick('fail', i)"
+                class="template-item"
+              >
+                <ion-label>
+                  <span class="template-placeholder">
+                    {{ round.get('failEmailTemplate')?.value || '... (cho phép nhập)' }}
+                  </span>
+                </ion-label>
+                <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+              </ion-item>
+            </div>
+
+            <!-- Xác nhận của ứng viên -->
+            <div class="form-field toggle-field">
+              <ion-item lines="none" class="toggle-item">
+                <ion-label>
+                  <strong>Xác nhận của ứng viên</strong>
+                </ion-label>
+                <ion-toggle
+                  formControlName="isConfirmed"
+                  slot="end"
+                ></ion-toggle>
+              </ion-item>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <ion-button
+          fill="outline"
+          color="primary"
+          class="cancel-button"
+          type="button"
+          (click)="onBack()"
+        >
+          Quay lại
+        </ion-button>
+        <ion-button
+          fill="solid"
+          color="primary"
+          class="confirm-button"
+          type="submit"
+          [disabled]="roundsForm.invalid"
+        >
+          Tạo bài đăng
+        </ion-button>
+      </div>
+    </form>
+  </div>
+</ion-content>
+
+
+

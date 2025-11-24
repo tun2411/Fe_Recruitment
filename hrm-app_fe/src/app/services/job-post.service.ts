@@ -305,9 +305,30 @@ export class JobPostService {
   }
 
   /**
+   * GET /api/forms?type={type} - Lấy danh sách email template forms của user hiện tại
+   * API yêu cầu Bearer token trong headers để xác minh người dùng và lấy form thông qua người dùng đó
+   * Token sẽ được tự động thêm bởi authInterceptor
+   * @param type Loại form: 'pass' hoặc 'fail'
+   * @returns Observable<any[]>
+   */
+  getSamples(type: 'pass' | 'fail'): Observable<any[]> {
+    // Sử dụng query parameter thay vì path parameter
+    // Token sẽ được tự động thêm bởi authInterceptor vào headers
+    // Backend sẽ decode token để lấy user ID và trả về forms của user đó
+    const params = new HttpParams().set('type', type);
+    
+    return this.http
+      .get<any[]>(`${environment.apiUrl}/forms`, { params })
+      .pipe(
+        retry(2), // Retry 2 lần nếu lỗi
+        catchError(this.handleError<any[]>('getSamples', []))
+      );
+  }
+
+  /**
    * Error Handler - Xử lý lỗi chung cho tất cả requests
    */
-  private handleError<T>(operation = 'operation') {
+  private handleError<T>(operation = 'operation', result?: T) {
     return (error: HttpErrorResponse): Observable<T> => {
       console.error(`${operation} failed:`, error);
 
@@ -345,7 +366,12 @@ export class JobPostService {
         }
       }
 
-      return throwError(() => new Error(errorMessage));
+      // Trả về giá trị mặc định hoặc throw error
+      if (result !== undefined) {
+        return of(result as T);
+      } else {
+        return throwError(() => new Error(errorMessage));
+      }
     };
   }
 }

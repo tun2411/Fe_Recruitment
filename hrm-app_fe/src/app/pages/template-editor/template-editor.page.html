@@ -1,0 +1,61 @@
+<ion-header class="custom-header">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>TẠO MAIL</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- List mẫu email (nếu có) -->
+  <ion-list *ngIf="samples && samples.length > 0">
+    <ion-item button *ngFor="let sample of samples" (click)="selectSample(sample)">
+      <ion-label>{{sample.sampleName || sample.name}}</ion-label>
+      <span slot="end">›</span>
+    </ion-item>
+  </ion-list>
+
+  <!-- Form editor -->
+  <form [formGroup]="templateForm">
+    <!-- Tên form -->
+    <ion-item>
+      <ion-label position="stacked">Tên form</ion-label>
+      <ion-input formControlName="formName" placeholder="Tên"></ion-input>
+    </ion-item>
+
+    <!-- Tiêu đề -->
+    <ion-item>
+      <ion-label position="stacked">Tiêu đề</ion-label>
+      <ion-input formControlName="subject" placeholder="Tiêu đề mail"></ion-input>
+    </ion-item>
+
+    <!-- Nội dung -->
+    <ion-item>
+      <ion-label position="stacked">Nội dung</ion-label>
+      <ion-textarea formControlName="content" rows="10" placeholder="Nhập nội dung email..."></ion-textarea>
+    </ion-item>
+
+    <!-- Placeholders helper -->
+    <ion-item>
+      <ion-label>Placeholders:</ion-label>
+      <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;">
+        <ion-button 
+          size="small" 
+          fill="outline" 
+          *ngFor="let placeholder of placeholders"
+          (click)="insertPlaceholder(placeholder)">
+          {{placeholder}}
+        </ion-button>
+      </div>
+    </ion-item>
+  </form>
+
+  <!-- Buttons - Fixed at bottom -->
+  <div style="display: flex; gap: 10px; margin-top: 20px; padding-bottom: 20px; position: sticky; bottom: 0; background: white; z-index: 10; border-top: 1px solid #e0e0e0; padding-top: 15px;">
+    <ion-button expand="block" fill="outline" (click)="onCancel()" style="flex: 1;">Cancel</ion-button>
+    <ion-button expand="block" color="primary" (click)="onConfirm()" style="flex: 1; font-weight: bold;">Confirm</ion-button>
+  </div>
+</ion-content>
+
+

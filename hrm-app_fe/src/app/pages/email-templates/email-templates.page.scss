@@ -1,0 +1,18 @@
+.custom-header {
+  ion-toolbar {
+    --background: linear-gradient(135deg, #3880ff 0%, #2c6dd5 50%, #1e5bb8 100%);
+    --color: white;
+  }
+}
+
+// Style cho template preview alert
+::ng-deep .template-preview-alert {
+  .alert-message {
+    max-height: 400px;
+    overflow-y: auto;
+    text-align: left;
+    white-space: pre-wrap;
+  }
+}
+
+

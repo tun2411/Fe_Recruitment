@@ -37,6 +37,7 @@ import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/
 import {MatIconModule} from "@angular/material/icon";
 import {CustomDateAdapter, CUSTOM_DATE_FORMATS} from "./custom-date-adapter";
 import { JobPostService, CreateJobRequest, JobRoundDTO } from '../../services/job-post.service';
+import { JobCreationStateService } from '../../services/job-creation-state.service';
 
 @Component({
   selector: 'app-create-post',
@@ -103,7 +104,8 @@ export class CreatePostPage implements OnInit {
     private router: Router,
     private jobPostService: JobPostService,
     private toastController: ToastController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private jobCreationState: JobCreationStateService
   ) {
     addIcons({
       notificationsOutline,
@@ -124,7 +126,6 @@ export class CreatePostPage implements OnInit {
       workTime: ['', [Validators.required]],
       status: ['', [Validators.required]],
       deadline: ['', [Validators.required]],
-      recruitmentRound: ['', [Validators.required, Validators.min(1)]],
       content: ['', [Validators.required]],
     });
   }
@@ -195,12 +196,6 @@ export class CreatePostPage implements OnInit {
       return;
     }
 
-    const loading = await this.loadingController.create({
-      message: 'Đang tạo bài đăng...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     // Lấy giá trị từ form
     const formValue = this.createPostForm.value;
     
@@ -235,19 +230,8 @@ export class CreatePostPage implements OnInit {
       deadline = `${year}-${month}-${day}T00:00:00`;
     }
 
-    // Tạo rounds từ recruitmentRound
-    const roundCount = formValue.recruitmentRound || 1;
-    const rounds: JobRoundDTO[] = [];
-    for (let i = 0; i < roundCount; i++) {
-      rounds.push({
-        roundIndex: i, // Backend yêu cầu bắt đầu từ 0
-        roundName: `Vòng ${i + 1}`,
-        isConfirmed: false,
-      });
-    }
-
-    // Tạo CreateJobRequest theo đúng format backend
-    const createJobRequest: CreateJobRequest = {
+    // Lưu dữ liệu vào service (chưa có rounds)
+    const jobData: Partial<CreateJobRequest> = {
       title: formValue.title,
       description: formValue.content || '',
       location: formValue.address || undefined,
@@ -256,39 +240,14 @@ export class CreatePostPage implements OnInit {
       workTime: formValue.workTime || undefined,
       yoe: yoe,
       unit: unit,
-      rounds: rounds,
       status: formValue.status || 'active',
       deadline: deadline,
     };
 
-    // Gọi API
-    this.jobPostService.createJob(createJobRequest).subscribe({
-      next: async (response) => {
-        await loading.dismiss();
+    this.jobCreationState.setJobData(jobData);
 
-        const toast = await this.toastController.create({
-          message: `Tạo bài đăng thành công! (ID: ${response.jobId}, Số vòng: ${response.roundCount})`,
-          duration: 3000,
-          color: 'success',
-          position: 'top',
-        });
-        await toast.present();
-
-        // Navigate back to home
-        this.router.navigate(['/home']);
-      },
-      error: async (error) => {
-        await loading.dismiss();
-
-        const toast = await this.toastController.create({
-          message: error.message || 'Tạo bài đăng thất bại. Vui lòng thử lại.',
-          duration: 3000,
-          color: 'danger',
-          position: 'top',
-        });
-        await toast.present();
-      },
-    });
+    // Navigate sang trang chọn số vòng tuyển dụng
+    this.router.navigate(['/select-rounds']);
   }
 
   onCancel() {
