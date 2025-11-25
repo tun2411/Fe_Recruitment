@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import {
   IonHeader,
   IonToolbar,
@@ -34,12 +34,13 @@ import {MatInputModule} from "@angular/material/input";
 import {MatDatepickerModule} from "@angular/material/datepicker";
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
 import {MatIconModule} from "@angular/material/icon";
-import {CustomDateAdapter, CUSTOM_DATE_FORMATS} from "./custom-date-adapter";
+import {CustomDateAdapter, CUSTOM_DATE_FORMATS} from "../create-post/custom-date-adapter";
+import { JobPostService } from '../../services/job-post.service';
 
 @Component({
-  selector: 'app-create-post',
-  templateUrl: './create-post.page.html',
-  styleUrls: ['./create-post.page.scss'],
+  selector: 'app-edit-post',
+  templateUrl: './edit-post.page.html',
+  styleUrls: ['./edit-post.page.scss'],
   standalone: true,
   imports: [
     CommonModule,
@@ -70,11 +71,13 @@ import {CustomDateAdapter, CUSTOM_DATE_FORMATS} from "./custom-date-adapter";
     { provide: MAT_DATE_LOCALE, useValue: 'vi-VN' },
   ],
 })
-export class CreatePostPage implements OnInit {
-  createPostForm: FormGroup;
+export class EditPostPage implements OnInit {
+  editPostForm: FormGroup;
   notificationCount: number = 2;
   minDate: string = '';
   minDateValue: Date = new Date();
+  postId: number | null = null;
+  isLoading: boolean = false;
 
   statusOptions = [
     { value: 'active', label: 'Đang hoạt động' },
@@ -90,8 +93,10 @@ export class CreatePostPage implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
+    private route: ActivatedRoute,
     private toastController: ToastController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private jobPostService: JobPostService
   ) {
     addIcons({
       notificationsOutline,
@@ -102,7 +107,7 @@ export class CreatePostPage implements OnInit {
       closeOutline,
     });
 
-    this.createPostForm = this.formBuilder.group({
+    this.editPostForm = this.formBuilder.group({
       title: ['', [Validators.required]],
       salaryFrom: ['', [Validators.required]],
       salaryTo: ['', [Validators.required]],
@@ -122,6 +127,68 @@ export class CreatePostPage implements OnInit {
     today.setHours(0, 0, 0, 0);
     this.minDate = today.toISOString();
     this.minDateValue = today;
+
+    // Lấy postId từ route params
+    this.route.params.subscribe(params => {
+      this.postId = +params['id'];
+      if (this.postId) {
+        this.loadPostData();
+      }
+    });
+  }
+
+  loadPostData() {
+    if (!this.postId) return;
+
+    this.isLoading = true;
+    this.jobPostService.getJobPostById(this.postId).subscribe({
+      next: (post: any) => {
+        // Parse salary range (format: "from-to" or similar)
+        let salaryFrom = '';
+        let salaryTo = '';
+        if (post.salaryRange) {
+          const parts = post.salaryRange.split('-');
+          if (parts.length >= 2) {
+            salaryFrom = parts[0].trim();
+            salaryTo = parts[1].trim();
+          }
+        }
+
+        // Parse deadline if exists
+        let deadline = '';
+        if (post.deadline) {
+          deadline = new Date(post.deadline);
+        }
+
+        // Populate form
+        this.editPostForm.patchValue({
+          title: post.title || '',
+          salaryFrom: salaryFrom,
+          salaryTo: salaryTo,
+          address: post.location || '',
+          minExperience: post.minExperience || '',
+          experienceUnit: post.experienceUnit || 'year',
+          status: post.status || '',
+          deadline: deadline,
+          recruitmentRound: post.roundCount || '',
+          content: post.description || '',
+        });
+
+        this.isLoading = false;
+      },
+      error: async (error) => {
+        this.isLoading = false;
+        console.error('Error loading post:', error);
+        const toast = await this.toastController.create({
+          message: 'Không thể tải dữ liệu bài đăng',
+          duration: 2000,
+          color: 'danger',
+          position: 'top',
+        });
+        await toast.present();
+        this.router.navigate(['/home']);
+      }
+    });
   }
 
   formatDate(dateString: string): string {
@@ -141,8 +208,8 @@ export class CreatePostPage implements OnInit {
       const date = new Date(dateValue);
       date.setHours(0, 0, 0, 0);
       const isoString = date.toISOString();
-      this.createPostForm.patchValue({ deadline: isoString });
-      this.createPostForm.get('deadline')?.markAsTouched();
+      this.editPostForm.patchValue({ deadline: isoString });
+      this.editPostForm.get('deadline')?.markAsTouched();
     }
   }
 
@@ -151,8 +218,8 @@ export class CreatePostPage implements OnInit {
       // Lưu Date object để Material Datepicker hiển thị đúng format dd/mm/yyyy
       const date = new Date(event.value);
       date.setHours(0, 0, 0, 0);
-      this.createPostForm.patchValue({ deadline: date });
-      this.createPostForm.get('deadline')?.markAsTouched();
+      this.editPostForm.patchValue({ deadline: date });
+      this.editPostForm.get('deadline')?.markAsTouched();
     }
   }
 
@@ -169,7 +236,7 @@ export class CreatePostPage implements OnInit {
   }
 
   async onSubmit() {
-    if (this.createPostForm.invalid) {
+    if (this.editPostForm.invalid) {
       this.markFormGroupTouched();
 
       const toast = await this.toastController.create({
@@ -182,27 +249,61 @@ export class CreatePostPage implements OnInit {
       return;
     }
 
+    if (!this.postId) {
+      const toast = await this.toastController.create({
+        message: 'Không tìm thấy ID bài đăng',
+        duration: 2000,
+        color: 'danger',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+
     const loading = await this.loadingController.create({
-      message: 'Đang tạo bài đăng...',
+      message: 'Đang cập nhật bài đăng...',
       spinner: 'crescent',
     });
     await loading.present();
 
-    // Simulate API call
-    setTimeout(async () => {
-      await loading.dismiss();
+    const formValue = this.editPostForm.value;
+    const updateData = {
+      title: formValue.title,
+      description: formValue.content,
+      location: formValue.address,
+      salaryRange: `${formValue.salaryFrom}-${formValue.salaryTo}`,
+      status: formValue.status,
+      roundCount: formValue.recruitmentRound,
+      deadline: formValue.deadline,
+    };
 
-      const toast = await this.toastController.create({
-        message: 'Tạo bài đăng thành công!',
-        duration: 2000,
-        color: 'success',
-        position: 'top',
-      });
-      await toast.present();
+    this.jobPostService.updateJobPost(this.postId, updateData).subscribe({
+      next: async () => {
+        await loading.dismiss();
 
-      // Navigate back to home
-      this.router.navigate(['/home']);
-    }, 1500);
+        const toast = await this.toastController.create({
+          message: 'Cập nhật bài đăng thành công!',
+          duration: 2000,
+          color: 'success',
+          position: 'top',
+        });
+        await toast.present();
+
+        // Navigate back to home
+        this.router.navigate(['/home']);
+      },
+      error: async (error) => {
+        await loading.dismiss();
+
+        const toast = await this.toastController.create({
+          message: error.message || 'Có lỗi xảy ra khi cập nhật',
+          duration: 2000,
+          color: 'danger',
+          position: 'top',
+        });
+        await toast.present();
+      }
+    });
   }
 
   onCancel() {
@@ -210,13 +311,13 @@ export class CreatePostPage implements OnInit {
   }
 
   isFieldInvalid(fieldName: string): boolean {
-    const field = this.createPostForm.get(fieldName);
+    const field = this.editPostForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
   private markFormGroupTouched() {
-    Object.keys(this.createPostForm.controls).forEach((key) => {
-      const control = this.createPostForm.get(key);
+    Object.keys(this.editPostForm.controls).forEach((key) => {
+      const control = this.editPostForm.get(key);
       control?.markAsTouched();
     });
   }
