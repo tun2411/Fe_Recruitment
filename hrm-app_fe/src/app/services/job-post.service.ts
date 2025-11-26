@@ -56,9 +56,10 @@ export interface CreateJobRequest {
   workTime?: string;
   yoe?: number;
   unit?: string;
-  rounds: JobRoundDTO[];
+  roundCount: number; // Số vòng tuyển dụng (required theo backend DTO)
   status?: string;
   deadline?: string; // LocalDateTime format: yyyy-MM-ddTHH:mm:ss
+  // Note: rounds không cần trong CreateJobRequest vì rounds được tạo riêng sau (POST /api/jobs/{job_id}/rounds)
 }
 
 export interface CreateJobResponse {
@@ -82,6 +83,38 @@ export interface UpdateJobRequest {
 
 export interface MessageResponse {
   message: string;
+}
+
+// Interface cho CompleteJobRequest (tạo job + rounds + templates trong một transaction)
+export interface TemplateDTO {
+  templateId?: number; // Nếu có, sẽ attach template existing
+  formName?: string; // Nếu tạo mới
+  type?: 'pass' | 'fail' | 'apply_confirm';
+  subject?: string; // Nếu tạo mới
+  content?: string; // Nếu tạo mới
+  createNew?: boolean; // Nếu true, sẽ tạo template mới (copy) thay vì attach existing
+}
+
+export interface RoundWithTemplatesDTO {
+  roundIndex: number;
+  roundName: string;
+  isConfirmed?: boolean;
+  passTemplate?: TemplateDTO;
+  failTemplate?: TemplateDTO;
+}
+
+export interface CompleteJobRequest {
+  title: string;
+  description: string;
+  location?: string;
+  salaryFrom?: number;
+  salaryTo?: number;
+  workTime?: string;
+  yoe?: number;
+  unit?: string;
+  roundCount: number;
+  deadline?: string;
+  rounds: RoundWithTemplatesDTO[];
 }
 
 // Interface cũ để backward compatibility với các component hiện tại
@@ -192,6 +225,38 @@ export class JobPostService {
       .delete<MessageResponse>(`${this.apiUrl}/${id}`)
       .pipe(
         catchError(this.handleError<MessageResponse>(`deleteJob id=${id}`))
+      );
+  }
+
+  /**
+   * POST /api/jobs/complete - Tạo job hoàn chỉnh (job + rounds + templates) trong một transaction
+   * @param request CompleteJobRequest với đầy đủ thông tin job, rounds, và templates
+   * @returns Observable<CreateJobResponse>
+   */
+  createCompleteJob(
+    request: CompleteJobRequest
+  ): Observable<CreateJobResponse> {
+    return this.http
+      .post<CreateJobResponse>(`${this.apiUrl}/complete`, request)
+      .pipe(
+        catchError(this.handleError<CreateJobResponse>('createCompleteJob'))
+      );
+  }
+
+  /**
+   * POST /api/jobs/{job_id}/rounds - Tạo rounds cho job
+   * @param jobId ID của job
+   * @param rounds Danh sách rounds cần tạo
+   * @returns Observable<MessageResponse>
+   */
+  createRounds(
+    jobId: number,
+    rounds: JobRoundDTO[]
+  ): Observable<MessageResponse> {
+    return this.http
+      .post<MessageResponse>(`${this.apiUrl}/${jobId}/rounds`, rounds)
+      .pipe(
+        catchError(this.handleError<MessageResponse>('createRounds'))
       );
   }
 
@@ -316,13 +381,11 @@ export class JobPostService {
     // Token sẽ được tự động thêm bởi authInterceptor vào headers
     // Backend sẽ decode token để lấy user ID và trả về forms của user đó
     const params = new HttpParams().set('type', type);
-    
-    return this.http
-      .get<any[]>(`${environment.apiUrl}/forms`, { params })
-      .pipe(
-        retry(2), // Retry 2 lần nếu lỗi
-        catchError(this.handleError<any[]>('getSamples', []))
-      );
+
+    return this.http.get<any[]>(`${environment.apiUrl}/forms`, { params }).pipe(
+      retry(2), // Retry 2 lần nếu lỗi
+      catchError(this.handleError<any[]>('getSamples', []))
+    );
   }
 
   /**

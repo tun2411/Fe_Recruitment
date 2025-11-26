@@ -4,7 +4,7 @@
       <ion-button fill="clear" (click)="onBack()" class="back-button">
         <ion-icon name="arrow-back-outline"></ion-icon>
       </ion-button>
-      <ion-title class="header-title">CẤU HÌNH VÒNG</ion-title>
+      <ion-title class="header-title">VÒNG TUYỂN DỤNG</ion-title>
       <div style="width: 48px;"></div>
     </div>
   </ion-toolbar>
@@ -23,25 +23,21 @@
             <!-- Tên vòng -->
             <div class="form-field">
               <ion-label class="field-label">Tên vòng</ion-label>
-              <ion-input
-                formControlName="roundName"
-                placeholder="Nhập tên vòng"
-                class="custom-input"
-                [class.invalid]="round.get('roundName')?.invalid && (round.get('roundName')?.dirty || round.get('roundName')?.touched)"
-              ></ion-input>
+              <ion-input formControlName="roundName" placeholder="Nhập tên vòng" class="custom-input"
+                [class.invalid]="round.get('roundName')?.invalid && (round.get('roundName')?.dirty || round.get('roundName')?.touched)"></ion-input>
             </div>
 
             <!-- Email template PASS -->
             <div class="form-field">
               <ion-label class="field-label">Mẫu email PASS</ion-label>
-              <ion-item
-                button
-                (click)="onEmailTemplateClick('pass', i)"
-                class="template-item"
-              >
+              <ion-item button (click)="onEmailTemplateClick('pass', i)" class="template-item">
                 <ion-label>
-                  <span class="template-placeholder">
+                  <span class="template-placeholder" [class.template-selected]="round.get('passEmailTemplate')?.value">
                     {{ round.get('passEmailTemplate')?.value || '... (cho phép nhập)' }}
+                  </span>
+                  <span *ngIf="round.get('passEmailTemplate')?.value" class="template-status"
+                    style="color: green; font-size: 12px; margin-top: 4px;">
+                    ✓ Đã được cấu hình
                   </span>
                 </ion-label>
                 <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
@@ -51,14 +47,14 @@
             <!-- Email template FAIL -->
             <div class="form-field">
               <ion-label class="field-label">Mẫu email FAIL</ion-label>
-              <ion-item
-                button
-                (click)="onEmailTemplateClick('fail', i)"
-                class="template-item"
-              >
+              <ion-item button (click)="onEmailTemplateClick('fail', i)" class="template-item">
                 <ion-label>
-                  <span class="template-placeholder">
+                  <span class="template-placeholder" [class.template-selected]="round.get('failEmailTemplate')?.value">
                     {{ round.get('failEmailTemplate')?.value || '... (cho phép nhập)' }}
+                  </span>
+                  <span *ngIf="round.get('failEmailTemplate')?.value" class="template-status"
+                    style="color: green; font-size: 12px; margin-top: 4px;">
+                    ✓ Đã được cấu hình
                   </span>
                 </ion-label>
                 <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
@@ -71,10 +67,7 @@
                 <ion-label>
                   <strong>Xác nhận của ứng viên</strong>
                 </ion-label>
-                <ion-toggle
-                  formControlName="isConfirmed"
-                  slot="end"
-                ></ion-toggle>
+                <ion-toggle formControlName="isConfirmed" slot="end"></ion-toggle>
               </ion-item>
             </div>
           </div>
@@ -82,28 +75,13 @@
       </div>
 
       <div class="action-buttons">
-        <ion-button
-          fill="outline"
-          color="primary"
-          class="cancel-button"
-          type="button"
-          (click)="onBack()"
-        >
+        <ion-button fill="outline" color="primary" class="cancel-button" type="button" (click)="onBack()">
           Quay lại
         </ion-button>
-        <ion-button
-          fill="solid"
-          color="primary"
-          class="confirm-button"
-          type="submit"
-          [disabled]="roundsForm.invalid"
-        >
-          Tạo bài đăng
+        <ion-button fill="solid" color="primary" class="confirm-button" type="submit" [disabled]="roundsForm.invalid">
+          Confirm
         </ion-button>
       </div>
     </form>
   </div>
 </ion-content>
-
-
-

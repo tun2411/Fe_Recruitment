@@ -92,8 +92,21 @@
         </div>
       </div>
 
-      <!-- Trạng thái -->
+      <!-- Số vòng tuyển dụng -->
       <div class="form-field">
+        <ion-label class="field-label">Số vòng tuyển dụng</ion-label>
+        <ion-input
+          formControlName="roundCount"
+          type="number"
+          placeholder="Nhập số vòng (tối thiểu 1)"
+          min="1"
+          class="custom-input"
+          [class.invalid]="isFieldInvalid('roundCount')"
+        ></ion-input>
+      </div>
+
+      <!-- Trạng thái (Ẩn - mặc định inactive khi tạo job cơ bản) -->
+      <!-- <div class="form-field">
         <ion-label class="field-label">Trạng thái</ion-label>
         <ion-select
           formControlName="status"
@@ -105,7 +118,7 @@
             {{ option.label }}
           </ion-select-option>
         </ion-select>
-      </div>
+      </div> -->
 
       <!-- Thời gian làm việc -->
       <div class="form-field">

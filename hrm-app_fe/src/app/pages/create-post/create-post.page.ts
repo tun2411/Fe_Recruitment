@@ -1,6 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import {
   IonHeader,
@@ -30,14 +36,25 @@ import {
   chevronDownOutline,
   closeOutline,
 } from 'ionicons/icons';
-import {MatFormFieldModule} from "@angular/material/form-field";
-import {MatInputModule} from "@angular/material/input";
-import {MatDatepickerModule} from "@angular/material/datepicker";
-import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
-import {MatIconModule} from "@angular/material/icon";
-import {CustomDateAdapter, CUSTOM_DATE_FORMATS} from "./custom-date-adapter";
-import { JobPostService, CreateJobRequest, JobRoundDTO } from '../../services/job-post.service';
-import { JobCreationStateService } from '../../services/job-creation-state.service';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import {
+  DateAdapter,
+  MAT_DATE_FORMATS,
+  MAT_DATE_LOCALE,
+} from '@angular/material/core';
+import { MatIconModule } from '@angular/material/icon';
+import { CustomDateAdapter, CUSTOM_DATE_FORMATS } from './custom-date-adapter';
+import {
+  JobPostService,
+  CreateJobRequest,
+  JobRoundDTO,
+} from '../../services/job-post.service';
+import {
+  JobCreationStateService,
+  RoundConfiguration,
+} from '../../services/job-creation-state.service';
 
 @Component({
   selector: 'app-create-post',
@@ -124,9 +141,10 @@ export class CreatePostPage implements OnInit {
       minExperience: [''],
       experienceUnit: ['year'],
       workTime: ['', [Validators.required]],
-      status: ['', [Validators.required]],
+      status: ['inactive'], // Mặc định inactive khi tạo job cơ bản
       deadline: ['', [Validators.required]],
       content: ['', [Validators.required]],
+      roundCount: ['', [Validators.required, Validators.min(1)]], // Thêm roundCount
     });
   }
 
@@ -136,6 +154,31 @@ export class CreatePostPage implements OnInit {
     today.setHours(0, 0, 0, 0);
     this.minDate = today.toISOString();
     this.minDateValue = today;
+
+    // Cleanup: Nếu có jobId cũ trong state (user quay lại), xóa draft cũ
+    const oldJobId = this.jobCreationState.getJobId();
+    if (oldJobId) {
+      console.log(
+        '[CreatePost] Found old jobId in state, cleaning up draft...',
+        oldJobId
+      );
+      // Xóa draft cũ ngầm (không hiển thị loading/error)
+      this.jobPostService.deleteJob(oldJobId).subscribe({
+        next: () => {
+          console.log('[CreatePost] Old draft deleted successfully');
+          // Clear state
+          this.jobCreationState.clear();
+        },
+        error: (error) => {
+          console.error(
+            '[CreatePost] Error deleting old draft (non-critical):',
+            error
+          );
+          // Vẫn clear state dù xóa thất bại
+          this.jobCreationState.clear();
+        },
+      });
+    }
   }
 
   formatDate(dateString: string): string {
@@ -196,17 +239,37 @@ export class CreatePostPage implements OnInit {
       return;
     }
 
+    // Validation: salaryFrom < salaryTo
+    const salaryFrom = parseInt(this.createPostForm.value.salaryFrom);
+    const salaryTo = parseInt(this.createPostForm.value.salaryTo);
+    if (salaryFrom >= salaryTo) {
+      const toast = await this.toastController.create({
+        message: 'Mức lương "Từ" phải nhỏ hơn "Đến"',
+        duration: 2000,
+        color: 'warning',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+
+    const loading = await this.loadingController.create({
+      message: 'Đang tạo job...',
+      spinner: 'crescent',
+    });
+    await loading.present();
+
     // Lấy giá trị từ form
     const formValue = this.createPostForm.value;
-    
+
     // Parse salaryFrom và salaryTo từ form (backend yêu cầu số, không phải string)
-    let salaryFrom: number | undefined = undefined;
-    let salaryTo: number | undefined = undefined;
+    let salaryFromNum: number | undefined = undefined;
+    let salaryToNum: number | undefined = undefined;
     if (formValue.salaryFrom) {
-      salaryFrom = parseInt(formValue.salaryFrom) || undefined;
+      salaryFromNum = parseInt(formValue.salaryFrom) || undefined;
     }
     if (formValue.salaryTo) {
-      salaryTo = parseInt(formValue.salaryTo) || undefined;
+      salaryToNum = parseInt(formValue.salaryTo) || undefined;
     }
 
     // Parse yoe (years of experience) từ minExperience (backend yêu cầu Double/number)
@@ -230,24 +293,76 @@ export class CreatePostPage implements OnInit {
       deadline = `${year}-${month}-${day}T00:00:00`;
     }
 
-    // Lưu dữ liệu vào service (chưa có rounds)
-    const jobData: Partial<CreateJobRequest> = {
+    // Parse roundCount
+    const roundCount = parseInt(formValue.roundCount) || 1;
+
+    // Tạo CreateJobRequest (Bước 1: Tạo job cơ bản)
+    const createJobRequest: CreateJobRequest = {
       title: formValue.title,
       description: formValue.content || '',
       location: formValue.address || undefined,
-      salaryFrom: salaryFrom,
-      salaryTo: salaryTo,
+      salaryFrom: salaryFromNum,
+      salaryTo: salaryToNum,
       workTime: formValue.workTime || undefined,
       yoe: yoe,
       unit: unit,
-      status: formValue.status || 'active',
+      roundCount: roundCount,
+      status: 'inactive' as any, // Mặc định inactive khi tạo job cơ bản
       deadline: deadline,
     };
 
-    this.jobCreationState.setJobData(jobData);
+    // Option 2: Tạo job draft ngầm ngay từ đầu (Silent Draft Creation)
+    // Gọi API tạo job draft (status='inactive')
+    this.jobPostService.createJob(createJobRequest).subscribe({
+      next: async (response) => {
+        await loading.dismiss();
 
-    // Navigate sang trang chọn số vòng tuyển dụng
-    this.router.navigate(['/select-rounds']);
+        // Lưu jobId vào state (quan trọng cho các API calls sau)
+        this.jobCreationState.setJobId(response.jobId);
+        this.jobCreationState.setJobData(createJobRequest);
+        this.jobCreationState.setRoundCount(response.roundCount);
+
+        // Khởi tạo rounds mặc định
+        const defaultRounds: RoundConfiguration[] = [];
+        for (let i = 0; i < response.roundCount; i++) {
+          defaultRounds.push({
+            roundIndex: i,
+            roundName: `Vòng ${i + 1}`,
+            isConfirmed: false,
+          });
+        }
+        this.jobCreationState.setRounds(defaultRounds);
+
+        // Navigate sang trang configure-rounds với jobId
+        this.router
+          .navigate(['/configure-rounds'], {
+            queryParams: { jobId: response.jobId },
+          })
+          .then(() => {
+            // Hiển thị toast sau khi đã navigate
+            setTimeout(async () => {
+              const toast = await this.toastController.create({
+                message: 'Đã tạo job draft. Tiếp tục cấu hình rounds...',
+                duration: 2000,
+                color: 'success',
+                position: 'top',
+              });
+              await toast.present();
+            }, 300);
+          });
+      },
+      error: async (error) => {
+        await loading.dismiss();
+
+        const toast = await this.toastController.create({
+          message: error.message || 'Tạo job draft thất bại. Vui lòng thử lại.',
+          duration: 3000,
+          color: 'danger',
+          position: 'top',
+        });
+        await toast.present();
+      },
+    });
   }
 
   onCancel() {
@@ -266,4 +381,3 @@ export class CreatePostPage implements OnInit {
     });
   }
 }
-

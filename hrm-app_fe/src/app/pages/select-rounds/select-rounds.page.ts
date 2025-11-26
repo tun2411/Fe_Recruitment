@@ -43,7 +43,6 @@ import { JobPostService } from '../../services/job-post.service';
     IonIcon,
     IonInput,
     IonLabel,
-    IonTextarea,
     IonToggle,
     IonItem,
   ],
