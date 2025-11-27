@@ -70,27 +70,28 @@
     </div>
   </div>
 
-  <!-- Recent Activity Section -->
+  <!-- Notifications Section -->
   <div class="activity-section">
-    <h2 class="section-title">Recent Activity</h2>
-    <div class="activity-list">
-      <ion-card *ngFor="let activity of recentActivities" class="activity-card">
-        <ion-card-content>
-          <div class="activity-content">
-            <div class="activity-icon-wrapper">
-              <ion-icon 
-                [name]="activity.icon" 
-                [class]="'activity-icon ' + activity.iconColor">
-              </ion-icon>
-              <span class="activity-dot" [class]="'dot-' + activity.dotColor"></span>
-            </div>
-            <div class="activity-text">
-              <p class="activity-title">{{ activity.title }}</p>
-              <p class="activity-time">{{ activity.time }}</p>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
+    <div class="section-header">
+      <h2 class="section-title">Thông báo</h2>
+      <ion-badge *ngIf="unreadCount > 0" color="danger">{{ unreadCount }}</ion-badge>
+    </div>
+    <ion-list *ngIf="notifications.length > 0">
+      <ion-item *ngFor="let notification of notifications" button (click)="onNotificationClick(notification)"
+        [class.unread]="!notification.isRead" class="notification-item">
+        <ion-icon [name]="getNotificationIcon(notification.type)" [color]="getNotificationColor(notification.type)"
+          slot="start">
+        </ion-icon>
+        <ion-label>
+          <h3>{{ notification.title }}</h3>
+          <p>{{ notification.message }}</p>
+          <p class="notification-time">{{ formatTime(notification.createdAt) }}</p>
+        </ion-label>
+        <ion-badge *ngIf="!notification.isRead" color="primary" slot="end">Mới</ion-badge>
+      </ion-item>
+    </ion-list>
+    <div *ngIf="notifications.length === 0" class="empty-state">
+      <p>Chưa có thông báo nào</p>
     </div>
   </div>
 </ion-content>
@@ -110,4 +111,3 @@
     <span>Mail</span>
   </div>
 </div>
-

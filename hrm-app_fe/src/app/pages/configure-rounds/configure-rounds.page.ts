@@ -839,6 +839,7 @@ export class ConfigureRoundsPage implements OnInit {
       unit: jobData.unit,
       roundCount: jobData.roundCount!,
       deadline: jobData.deadline!,
+      status: jobData.status || 'inactive', // Lấy status từ jobData, mặc định inactive
       rounds: rounds.map((round: RoundConfiguration) => {
         const roundWithTemplates: CompleteJobRequest['rounds'][0] = {
           roundIndex: round.roundIndex,

@@ -193,7 +193,18 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
+    try {
+      const token = localStorage.getItem(this.tokenKey);
+      // Debug logging
+      if (!token) {
+        console.warn('[AuthService] getToken() returned null. tokenKey:', this.tokenKey);
+        console.warn('[AuthService] localStorage keys:', Object.keys(localStorage));
+      }
+      return token;
+    } catch (error) {
+      console.error('[AuthService] Error getting token from localStorage:', error);
+      return null;
+    }
   }
 
   private setToken(token: string): void {
@@ -247,9 +258,21 @@ export class AuthService {
     if (!token) {
       return false;
     }
-    // Kiểm tra token có hết hạn không (nếu cần)
-    // Có thể decode JWT và kiểm tra exp
-    return true;
+    // Kiểm tra token có hết hạn không
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const exp = payload.exp * 1000; // Convert to milliseconds
+      const now = Date.now();
+      if (exp < now) {
+        console.warn('[AuthService] Token has expired. Exp:', new Date(exp), 'Now:', new Date(now));
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.error('[AuthService] Error decoding token:', e);
+      // Nếu không decode được, vẫn return true để backend xử lý
+      return true;
+    }
   }
 
   getAuthHeaders(): { [key: string]: string } {

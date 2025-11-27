@@ -297,6 +297,9 @@ export class CreatePostPage implements OnInit {
     const roundCount = parseInt(formValue.roundCount) || 1;
 
     // Tạo CreateJobRequest (Bước 1: Tạo job cơ bản)
+    // Lấy status từ form, mặc định là 'inactive' nếu không có
+    const status = formValue.status || 'inactive';
+
     const createJobRequest: CreateJobRequest = {
       title: formValue.title,
       description: formValue.content || '',
@@ -307,7 +310,7 @@ export class CreatePostPage implements OnInit {
       yoe: yoe,
       unit: unit,
       roundCount: roundCount,
-      status: 'inactive' as any, // Mặc định inactive khi tạo job cơ bản
+      status: status as any, // Lấy từ form, có thể là 'active', 'inactive', hoặc 'closed'
       deadline: deadline,
     };
 

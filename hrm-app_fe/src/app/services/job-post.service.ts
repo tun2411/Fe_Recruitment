@@ -114,6 +114,7 @@ export interface CompleteJobRequest {
   unit?: string;
   roundCount: number;
   deadline?: string;
+  status?: string; // 'active' hoặc 'inactive'
   rounds: RoundWithTemplatesDTO[];
 }
 
@@ -255,9 +256,7 @@ export class JobPostService {
   ): Observable<MessageResponse> {
     return this.http
       .post<MessageResponse>(`${this.apiUrl}/${jobId}/rounds`, rounds)
-      .pipe(
-        catchError(this.handleError<MessageResponse>('createRounds'))
-      );
+      .pipe(catchError(this.handleError<MessageResponse>('createRounds')));
   }
 
   /**

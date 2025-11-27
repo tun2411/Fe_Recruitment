@@ -13,22 +13,37 @@ export const routes: Routes = [
   {
     path: 'create-post',
     loadComponent: () =>
-      import('./pages/create-post/create-post.page').then((m) => m.CreatePostPage),
+      import('./pages/create-post/create-post.page').then(
+        (m) => m.CreatePostPage
+      ),
   },
   {
     path: 'select-rounds',
     loadComponent: () =>
-      import('./pages/select-rounds/select-rounds.page').then((m) => m.SelectRoundsPage),
+      import('./pages/select-rounds/select-rounds.page').then(
+        (m) => m.SelectRoundsPage
+      ),
   },
   {
     path: 'configure-rounds',
     loadComponent: () =>
-      import('./pages/configure-rounds/configure-rounds.page').then((m) => m.ConfigureRoundsPage),
+      import('./pages/configure-rounds/configure-rounds.page').then(
+        (m) => m.ConfigureRoundsPage
+      ),
   },
   {
     path: 'candidates',
     loadComponent: () =>
-      import('./pages/candidates/candidates.page').then((m) => m.CandidatesPage),
+      import('./pages/candidates/candidates.page').then(
+        (m) => m.CandidatesPage
+      ),
+  },
+  {
+    path: 'application-detail/:applicationId',
+    loadComponent: () =>
+      import('./pages/application-detail/application-detail.page').then(
+        (m) => m.ApplicationDetailPage
+      ),
   },
   {
     path: 'edit-post/:id',
@@ -43,17 +58,23 @@ export const routes: Routes = [
   {
     path: 'personal-info',
     loadComponent: () =>
-      import('./pages/personal-info/personal-info.page').then((m) => m.PersonalInfoPage),
+      import('./pages/personal-info/personal-info.page').then(
+        (m) => m.PersonalInfoPage
+      ),
   },
   {
     path: 'email-templates',
     loadComponent: () =>
-      import('./pages/email-templates/email-templates.page').then((m) => m.EmailTemplatesPage),
+      import('./pages/email-templates/email-templates.page').then(
+        (m) => m.EmailTemplatesPage
+      ),
   },
   {
     path: 'template-editor',
     loadComponent: () =>
-      import('./pages/template-editor/template-editor.page').then((m) => m.TemplateEditorPage),
+      import('./pages/template-editor/template-editor.page').then(
+        (m) => m.TemplateEditorPage
+      ),
   },
   {
     path: '',

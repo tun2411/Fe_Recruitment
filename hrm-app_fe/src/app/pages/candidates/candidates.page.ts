@@ -1,7 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import {
   IonHeader,
   IonToolbar,
@@ -32,8 +35,12 @@ import {
   eyeOutline,
   downloadOutline,
 } from 'ionicons/icons';
-import { ApplicationService, Application } from '../../services/application.service';
+import {
+  ApplicationService,
+  Application,
+} from '../../services/application.service';
 import { JobPostService } from '../../services/job-post.service';
+import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
 
 export interface Candidate {
@@ -82,10 +89,12 @@ export class CandidatesPage implements OnInit {
   filterCount: number = 2;
   postId: number | null = null;
   jobTitle: string = '';
+  private authService = inject(AuthService);
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
+    private http: HttpClient,
     private applicationService: ApplicationService,
     private jobPostService: JobPostService,
     private loadingController: LoadingController,
@@ -106,6 +115,20 @@ export class CandidatesPage implements OnInit {
   }
 
   ngOnInit() {
+    // Debug: Kiểm tra token
+    const token = this.authService.getToken();
+    console.log('[Candidates] ngOnInit - Token exists:', !!token);
+    if (token) {
+      console.log('[Candidates] Token length:', token.length);
+    }
+
+    // Kiểm tra authentication trước khi load data
+    if (!this.authService.isAuthenticated()) {
+      console.warn('[Candidates] User not authenticated, redirecting to login');
+      this.router.navigate(['/login']);
+      return;
+    }
+
     // Lấy postId từ query params nếu có
     this.route.queryParams.subscribe((params) => {
       this.postId = params['postId'] ? parseInt(params['postId']) : null;
@@ -127,19 +150,25 @@ export class CandidatesPage implements OnInit {
   loadJobTitle() {
     if (!this.postId) return;
 
+    // Try to load job title, but don't fail if it doesn't work
     this.jobPostService.getJobPostById(this.postId).subscribe({
       next: (jobPost) => {
         this.jobTitle = jobPost.title;
         // Cập nhật position cho tất cả candidates nếu đã load
         if (this.candidates.length > 0) {
-          this.candidates.forEach(candidate => {
+          this.candidates.forEach((candidate) => {
             candidate.position = this.jobTitle;
           });
           this.filteredCandidates = [...this.candidates];
         }
       },
       error: (error) => {
-        console.error('Error loading job title:', error);
+        // Silently fail - job title is not critical for candidates list
+        console.warn('Could not load job title (non-critical):', error);
+        // Use job title from candidates if available
+        if (this.candidates.length > 0 && this.candidates[0].position) {
+          this.jobTitle = this.candidates[0].position;
+        }
       },
     });
   }
@@ -163,18 +192,26 @@ export class CandidatesPage implements OnInit {
     this.applicationService.getApplicationsByJobId(this.postId).subscribe({
       next: (applications: Application[]) => {
         // Map Application từ API thành Candidate để hiển thị
-        this.candidates = applications.map((app) => this.mapApplicationToCandidate(app));
+        this.candidates = applications.map((app) =>
+          this.mapApplicationToCandidate(app)
+        );
         this.filteredCandidates = [...this.candidates];
         loading.dismiss();
 
         if (this.candidates.length === 0) {
-          this.showToast('Chưa có ứng viên nào ứng tuyển cho bài đăng này', 'info');
+          this.showToast(
+            'Chưa có ứng viên nào ứng tuyển cho bài đăng này',
+            'info'
+          );
         }
       },
       error: async (error) => {
         loading.dismiss();
         console.error('Error loading candidates:', error);
-        this.showToast('Không thể tải danh sách ứng viên. Vui lòng thử lại sau.', 'danger');
+        this.showToast(
+          'Không thể tải danh sách ứng viên. Vui lòng thử lại sau.',
+          'danger'
+        );
         this.candidates = [];
         this.filteredCandidates = [];
       },
@@ -273,32 +310,180 @@ export class CandidatesPage implements OnInit {
   }
 
   onView(candidate: Candidate) {
-    console.log('View candidate:', candidate.id);
-    // Navigate to candidate detail page
-  }
+    // Kiểm tra authentication trước khi navigate
+    const token = this.authService.getToken();
+    console.log('[Candidates] onView - Token exists:', !!token);
+    console.log(
+      '[Candidates] onView - Application ID:',
+      candidate.applicationId
+    );
 
-  onDownload(candidate: Candidate) {
-    if (candidate.cvFilePath) {
-      // Backend trả về cvUrl (có thể là relative path hoặc full URL)
-      let downloadUrl = candidate.cvFilePath;
-      
-      // Nếu là relative path (bắt đầu bằng /), cần thêm backend URL
-      if (downloadUrl.startsWith('/') && !downloadUrl.startsWith('http')) {
-        // Nếu dùng proxy, backend URL là http://localhost:8080
-        // Nếu không dùng proxy, lấy từ environment
-        const backendUrl = environment.apiUrl.startsWith('http') 
-          ? environment.apiUrl.replace('/api', '')
-          : 'http://localhost:8080';
-        downloadUrl = `${backendUrl}${candidate.cvFilePath}`;
-      }
-      
-      // Mở link download trong tab mới
-      window.open(downloadUrl, '_blank');
-      console.log('Download CV:', candidate.cvFileName || candidate.cvFilePath);
+    if (!token) {
+      console.error(
+        '[Candidates] onView - No token found! Redirecting to login...'
+      );
+      this.showToast(
+        'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+        'warning'
+      );
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (!this.authService.isAuthenticated()) {
+      console.warn(
+        '[Candidates] onView - User not authenticated! Redirecting to login...'
+      );
+      this.showToast(
+        'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+        'warning'
+      );
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (this.postId) {
+      console.log(
+        '[Candidates] onView - Navigating to application detail:',
+        candidate.applicationId
+      );
+      this.router.navigate(['/application-detail', candidate.applicationId], {
+        queryParams: { jobId: this.postId },
+      });
     } else {
-      this.showToast('Không tìm thấy file CV', 'warning');
+      console.error('[Candidates] onView - No postId available!');
+      this.showToast('Không tìm thấy thông tin bài đăng', 'warning');
     }
   }
+
+  /**
+   * Fix URL: Thay localhost bằng IP thực tế trên mobile
+   */
+  private fixUrlForMobile(url: string): string {
+    if (!Capacitor.isNativePlatform()) {
+      return url; // Web: giữ nguyên
+    }
+
+    // Mobile: Thay localhost bằng IP từ environment
+    // Extract IP từ apiUrl: http://192.168.1.10:8080/api -> 192.168.1.10
+    const apiUrl = environment.apiUrl;
+    const ipMatch = apiUrl.match(/http:\/\/([^:]+):/);
+    if (ipMatch && ipMatch[1]) {
+      const ip = ipMatch[1];
+      return url.replace(/http:\/\/localhost:8080/g, `http://${ip}:8080`);
+    }
+    
+    // Fallback: dùng IP mặc định
+    return url.replace(/http:\/\/localhost:8080/g, 'http://192.168.1.10:8080');
+  }
+
+  async onDownload(candidate: Candidate) {
+    if (!candidate.cvFilePath) {
+      this.showToast('Không tìm thấy file CV', 'warning');
+      return;
+    }
+
+    try {
+      const cvUrl = candidate.cvFilePath;
+      // Chuyển view thành download
+      let downloadUrl = cvUrl.replace('/cv/view?', '/cv/download?');
+      
+      // Fix URL cho mobile (thay localhost bằng IP thực tế)
+      downloadUrl = this.fixUrlForMobile(downloadUrl);
+      
+      console.log('[Candidates] Downloading CV URL:', downloadUrl);
+
+      const loading = await this.loadingController.create({
+        message: 'Đang tải CV...',
+      });
+      await loading.present();
+
+      // Download CV qua HttpClient
+      this.http.get(downloadUrl, { responseType: 'blob' }).subscribe({
+        next: async (blob) => {
+          await loading.dismiss();
+
+          const fileName = `CV_${candidate.fullName || 'candidate'}.pdf`;
+
+          // Trên mobile: Lưu vào Filesystem
+          if (Capacitor.isNativePlatform()) {
+            try {
+              // Convert blob to base64 (PDF là binary file)
+              const reader = new FileReader();
+              reader.onloadend = async () => {
+                try {
+                  // Lấy base64 data (bỏ phần data:application/pdf;base64,)
+                  const base64Data = (reader.result as string).split(',')[1];
+
+                  // Lưu file PDF vào Documents directory (KHÔNG dùng encoding cho binary file)
+                  const result = await Filesystem.writeFile({
+                    path: fileName,
+                    data: base64Data,
+                    directory: Directory.Documents,
+                    // KHÔNG set encoding cho binary file (PDF)
+                  });
+
+                  console.log('[Candidates] File saved:', result.uri);
+                  console.log('[Candidates] File path:', result.uri);
+                  
+                  this.showToast(
+                    `Đã tải CV thành công!\nFile: ${fileName}`,
+                    'success'
+                  );
+                } catch (error) {
+                  console.error(
+                    '[Candidates] Error saving file:',
+                    error
+                  );
+                  this.showToast(
+                    'Không thể lưu CV. Vui lòng thử lại.',
+                    'danger'
+                  );
+                }
+              };
+              reader.onerror = () => {
+                this.showToast('Lỗi khi đọc file CV.', 'danger');
+              };
+              // Đọc blob dưới dạng data URL (base64)
+              reader.readAsDataURL(blob);
+            } catch (error) {
+              console.error(
+                '[Candidates] Error processing blob:',
+                error
+              );
+              this.showToast('Không thể xử lý file CV.', 'danger');
+            }
+          } else {
+            // Web: Dùng blob download approach
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up blob URL
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+
+            this.showToast('Đã tải CV thành công', 'success');
+          }
+        },
+        error: async (error) => {
+          await loading.dismiss();
+          console.error('[Candidates] Error downloading CV:', error);
+          console.error('[Candidates] Error status:', error.status);
+          console.error('[Candidates] Error URL:', error.url);
+          this.showToast('Không thể tải CV. Vui lòng thử lại.', 'danger');
+        },
+      });
+    } catch (error) {
+      console.error('[Candidates] Error downloading CV:', error);
+      this.showToast('Không thể tải CV. Vui lòng thử lại.', 'danger');
+    }
+  }
+
+  // getFullCVUrl() đã bị xóa - Backend trả về full URL sẵn, không cần xử lý
 
   onNotificationClick() {
     console.log('Notification clicked');
@@ -347,4 +532,3 @@ export class CandidatesPage implements OnInit {
     }
   }
 }
-

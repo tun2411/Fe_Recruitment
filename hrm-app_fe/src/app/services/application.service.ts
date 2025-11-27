@@ -15,16 +15,44 @@ export interface Application {
   candidateEmail: string;
   candidateFullName: string;
   candidatePhone: string;
+  jobId?: number; // Job ID (optional, may not be in old responses)
+  jobTitle?: string; // Job title (optional, may not be in old responses)
   cvUrl: string; // Backend trả về cvUrl thay vì cvFilePath, cvFileName, cvFileId
+}
+
+export interface UpdateApplicationStatusRequest {
+  status: string; // "pass" or "fail"
+  note?: string;
+  roundIndex: number;
+}
+
+export interface ApplicationStatusResponse {
+  roundId: number;
+  roundIndex: number;
+  roundName: string;
+  status: 'pass' | 'fail' | null;
+  confirmedAt: string | null;
+  note: string | null;
+  isCurrentRound: boolean;
+  isPending: boolean;
+}
+
+export interface MessageResponse {
+  message: string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApplicationService {
+  // Đảm bảo luôn dùng relative URL cho proxy
   private apiUrl = `${environment.apiUrl}/applications`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    // Debug: Log API URL khi service được khởi tạo
+    console.log('[ApplicationService] Initialized with apiUrl:', this.apiUrl);
+    console.log('[ApplicationService] environment.apiUrl:', environment.apiUrl);
+  }
 
   /**
    * GET /api/applications/job/{job_id} - Lấy danh sách applications theo job ID
@@ -34,6 +62,79 @@ export class ApplicationService {
       retry(2), // Retry 2 lần nếu lỗi
       catchError(this.handleError<Application[]>('getApplicationsByJobId', []))
     );
+  }
+
+  /**
+   * GET /api/applications/{application_id} - Lấy thông tin chi tiết của một application
+   */
+  getApplicationById(applicationId: number): Observable<Application> {
+    // Debug: Log URL trước khi gửi request
+    const url = `${this.apiUrl}/${applicationId}`;
+    console.log('[ApplicationService] getApplicationById URL:', url);
+    console.log('[ApplicationService] environment.apiUrl:', environment.apiUrl);
+
+    return this.http
+      .get<Application>(url)
+      .pipe(
+        retry(2),
+        catchError(this.handleError<Application>('getApplicationById'))
+      );
+  }
+
+  /**
+   * GET /api/applications/job/{job_id}/status/{status} - Lấy danh sách applications theo job ID và status
+   */
+  getApplicationsByJobIdAndStatus(
+    jobId: number,
+    status: string
+  ): Observable<Application[]> {
+    return this.http
+      .get<Application[]>(`${this.apiUrl}/job/${jobId}/status/${status}`)
+      .pipe(
+        retry(2),
+        catchError(
+          this.handleError<Application[]>('getApplicationsByJobIdAndStatus', [])
+        )
+      );
+  }
+
+  /**
+   * POST /api/applications/{application_id}/update-status - Update application status (pass/fail)
+   */
+  updateApplicationStatus(
+    applicationId: number,
+    request: UpdateApplicationStatusRequest
+  ): Observable<MessageResponse> {
+    return this.http
+      .post<MessageResponse>(
+        `${this.apiUrl}/${applicationId}/update-status`,
+        request
+      )
+      .pipe(
+        retry(1),
+        catchError(this.handleError<MessageResponse>('updateApplicationStatus'))
+      );
+  }
+
+  /**
+   * GET /api/applications/{application_id}/status - Lấy lịch sử trạng thái application (tất cả các rounds)
+   */
+  getApplicationStatusHistory(
+    applicationId: number
+  ): Observable<ApplicationStatusResponse[]> {
+    return this.http
+      .get<ApplicationStatusResponse[]>(
+        `${this.apiUrl}/${applicationId}/status`
+      )
+      .pipe(
+        retry(2),
+        catchError(
+          this.handleError<ApplicationStatusResponse[]>(
+            'getApplicationStatusHistory',
+            []
+          )
+        )
+      );
   }
 
   /**
@@ -86,4 +187,3 @@ export class ApplicationService {
     };
   }
 }
-

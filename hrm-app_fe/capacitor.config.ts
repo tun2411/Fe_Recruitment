@@ -4,14 +4,29 @@ const config: CapacitorConfig = {
   appId: 'com.hrm.app',
   appName: 'HRM+',
   webDir: 'www',
+
+  // =====================================================
+  // 🔥 LIVE RELOAD MODE (Optional - for faster development)
+  // =====================================================
+  // Uncomment phần này nếu muốn hot reload khi dev:
+  // 1. Chạy: ionic serve --host=0.0.0.0
+  // 2. Uncomment phần server bên dưới
+  // 3. Thay YOUR_IP bằng IP máy tính (chạy script: .\setup-mobile-ip.ps1)
+  // 4. Build: npx cap sync android && npx cap open android
+  // =====================================================
   // server: {
-  //   // Uncomment để test trên Android với dev server (Live Reload)
-  //   url: 'http://192.168.1.21:4200', // IP Wi-Fi của máy bạn
+  //   url: 'http://192.168.1.9:4200', // ⚠️ THAY YOUR_IP:4200
   //   cleartext: true,
   // },
+
   android: {
-    allowMixedContent: true,
-    // Cấu hình cho Android
+    allowMixedContent: true, // Cho phép HTTP (dev mode)
+  },
+
+  server: {
+    // Cho phép load từ bất kỳ nguồn nào (bypass CSP issues)
+    cleartext: true,
+    androidScheme: 'http',
   },
 };
 

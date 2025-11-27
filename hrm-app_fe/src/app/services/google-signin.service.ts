@@ -111,7 +111,7 @@ export class GoogleSignInService {
         // Script đã có, đợi Google API sẵn sàng
         // Tăng timeout cho Android WebView (có thể chậm hơn)
         let attempts = 0;
-        const maxAttempts = 200; // 20 giây cho Android WebView
+        const maxAttempts = 300; // 30 giây cho Android WebView (chậm hơn web)
         const checkInterval = setInterval(() => {
           attempts++;
           if (
@@ -121,7 +121,7 @@ export class GoogleSignInService {
           ) {
             clearInterval(checkInterval);
             console.log(
-              'Google Sign-In API loaded after',
+              '✅ Google Sign-In API loaded after',
               attempts * 100,
               'ms'
             );
@@ -129,13 +129,16 @@ export class GoogleSignInService {
           } else if (attempts >= maxAttempts) {
             clearInterval(checkInterval);
             console.error(
-              'Google Sign-In script timeout after',
+              '❌ Google Sign-In script timeout after',
               maxAttempts * 100,
               'ms'
             );
+            console.error(
+              '💡 Hãy kiểm tra: 1) Internet connection, 2) SHA-1 fingerprint trong Google Console, 3) Package name đúng'
+            );
             reject(
               new Error(
-                'Google Sign-In script timeout. Please check your internet connection.'
+                'Google Sign-In không load được. Vui lòng kiểm tra kết nối internet và thử lại.'
               )
             );
           }
@@ -151,7 +154,7 @@ export class GoogleSignInService {
           console.log('Google Sign-In script loaded, waiting for API...');
           // Đợi API sẵn sàng sau khi script load
           let attempts = 0;
-          const maxAttempts = 200; // 20 giây
+          const maxAttempts = 300; // 30 giây cho Android
           const checkInterval = setInterval(() => {
             attempts++;
             if (
@@ -161,16 +164,19 @@ export class GoogleSignInService {
             ) {
               clearInterval(checkInterval);
               console.log(
-                'Google Sign-In API ready after',
+                '✅ Google Sign-In API ready after',
                 attempts * 100,
                 'ms'
               );
               resolve();
             } else if (attempts >= maxAttempts) {
               clearInterval(checkInterval);
+              console.error(
+                '❌ Google Sign-In API timeout. Kiểm tra: 1) Internet, 2) SHA-1 fingerprint, 3) Package name'
+              );
               reject(
                 new Error(
-                  'Google Sign-In API failed to initialize after script loaded.'
+                  'Google Sign-In không khởi tạo được. Vui lòng kiểm tra kết nối internet.'
                 )
               );
             }
@@ -325,6 +331,38 @@ export class GoogleSignInService {
       this.currentResolve = resolve;
       this.currentReject = reject;
 
+      // Dùng prompt() thay vì button click cho Android WebView
+      // Popup có khả năng hoạt động tốt hơn trong WebView
+      const isAndroid =
+        Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
+
+      if (isAndroid) {
+        console.log(
+          '🤖 Android detected: Using prompt() for better WebView compatibility'
+        );
+        window.google.accounts.id.prompt((notification: any) => {
+          console.log('📱 Prompt notification:', notification);
+          if (notification.isNotDisplayed()) {
+            console.warn(
+              '⚠️ Prompt not displayed:',
+              notification.getNotDisplayedReason()
+            );
+          }
+          if (notification.isSkippedMoment()) {
+            console.warn('⚠️ Prompt skipped:', notification.getSkippedReason());
+          }
+          if (notification.isDismissedMoment()) {
+            console.warn(
+              '⚠️ Prompt dismissed:',
+              notification.getDismissedReason()
+            );
+            // Fallback to button click if prompt dismissed
+            this.fallbackToButtonClick(resolve, reject);
+          }
+        });
+        return;
+      }
+
       // Tạo button container ẩn
       let buttonContainer = document.getElementById(
         'google-signin-trigger-container'
@@ -356,35 +394,53 @@ export class GoogleSignInService {
         width: '300',
       });
 
-      // Click button sau khi render
+      // Click button sau khi render (fallback cho web)
       setTimeout(() => {
-        const googleButton = buttonContainer.querySelector(
-          'div[role="button"]'
-        ) as HTMLElement;
-        if (googleButton) {
-          console.log('Clicking Google Sign-In button...');
-          googleButton.click();
-        } else {
-          // Fallback: dùng prompt nếu button không render được
-          console.log('Button not found, using prompt...');
-          window.google.accounts.id.prompt((notification: any) => {
-            if (
-              notification.isNotDisplayed() ||
-              notification.isSkippedMoment() ||
-              notification.isDismissedMoment()
-            ) {
-              reject(
-                new Error(
-                  'Không thể hiển thị Google Sign-In. Vui lòng thử lại sau.'
-                )
-              );
-            }
-          });
-        }
+        this.fallbackToButtonClick(resolve, reject);
       }, 300);
     } catch (error: any) {
       console.error('Error performing Google Sign-In:', error);
       reject(error);
+    }
+  }
+
+  /**
+   * Fallback method: Click hidden button
+   */
+  private fallbackToButtonClick(
+    resolve: (idToken: string) => void,
+    reject: (error: any) => void
+  ): void {
+    const buttonContainer = document.getElementById(
+      'google-signin-trigger-container'
+    );
+    if (!buttonContainer) {
+      reject(new Error('Google Sign-In button container not found'));
+      return;
+    }
+
+    const googleButton = buttonContainer.querySelector(
+      'div[role="button"]'
+    ) as HTMLElement;
+    if (googleButton) {
+      console.log('🖱️ Clicking Google Sign-In button...');
+      googleButton.click();
+    } else {
+      // Final fallback: dùng prompt
+      console.log('📱 Button not found, using prompt fallback...');
+      window.google.accounts.id.prompt((notification: any) => {
+        if (
+          notification.isNotDisplayed() ||
+          notification.isSkippedMoment() ||
+          notification.isDismissedMoment()
+        ) {
+          reject(
+            new Error(
+              'Không thể hiển thị Google Sign-In. Vui lòng kiểm tra internet và thử lại.'
+            )
+          );
+        }
+      });
     }
   }
 

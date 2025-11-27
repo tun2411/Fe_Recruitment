@@ -8,22 +8,23 @@
   <base href="/" />
 
   <meta name="color-scheme" content="light dark" />
-  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport"
+    content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="format-detection" content="telephone=no" />
   <meta name="msapplication-tap-highlight" content="no" />
-  
-  <!-- Content Security Policy - Cho phép Google và Facebook scripts -->
-  <!-- Lưu ý: CSP trên Android WebView có thể bị ignore, nhưng vẫn nên set để tương thích -->
+
+  <!-- Content Security Policy - Relaxed for Android WebView -->
+  <!-- Cho phép tất cả kết nối cho development với Android -->
   <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:;
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com https://*.google.com https://connect.facebook.net https://*.facebook.com;
-    style-src 'self' 'unsafe-inline' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com https://*.google.com https://connect.facebook.net https://*.facebook.com;
-    img-src 'self' data: https: blob:;
-    font-src 'self' data: https:;
-    connect-src 'self' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com https://*.google.com https://graph.facebook.com https://*.facebook.com http://* https://*;
-    frame-src 'self' https://accounts.google.com https://*.google.com https://www.facebook.com https://*.facebook.com;
-    child-src 'self' https://accounts.google.com https://*.google.com https://www.facebook.com https://*.facebook.com;
-    worker-src 'self' blob:;
+    default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: blob: gap:;
+    script-src * 'self' 'unsafe-inline' 'unsafe-eval';
+    style-src * 'self' 'unsafe-inline';
+    img-src * 'self' data: blob: http: https:;
+    font-src * 'self' data:;
+    connect-src * 'self' http: https: ws: wss:;
+    frame-src * 'self';
+    child-src * 'self';
+    worker-src * 'self' blob:;
   ">
 
   <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
@@ -31,7 +32,7 @@
   <!-- add to homescreen for ios -->
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  
+
   <!-- Google Sign-In API -->
   <!-- Load script trực tiếp trong HTML - cách đơn giản nhất và hoạt động tốt nhất trên Android WebView -->
   <!-- Không dùng async defer vì có thể gây timing issues trên WebView -->
@@ -40,13 +41,12 @@
   <!-- Facebook SDK -->
   <!-- Load Facebook SDK để hỗ trợ Facebook Login -->
   <script>
-    window.fbAsyncInit = function() {
+    window.fbAsyncInit = function () {
       // FB.init sẽ được gọi trong FacebookSignInService sau khi App ID được config
       console.log('Facebook SDK loaded');
     };
   </script>
-  <script async defer crossorigin="anonymous" 
-    src="https://connect.facebook.net/en_US/sdk.js"></script>
+  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
 </head>
 
 <body>

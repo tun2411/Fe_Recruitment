@@ -26,7 +26,10 @@ import {
   logoFacebook,
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
+// Hybrid approach: Plugin cho Android, Web approach cho ionic serve
 import { GoogleSignInService } from '../../services/google-signin.service';
+import { GoogleSignInHybridService } from '../../services/google-signin-hybrid.service';
+import { Capacitor } from '@capacitor/core';
 import { FacebookSignInService } from '../../services/facebook-signin.service';
 import { environment } from '../../../environments/environment';
 
@@ -57,15 +60,22 @@ export class LoginPage implements OnInit {
   isAlreadyLoggedIn = false;
   loginProvider: 'google' | 'facebook' | null = null;
 
+  private activeGoogleService: GoogleSignInService | GoogleSignInHybridService;
+
   constructor(
     private authService: AuthService,
     private googleSignInService: GoogleSignInService,
+    private googleSignInHybridService: GoogleSignInHybridService,
     private facebookSignInService: FacebookSignInService,
     private router: Router,
     private http: HttpClient,
     private loadingController: LoadingController,
     private toastController: ToastController
   ) {
+    // Auto-select service dựa trên platform
+    this.activeGoogleService = Capacitor.isNativePlatform()
+      ? this.googleSignInHybridService // Android/iOS: Use plugin
+      : this.googleSignInService; // Web: Use old approach
     addIcons({
       alertCircleOutline,
       informationCircleOutline,
@@ -95,7 +105,7 @@ export class LoginPage implements OnInit {
       // Khởi tạo Google Sign-In khi component load
       // Retry nếu lần đầu fail (đặc biệt cho Android)
       this.initializeGoogleSignInWithRetry();
-      
+
       // Khởi tạo Facebook Sign-In khi component load
       this.initializeFacebookSignInWithRetry();
     }
@@ -104,14 +114,23 @@ export class LoginPage implements OnInit {
   /**
    * Khởi tạo Google Sign-In với retry logic (cho Android)
    */
-  private initializeGoogleSignInWithRetry(retryCount = 0, maxRetries = 3): void {
-    this.googleSignInService.initialize()
+  private initializeGoogleSignInWithRetry(
+    retryCount = 0,
+    maxRetries = 3
+  ): void {
+    this.activeGoogleService
+      .initialize()
       .then(() => {
         console.log('Google Sign-In initialized successfully');
       })
       .catch((error) => {
-        console.warn('Google Sign-In initialization failed (attempt', retryCount + 1, '):', error);
-        
+        console.warn(
+          'Google Sign-In initialization failed (attempt',
+          retryCount + 1,
+          '):',
+          error
+        );
+
         if (retryCount < maxRetries) {
           // Retry sau 2 giây
           setTimeout(() => {
@@ -119,7 +138,11 @@ export class LoginPage implements OnInit {
             this.initializeGoogleSignInWithRetry(retryCount + 1, maxRetries);
           }, 2000);
         } else {
-          console.error('Google Sign-In initialization failed after', maxRetries, 'attempts');
+          console.error(
+            'Google Sign-In initialization failed after',
+            maxRetries,
+            'attempts'
+          );
           // Không hiển thị lỗi cho user, chỉ log
           // User vẫn có thể thử click button để trigger lại
         }
@@ -129,14 +152,23 @@ export class LoginPage implements OnInit {
   /**
    * Khởi tạo Facebook Sign-In với retry logic (cho Android)
    */
-  private initializeFacebookSignInWithRetry(retryCount = 0, maxRetries = 3): void {
-    this.facebookSignInService.initialize()
+  private initializeFacebookSignInWithRetry(
+    retryCount = 0,
+    maxRetries = 3
+  ): void {
+    this.facebookSignInService
+      .initialize()
       .then(() => {
         console.log('Facebook Sign-In initialized successfully');
       })
       .catch((error) => {
-        console.warn('Facebook Sign-In initialization failed (attempt', retryCount + 1, '):', error);
-        
+        console.warn(
+          'Facebook Sign-In initialization failed (attempt',
+          retryCount + 1,
+          '):',
+          error
+        );
+
         if (retryCount < maxRetries) {
           // Retry sau 2 giây
           setTimeout(() => {
@@ -144,7 +176,11 @@ export class LoginPage implements OnInit {
             this.initializeFacebookSignInWithRetry(retryCount + 1, maxRetries);
           }, 2000);
         } else {
-          console.error('Facebook Sign-In initialization failed after', maxRetries, 'attempts');
+          console.error(
+            'Facebook Sign-In initialization failed after',
+            maxRetries,
+            'attempts'
+          );
           // Không hiển thị lỗi cho user, chỉ log
           // User vẫn có thể thử click button để trigger lại
         }
@@ -173,8 +209,9 @@ export class LoginPage implements OnInit {
     await loading.present();
 
     try {
-      // Sử dụng Google Sign-In Service để lấy idToken thật
-      this.googleSignInService.signIn()
+      // Sử dụng activeGoogleService (auto-selected based on platform)
+      this.activeGoogleService
+        .signIn()
         .then(async (idToken: string) => {
           // Gọi API Google login với idToken
           const googleLoginRequest = {
@@ -205,7 +242,9 @@ export class LoginPage implements OnInit {
               this.isLoading = false;
               this.loginProvider = null;
 
-              this.errorMessage = error.message || 'Đăng nhập bằng Google thất bại. Vui lòng thử lại.';
+              this.errorMessage =
+                error.message ||
+                'Đăng nhập bằng Google thất bại. Vui lòng thử lại.';
 
               const toast = await this.toastController.create({
                 message: this.errorMessage,
@@ -222,7 +261,9 @@ export class LoginPage implements OnInit {
           this.isLoading = false;
           this.loginProvider = null;
 
-          this.errorMessage = error.message || 'Không thể đăng nhập bằng Google. Vui lòng thử lại.';
+          this.errorMessage =
+            error.message ||
+            'Không thể đăng nhập bằng Google. Vui lòng thử lại.';
 
           const toast = await this.toastController.create({
             message: this.errorMessage,
@@ -237,7 +278,8 @@ export class LoginPage implements OnInit {
       this.isLoading = false;
       this.loginProvider = null;
 
-      this.errorMessage = error.message || 'Đăng nhập bằng Google thất bại. Vui lòng thử lại.';
+      this.errorMessage =
+        error.message || 'Đăng nhập bằng Google thất bại. Vui lòng thử lại.';
 
       const toast = await this.toastController.create({
         message: this.errorMessage,
@@ -262,7 +304,8 @@ export class LoginPage implements OnInit {
 
     try {
       // Sử dụng Facebook Sign-In Service để lấy access token thật
-      this.facebookSignInService.signIn()
+      this.facebookSignInService
+        .signIn()
         .then(async (accessToken: string) => {
           // Gọi API Facebook login với access token
           const facebookLoginRequest = {
@@ -292,7 +335,9 @@ export class LoginPage implements OnInit {
               this.isLoading = false;
               this.loginProvider = null;
 
-              this.errorMessage = error.message || 'Đăng nhập bằng Facebook thất bại. Vui lòng thử lại.';
+              this.errorMessage =
+                error.message ||
+                'Đăng nhập bằng Facebook thất bại. Vui lòng thử lại.';
 
               const toast = await this.toastController.create({
                 message: this.errorMessage,
@@ -309,7 +354,9 @@ export class LoginPage implements OnInit {
           this.isLoading = false;
           this.loginProvider = null;
 
-          this.errorMessage = error.message || 'Không thể đăng nhập bằng Facebook. Vui lòng thử lại.';
+          this.errorMessage =
+            error.message ||
+            'Không thể đăng nhập bằng Facebook. Vui lòng thử lại.';
 
           const toast = await this.toastController.create({
             message: this.errorMessage,
@@ -324,7 +371,8 @@ export class LoginPage implements OnInit {
       this.isLoading = false;
       this.loginProvider = null;
 
-      this.errorMessage = error.message || 'Đăng nhập bằng Facebook thất bại. Vui lòng thử lại.';
+      this.errorMessage =
+        error.message || 'Đăng nhập bằng Facebook thất bại. Vui lòng thử lại.';
 
       const toast = await this.toastController.create({
         message: this.errorMessage,
@@ -350,5 +398,4 @@ export class LoginPage implements OnInit {
     // Reload page để reset form
     window.location.reload();
   }
-
 }

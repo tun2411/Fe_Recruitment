@@ -1,0 +1,180 @@
+<ion-header [translucent]="true">
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/candidates"></ion-back-button>
+        </ion-buttons>
+        <ion-title>{{ application?.candidateFullName || 'Tên ứng viên' }}</ion-title>
+        <ion-buttons slot="end">
+            <ion-button>
+                <ion-icon name="notifications-outline"></ion-icon>
+                <ion-badge color="danger" *ngIf="unreadCount > 0">{{ unreadCount }}</ion-badge>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+    <div *ngIf="loading" class="loading-container">
+        <ion-spinner></ion-spinner>
+    </div>
+
+    <div *ngIf="!loading && application" class="container">
+        <!-- Thông tin ứng viên -->
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>Thông tin ứng viên</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                <ion-item lines="none">
+                    <ion-icon name="person-outline" slot="start" color="primary"></ion-icon>
+                    <ion-label>
+                        <h2>{{ application.candidateFullName }}</h2>
+                    </ion-label>
+                </ion-item>
+
+                <ion-item lines="none">
+                    <ion-icon name="call-outline" slot="start" color="primary"></ion-icon>
+                    <ion-label>
+                        <h2>{{ application.candidatePhone }}</h2>
+                    </ion-label>
+                </ion-item>
+
+                <ion-item lines="none">
+                    <ion-icon name="mail-outline" slot="start" color="primary"></ion-icon>
+                    <ion-label>
+                        <h2>{{ application.candidateEmail }}</h2>
+                    </ion-label>
+                </ion-item>
+
+                <ion-item lines="none">
+                    <ion-icon name="checkmark-circle-outline" slot="start" [color]="getStatusColor(application.status)"></ion-icon>
+                    <ion-label>
+                        <h2>Trạng thái</h2>
+                        <p>
+                            <ion-badge [color]="getStatusColor(application.status)">
+                                {{ getStatusText(application.status) }}
+                            </ion-badge>
+                        </p>
+                    </ion-label>
+                </ion-item>
+
+                <ion-item lines="none" *ngIf="application.jobTitle">
+                    <ion-icon name="briefcase-outline" slot="start" color="primary"></ion-icon>
+                    <ion-label>
+                        <h2>Vị trí ứng tuyển</h2>
+                        <p>{{ application.jobTitle }}</p>
+                    </ion-label>
+                </ion-item>
+
+                <ion-item lines="none" *ngIf="application.submittedAt">
+                    <ion-icon name="time-outline" slot="start" color="primary"></ion-icon>
+                    <ion-label>
+                        <h2>Ngày nộp đơn</h2>
+                        <p>{{ formatDate(application.submittedAt) }}</p>
+                    </ion-label>
+                </ion-item>
+            </ion-card-content>
+        </ion-card>
+
+        <!-- CV ứng tuyển -->
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>CV ứng tuyển</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                <div class="cv-container">
+                    <div class="cv-placeholder" (click)="onViewCV()">
+                        <ion-icon name="document-text-outline" class="cv-icon"></ion-icon>
+                        <p>Nhấn để xem CV</p>
+                    </div>
+                    <div class="cv-actions">
+                        <ion-button fill="clear" size="small" (click)="onViewCV()">
+                            <ion-icon name="document-text-outline" slot="start"></ion-icon>
+                            Xem CV
+                        </ion-button>
+                        <ion-button fill="clear" size="small" (click)="onDownloadCV()">
+                            <ion-icon name="download-outline" slot="start"></ion-icon>
+                            Tải CV
+                        </ion-button>
+                    </div>
+                </div>
+            </ion-card-content>
+        </ion-card>
+
+        <!-- Trạng thái ứng viên -->
+        <ion-card>
+            <ion-card-header>
+                <ion-card-title>Trạng thái ứng viên</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                <div class="timeline">
+                    <div *ngFor="let round of statusHistory; let i = index" class="timeline-item">
+                        <div class="timeline-connector" *ngIf="i < statusHistory.length - 1"></div>
+                        <div class="timeline-icon" [ngClass]="getRoundIconClass(round)">
+                            <ion-icon [name]="getRoundIcon(round)"></ion-icon>
+                        </div>
+                        <div class="timeline-content">
+                            <h3>{{ round.roundName }}</h3>
+                            <p *ngIf="round.isCurrentRound && !round.status">Đang ở {{ round.roundName }}</p>
+                            <p *ngIf="round.isPending && !round.status">Đang chờ</p>
+                            <p *ngIf="round.status === 'pass' && round.confirmedAt">
+                                Cập nhật vào ngày {{ formatDate(round.confirmedAt) }}
+                            </p>
+                            <p *ngIf="round.status === 'fail' && round.confirmedAt">
+                                Cập nhật vào ngày {{ formatDate(round.confirmedAt) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </ion-card-content>
+        </ion-card>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons" *ngIf="canUpdateStatus()">
+            <ion-button 
+                color="danger" 
+                expand="block" 
+                (click)="onFail()" 
+                [disabled]="processing || !canUpdateStatus()">
+                <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+                Không đạt
+            </ion-button>
+            <ion-button 
+                color="success" 
+                expand="block" 
+                (click)="onPass()" 
+                [disabled]="processing || !canUpdateStatus()">
+                <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                Đạt
+            </ion-button>
+        </div>
+
+        <!-- Note Input -->
+        <ion-card *ngIf="showNoteInput">
+            <ion-card-header>
+                <ion-card-title>Ghi chú (tùy chọn)</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                <ion-item>
+                    <ion-textarea 
+                        [(ngModel)]="note" 
+                        placeholder="Nhập ghi chú về ứng viên..." 
+                        rows="4"
+                        autoGrow="true">
+                    </ion-textarea>
+                </ion-item>
+            </ion-card-content>
+        </ion-card>
+
+        <!-- Status message khi không thể update -->
+        <ion-card *ngIf="!canUpdateStatus() && application">
+            <ion-card-content>
+                <p class="status-message">
+                    <ion-icon name="information-circle-outline" color="medium"></ion-icon>
+                    Đơn ứng tuyển đã được xử lý. Trạng thái: 
+                    <strong>{{ getStatusText(application.status) }}</strong>
+                </p>
+            </ion-card-content>
+        </ion-card>
+    </div>
+</ion-content>
