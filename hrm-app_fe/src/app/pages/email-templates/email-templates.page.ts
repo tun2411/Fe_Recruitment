@@ -18,6 +18,7 @@ import {
   AlertController,
   ToastController,
   LoadingController,
+  ModalController,
 } from '@ionic/angular/standalone';
 import { firstValueFrom } from 'rxjs';
 import { JobPostService, JobRoundDTO } from '../../services/job-post.service';
@@ -30,6 +31,8 @@ import {
   TemplateService,
   TemplateResponse,
 } from '../../services/template.service';
+import { EmailTemplatePreviewComponent } from '../../components/email-template-preview/email-template-preview.component';
+import { JobConfirmationComponent } from '../../components/job-confirmation/job-confirmation.component';
 
 @Component({
   selector: 'app-email-templates',
@@ -82,7 +85,8 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
     private jobPostService: JobPostService,
     private jobCreationState: JobCreationStateService,
     private templateService: TemplateService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private modalController: ModalController
   ) {}
 
   ngOnInit() {
@@ -248,9 +252,28 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
     }
 
     try {
-      // Gọi API với filter type và round_id
+      // Khi tạo job mới, chỉ hiển thị các template chung (round_id = null)
+      // Chỉ filter theo roundId khi round đã được tạo trên backend và có roundId thật sự
+      // Kiểm tra: nếu đang trong quá trình tạo job mới (jobId có trong state nhưng rounds chưa được tạo trên backend),
+      // thì luôn truyền null để chỉ lấy template chung
+      const roundIds = this.jobCreationState.getRoundIds();
+      const hasRoundIdsOnBackend = Object.keys(roundIds).length > 0 && 
+                                    roundIds[roundIndex] !== undefined && 
+                                    roundIds[roundIndex] !== null;
+      
+      // Nếu không có roundId từ backend (đang tạo job mới), luôn truyền null
+      const roundIdToFilter = hasRoundIdsOnBackend ? this.currentRoundId : null;
+
+      console.log('[EmailTemplates] Filtering templates:', {
+        type,
+        roundIdToFilter,
+        hasRoundIdsOnBackend,
+        currentRoundId: this.currentRoundId
+      });
+
+      // Gọi API với filter type và round_id (null để lấy template chung khi tạo job mới)
       const response = await firstValueFrom(
-        this.templateService.getTemplates(type, this.currentRoundId || null)
+        this.templateService.getTemplates(type, roundIdToFilter)
       );
 
       // Lấy templates từ response
@@ -307,35 +330,26 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
       templateName: template.formName,
     });
 
-    // Hiển thị preview modal với subject và content
-    const alert = await this.alertCtrl.create({
-      header: `Preview: ${template.formName || 'Template'}`,
-      subHeader: `Subject: ${template.subject || '(Không có subject)'}`,
-      message: `<div style="max-height: 300px; overflow-y: auto; white-space: pre-wrap; padding: 10px; background: #f5f5f5; border-radius: 5px;">${
-        template.content || '(Không có content)'
-      }</div>`,
-      buttons: [
-        {
-          text: 'Chỉnh sửa',
-          handler: () => {
-            this.editTemplate(template);
-          },
-        },
-        {
-          text: 'Chọn template này',
-          handler: () => {
-            this.saveTemplateToState(template);
-          },
-        },
-        {
-          text: 'Hủy',
-          role: 'cancel',
-        },
-      ],
-      cssClass: 'template-preview-alert',
+    // Hiển thị preview modal với giao diện đẹp
+    const modal = await this.modalController.create({
+      component: EmailTemplatePreviewComponent,
+      componentProps: {
+        template: template,
+      },
+      cssClass: 'email-template-preview-modal',
     });
 
-    await alert.present();
+    await modal.present();
+
+    // Xử lý kết quả từ modal
+    const { data } = await modal.onWillDismiss();
+    
+    if (data?.action === 'edit') {
+      this.editTemplate(template);
+    } else if (data?.action === 'select') {
+      this.saveTemplateToState(template);
+    }
+    // Nếu action là 'cancel' hoặc không có data, không làm gì
   }
 
   private editTemplate(template: TemplateResponse) {
@@ -504,11 +518,13 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
           await loading.dismiss();
 
           // Cập nhật state với template đã chọn
+          // QUAN TRỌNG: Chỉ update round hiện tại, giữ nguyên tất cả rounds khác
           const rounds = this.jobCreationState.getRounds();
-          if (rounds && rounds[this.currentRoundIndex]) {
-            const updatedRounds = rounds.map((round, index) => {
-              if (index === this.currentRoundIndex) {
-                const updatedRound = { ...round };
+          if (rounds && rounds.length > 0) {
+            // Tìm round theo roundIndex thay vì index để đảm bảo chính xác
+            const updatedRounds = rounds.map((round) => {
+              if (round.roundIndex === this.currentRoundIndex) {
+                const updatedRound = { ...round }; // Deep copy để không mutate
                 const templateData: EmailTemplate = {
                   formName: template.formName,
                   subject: template.subject || '',
@@ -517,18 +533,68 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
 
                 if (this.currentType === 'pass') {
                   updatedRound.passEmailTemplate = templateData;
+                  // Lưu templateId để có thể attach sau
+                  (updatedRound as any).passTemplateId = template.formId;
                 } else {
                   updatedRound.failEmailTemplate = templateData;
+                  // Lưu templateId để có thể attach sau
+                  (updatedRound as any).failTemplateId = template.formId;
                 }
                 return updatedRound;
               }
+              // Giữ nguyên round khác (không mutate)
               return { ...round };
             });
+            
+            // Đảm bảo rounds array có đủ số lượng rounds
+            while (updatedRounds.length <= this.currentRoundIndex) {
+              updatedRounds.push({
+                roundIndex: updatedRounds.length,
+                roundName: `Vòng ${updatedRounds.length + 1}`,
+                isConfirmed: false,
+              });
+            }
+            
             this.jobCreationState.setRounds(updatedRounds);
             console.log(
-              '[EmailTemplates] State updated with template',
-              updatedRounds[this.currentRoundIndex]
+              '[EmailTemplates] State updated with template for round',
+              this.currentRoundIndex,
+              'Total rounds:', updatedRounds.length,
+              'Updated round:', updatedRounds.find(r => r.roundIndex === this.currentRoundIndex)
             );
+          } else {
+            // Nếu chưa có rounds trong state, tạo mới
+            const newRounds: RoundConfiguration[] = [];
+            for (let i = 0; i <= this.currentRoundIndex; i++) {
+              if (i === this.currentRoundIndex) {
+                const templateData: EmailTemplate = {
+                  formName: template.formName,
+                  subject: template.subject || '',
+                  content: template.content || '',
+                };
+                const newRound: RoundConfiguration = {
+                  roundIndex: i,
+                  roundName: `Vòng ${i + 1}`,
+                  isConfirmed: false,
+                };
+                if (this.currentType === 'pass') {
+                  newRound.passEmailTemplate = templateData;
+                  (newRound as any).passTemplateId = template.formId;
+                } else {
+                  newRound.failEmailTemplate = templateData;
+                  (newRound as any).failTemplateId = template.formId;
+                }
+                newRounds.push(newRound);
+              } else {
+                newRounds.push({
+                  roundIndex: i,
+                  roundName: `Vòng ${i + 1}`,
+                  isConfirmed: false,
+                });
+              }
+            }
+            this.jobCreationState.setRounds(newRounds);
+            console.log('[EmailTemplates] Created new rounds array with template');
           }
 
           // Quay lại configure-rounds
@@ -619,20 +685,26 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
       const message = `Bạn chưa cấu hình các template sau:\n${missingTemplates.join(
         '\n'
       )}\n\nBạn có muốn tiếp tục không?`;
-      try {
-        const alert = await this.alertCtrl.create({
-          header: 'Thiếu cấu hình',
+      
+      // Hiển thị confirmation modal với giao diện đẹp
+      const modal = await this.modalController.create({
+        component: JobConfirmationComponent,
+        componentProps: {
+          title: 'Thiếu cấu hình',
           message: message,
-          buttons: [
-            { text: 'Hủy', role: 'cancel' },
-            { text: 'Tiếp tục', handler: () => this.showConfirmDialog() },
-          ],
-        });
-        await alert.present();
-      } catch (error) {
-        if (confirm(message)) {
-          this.showConfirmDialog();
-        }
+          confirmText: 'TIẾP TỤC',
+          cancelText: 'HỦY',
+        },
+        cssClass: 'job-confirmation-modal',
+      });
+
+      await modal.present();
+
+      // Xử lý kết quả từ modal
+      const { data } = await modal.onWillDismiss();
+      
+      if (data?.action === 'confirm') {
+        this.showConfirmDialog();
       }
     } else {
       this.showConfirmDialog();
@@ -640,22 +712,32 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
   }
 
   async showConfirmDialog() {
-    try {
-      const alert = await this.alertCtrl.create({
-        header: 'Xác nhận',
-        message: 'Xác nhận tạo job với cấu hình hiện tại?',
-        buttons: [
-          { text: 'Hủy', role: 'cancel' },
-          { text: 'Xác nhận', handler: () => this.createJob() },
-        ],
-      });
-      await alert.present();
-    } catch (error) {
-      // Fallback nếu AlertController không hoạt động
-      if (confirm('Xác nhận tạo job với cấu hình hiện tại?')) {
-        this.createJob();
-      }
+    // Lấy data từ state
+    const jobData = this.jobCreationState.getJobData();
+    const rounds = this.jobCreationState.getRounds();
+
+    // Hiển thị confirmation modal với giao diện đẹp
+    const modal = await this.modalController.create({
+      component: JobConfirmationComponent,
+      componentProps: {
+        title: 'Review Job',
+        confirmText: 'TẠO JOB',
+        cancelText: 'HỦY',
+        jobData: jobData,
+        rounds: rounds,
+      },
+      cssClass: 'job-confirmation-modal',
+    });
+
+    await modal.present();
+
+    // Xử lý kết quả từ modal
+    const { data } = await modal.onWillDismiss();
+    
+    if (data?.action === 'confirm') {
+      this.createJob();
     }
+    // Nếu action là 'cancel' hoặc không có data, không làm gì
   }
 
   private async createJob() {

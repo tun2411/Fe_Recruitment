@@ -46,6 +46,11 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'job-detail/:id',
+    loadComponent: () =>
+      import('./pages/job-detail/job-detail.page').then((m) => m.JobDetailPage),
+  },
+  {
     path: 'edit-post/:id',
     loadComponent: () =>
       import('./pages/edit-post/edit-post.page').then((m) => m.EditPostPage),
@@ -75,6 +80,16 @@ export const routes: Routes = [
       import('./pages/template-editor/template-editor.page').then(
         (m) => m.TemplateEditorPage
       ),
+  },
+  {
+    path: 'notifications',
+    loadComponent: () =>
+      import('./pages/notifications/notifications.page').then((m) => m.NotificationsPage),
+  },
+  {
+    path: 'email-management',
+    loadComponent: () =>
+      import('./pages/email-management/email-management.page').then((m) => m.EmailManagementPage),
   },
   {
     path: '',

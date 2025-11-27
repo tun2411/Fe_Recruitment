@@ -1,0 +1,146 @@
+<ion-header class="custom-header">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="onBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="header-title">TUYỂN DỤNG</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="job-detail-content">
+  <div class="form-container" *ngIf="jobData">
+    <!-- Tiêu đề -->
+    <div class="form-field">
+      <ion-label class="field-label">Tiêu đề</ion-label>
+      <ion-input
+        [value]="jobData.title || ''"
+        placeholder="Tiêu đề"
+        readonly
+        class="custom-input readonly"
+      ></ion-input>
+    </div>
+
+    <!-- Nội dung bài tuyển dụng -->
+    <div class="form-field">
+      <ion-label class="field-label">Nội dung bài tuyển dụng</ion-label>
+      <ion-textarea
+        [value]="jobData.description || ''"
+        placeholder="Nội dung bài tuyển dụng"
+        readonly
+        rows="6"
+        class="custom-textarea readonly"
+      ></ion-textarea>
+    </div>
+
+    <!-- Mức lương -->
+    <div class="form-field">
+      <ion-label class="field-label">Mức lương</ion-label>
+      <ion-input
+        [value]="formatSalary()"
+        placeholder="Mức lương"
+        readonly
+        class="custom-input readonly"
+      ></ion-input>
+    </div>
+
+    <!-- Địa chỉ -->
+    <div class="form-field">
+      <ion-label class="field-label">Địa chỉ</ion-label>
+      <ion-input
+        [value]="jobData.location || ''"
+        placeholder="Địa chỉ"
+        readonly
+        class="custom-input readonly"
+      ></ion-input>
+    </div>
+
+    <!-- Vòng tuyển dụng -->
+    <div class="form-field">
+      <ion-label class="field-label">Vòng tuyển dụng</ion-label>
+      <ion-input
+        [value]="jobData.roundCount?.toString() || ''"
+        placeholder="Vòng tuyển dụng"
+        readonly
+        class="custom-input readonly"
+      ></ion-input>
+    </div>
+
+    <!-- Hạn bài đăng -->
+    <div class="form-field">
+      <ion-label class="field-label">Hạn bài đăng</ion-label>
+      <ion-input
+        [value]="formatDate(jobData.deadline)"
+        placeholder="Hạn bài đăng"
+        readonly
+        class="custom-input readonly"
+      ></ion-input>
+    </div>
+
+    <!-- Thời gian làm việc -->
+    <div class="form-field" *ngIf="jobData.workTime">
+      <ion-label class="field-label">Thời gian làm việc</ion-label>
+      <ion-input
+        [value]="formatWorkTime()"
+        placeholder="Thời gian làm việc"
+        readonly
+        class="custom-input readonly"
+      ></ion-input>
+    </div>
+
+    <!-- Kinh nghiệm -->
+    <div class="form-field" *ngIf="jobData.yoe">
+      <ion-label class="field-label">Kinh nghiệm</ion-label>
+      <ion-input
+        [value]="jobData.yoe + ' ' + (jobData.unit || 'năm')"
+        placeholder="Kinh nghiệm"
+        readonly
+        class="custom-input readonly"
+      ></ion-input>
+    </div>
+
+    <!-- Link URL của bài đăng -->
+    <div class="form-field" *ngIf="jobData.applyUrl">
+      <ion-label class="field-label">Link URL của bài đăng</ion-label>
+      <ion-input
+        [value]="jobData.applyUrl || ''"
+        placeholder="Link url của bài đăng"
+        readonly
+        class="custom-input readonly"
+      ></ion-input>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <ion-button
+        fill="solid"
+        color="primary"
+        class="cancel-button"
+        type="button"
+        (click)="onCancel()"
+      >
+        Cancel
+      </ion-button>
+      <ion-button
+        fill="solid"
+        color="primary"
+        class="update-button"
+        type="button"
+        (click)="onUpdate()"
+      >
+        Update
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <div class="loading-container" *ngIf="!jobData">
+    <p>Đang tải dữ liệu...</p>
+  </div>
+</ion-content>
+
+
+
+
+

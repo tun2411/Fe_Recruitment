@@ -156,7 +156,7 @@ export class CandidatesPage implements OnInit {
         this.jobTitle = jobPost.title;
         // Cập nhật position cho tất cả candidates nếu đã load
         if (this.candidates.length > 0) {
-          this.candidates.forEach((candidate) => {
+          this.candidates.forEach(candidate => {
             candidate.position = this.jobTitle;
           });
           this.filteredCandidates = [...this.candidates];
@@ -372,7 +372,7 @@ export class CandidatesPage implements OnInit {
       const ip = ipMatch[1];
       return url.replace(/http:\/\/localhost:8080/g, `http://${ip}:8080`);
     }
-    
+
     // Fallback: dùng IP mặc định
     return url.replace(/http:\/\/localhost:8080/g, 'http://192.168.1.10:8080');
   }
@@ -387,10 +387,10 @@ export class CandidatesPage implements OnInit {
       const cvUrl = candidate.cvFilePath;
       // Chuyển view thành download
       let downloadUrl = cvUrl.replace('/cv/view?', '/cv/download?');
-      
+
       // Fix URL cho mobile (thay localhost bằng IP thực tế)
       downloadUrl = this.fixUrlForMobile(downloadUrl);
-      
+
       console.log('[Candidates] Downloading CV URL:', downloadUrl);
 
       const loading = await this.loadingController.create({
@@ -425,7 +425,7 @@ export class CandidatesPage implements OnInit {
 
                   console.log('[Candidates] File saved:', result.uri);
                   console.log('[Candidates] File path:', result.uri);
-                  
+
                   this.showToast(
                     `Đã tải CV thành công!\nFile: ${fileName}`,
                     'success'

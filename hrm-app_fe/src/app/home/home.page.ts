@@ -16,6 +16,11 @@ import {
   IonFabButton,
   IonBadge,
   IonAvatar,
+  IonMenu,
+  IonList,
+  IonItem,
+  IonLabel,
+  IonMenuButton,
   LoadingController,
   ToastController,
 } from '@ionic/angular/standalone';
@@ -34,8 +39,12 @@ import {
   timeOutline,
   cashOutline,
   locationOutline,
+  logOutOutline,
+  personCircleOutline,
+  chevronForwardOutline,
 } from 'ionicons/icons';
 import { JobPostService, JobPost, JobResponse } from '../services/job-post.service';
+import { AuthService } from '../services/auth.service';
 import { forkJoin, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
@@ -71,6 +80,11 @@ export interface Post {
     IonFabButton,
     IonBadge,
     IonAvatar,
+    IonMenu,
+    IonList,
+    IonItem,
+    IonLabel,
+    IonMenuButton,
   ],
 })
 export class HomePage implements OnInit {
@@ -79,12 +93,14 @@ export class HomePage implements OnInit {
   searchTerm: string = '';
   notificationCount: number = 2;
   filterCount: number = 2;
+  userInfo: any = null;
 
   constructor(
     private router: Router,
     private jobPostService: JobPostService,
     private loadingController: LoadingController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private authService: AuthService
   ) {
     addIcons({
       notificationsOutline,
@@ -100,10 +116,29 @@ export class HomePage implements OnInit {
       timeOutline,
       cashOutline,
       locationOutline,
+      logOutOutline,
+      personCircleOutline,
+      chevronForwardOutline,
     });
   }
 
   ngOnInit() {
+    this.loadPosts();
+    this.loadUserInfo();
+  }
+
+  loadUserInfo() {
+    this.authService.currentUser$.subscribe((user) => {
+      this.userInfo = user;
+    });
+  }
+
+  /**
+   * Lifecycle hook của Ionic - được gọi mỗi khi vào trang này
+   * Tự động reload danh sách job khi quay lại từ trang khác
+   */
+  ionViewWillEnter() {
+    console.log('[HomePage] ionViewWillEnter - reloading posts...');
     this.loadPosts();
   }
 
@@ -312,7 +347,7 @@ export class HomePage implements OnInit {
   }
 
   onViewDetail(post: Post) {
-    this.router.navigate(['/edit-post', post.id]);
+    this.router.navigate(['/job-detail', post.id]);
   }
 
   onCreatePost() {
@@ -320,11 +355,38 @@ export class HomePage implements OnInit {
   }
 
   onNotificationClick() {
-    console.log('Notification clicked');
+    this.router.navigate(['/notifications']);
   }
 
   navigateToDashboard() {
     this.router.navigate(['/dashboard']);
+  }
+
+  onAvatarClick() {
+    // Menu sẽ tự động mở khi click vào menu button
+  }
+
+  onPersonalInfo() {
+    this.router.navigate(['/personal-info']);
+  }
+
+  onRecruitmentManagement() {
+    // Navigate to home (quản lý tuyển dụng)
+    this.router.navigate(['/home']);
+  }
+
+  onEmailManagement() {
+    // Navigate to email management page
+    this.router.navigate(['/email-management']);
+  }
+
+  onDashboard() {
+    this.router.navigate(['/dashboard']);
+  }
+
+  async onLogout() {
+    // Logout ngay lập tức
+    this.authService.logout();
   }
 
   /**

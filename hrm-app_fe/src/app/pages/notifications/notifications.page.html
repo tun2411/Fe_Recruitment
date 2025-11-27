@@ -1,0 +1,57 @@
+<ion-header class="custom-header">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="onBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="header-title">THÔNG BÁO</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="notifications-content">
+  <br><br><br><br>
+
+  <div class="notifications-container">
+    <!-- Empty state -->
+    <div *ngIf="notifications.length === 0" class="empty-state">
+      <ion-icon name="notifications-outline" class="empty-icon"></ion-icon>
+      <p>Chưa có thông báo nào</p>
+    </div>
+
+    <!-- Notification cards -->
+    <ion-card
+      *ngFor="let notification of notifications"
+      (click)="onNotificationClick(notification)"
+      class="notification-card"
+      [class.unread]="!notification.isRead"
+    >
+      <ion-card-content>
+        <div class="notification-content">
+          <div
+            class="notification-icon-wrapper"
+            [style.background-color]="getNotificationBgColor(notification.type)"
+          >
+            <ion-icon
+              [name]="getNotificationIcon(notification.type)"
+              [style.color]="getNotificationIconColor(notification.type)"
+              class="notification-icon"
+            ></ion-icon>
+          </div>
+          <div class="notification-info">
+            <div class="notification-header">
+              <h3 class="notification-title">{{ notification.title }}</h3>
+              <span class="notification-time">{{ notification.timestamp }}</span>
+            </div>
+            <p class="notification-message">{{ notification.message }}</p>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
+
+
+
+
+

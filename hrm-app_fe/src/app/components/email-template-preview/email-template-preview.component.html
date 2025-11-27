@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Preview: {{ template?.formName || 'Template' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onCancel()">
+        <span style="font-size: 24px;">×</span>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="preview-container">
+    <!-- Subject Line -->
+    <div class="subject-section">
+      <div class="subject-label">Subject:</div>
+      <div class="subject-content">{{ getPreviewSubject(template?.subject || '') }}</div>
+    </div>
+
+    <!-- Email Body Preview -->
+    <div class="email-body-preview">
+      <div class="email-content">
+        {{ getPreviewContent(template?.content || '') }}
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <ion-button expand="block" fill="outline" (click)="onEdit()" class="action-button">
+        CHỈNH SỬA
+      </ion-button>
+      <ion-button expand="block" color="primary" (click)="onSelect()" class="action-button">
+        CHỌN TEMPLATE NÀY
+      </ion-button>
+      <ion-button expand="block" fill="clear" (click)="onCancel()" class="action-button">
+        HỦY
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
+
