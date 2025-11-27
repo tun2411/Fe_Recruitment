@@ -1,0 +1,100 @@
+<ion-header class="custom-header">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="onBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="header-title">QUẢN LÝ MAIL TỰ ĐỘNG</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="email-management-content">
+  <br>
+  <br>
+  <br><br>
+  <div class="email-container">
+    <!-- Category Cards -->
+    <div class="categories-list">
+      <ion-card
+        *ngFor="let category of categories"
+        (click)="onCategoryClick(category.type)"
+        class="category-card"
+        [class.selected]="isCategorySelected(category.type)"
+      >
+        <ion-card-content>
+          <div class="category-content">
+            <div
+              class="category-icon-wrapper"
+              [style.background-color]="category.bgColor"
+            >
+              <ion-icon
+                [name]="category.icon"
+                [style.color]="category.color"
+                class="category-icon"
+              ></ion-icon>
+            </div>
+            <div class="category-info">
+              <h3 class="category-title">{{ category.label }}</h3>
+              <p class="category-count">
+                {{ getTemplatesForCategory(category.type).length }} template(s)
+              </p>
+            </div>
+            <ion-icon
+              name="chevron-forward-outline"
+              class="category-arrow"
+              [class.rotated]="isCategorySelected(category.type)"
+            ></ion-icon>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Templates List for Selected Category -->
+    <div *ngIf="selectedCategory" class="templates-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          {{ getCategoryLabel(selectedCategory) }}
+        </h3>
+        <ion-button
+          fill="clear"
+          size="small"
+          (click)="onCreateNew(selectedCategory)"
+          class="add-template-button"
+        >
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          Tạo mới
+        </ion-button>
+      </div>
+
+      <!-- Empty state for category -->
+      <div
+        *ngIf="getTemplatesForCategory(selectedCategory).length === 0"
+        class="empty-templates"
+      >
+        <p>Chưa có template nào cho loại này</p>
+        <ion-button fill="outline" (click)="onCreateNew(selectedCategory)">
+          Tạo template đầu tiên
+        </ion-button>
+      </div>
+
+      <!-- Templates list -->
+      <ion-list *ngIf="getTemplatesForCategory(selectedCategory).length > 0">
+        <ion-item
+          *ngFor="let template of getTemplatesForCategory(selectedCategory)"
+          button
+          (click)="onTemplateClick(template)"
+          class="template-item"
+        >
+          <ion-label>
+            <h3>{{ template.name }}</h3>
+            <p *ngIf="template.subject">{{ template.subject }}</p>
+            <p class="template-time">{{ template.lastModified }}</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-item>
+      </ion-list>
+    </div>
+  </div>
+</ion-content>
+

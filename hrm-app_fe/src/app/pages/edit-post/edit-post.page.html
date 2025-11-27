@@ -144,12 +144,25 @@
 
       <!-- Vòng tuyển dụng -->
       <div class="form-field">
-        <ion-label class="field-label">Vòng tuyển dụng</ion-label>
+        <div class="field-header">
+          <ion-label class="field-label">Vòng tuyển dụng</ion-label>
+          <ion-button
+            fill="clear"
+            size="small"
+            (click)="onOpenRoundsConfig()"
+            [disabled]="!jobId"
+            class="view-config-button"
+          >
+              <ion-icon name="settings-outline" slot="icon-only"></ion-icon>
+              <span class="button-text">Chỉnh sửa cấu hình</span>
+            </ion-button>
+          </div>
         <ion-input
           type="number"
           formControlName="recruitmentRound"
           placeholder=""
           class="custom-input"
+          [readonly]="true"
           [class.invalid]="isFieldInvalid('recruitmentRound')"
         ></ion-input>
       </div>

@@ -1,0 +1,107 @@
+.custom-header {
+  ion-toolbar {
+    --background: #3880ff;
+    --color: white;
+    border-radius: 0 0 16px 16px;
+    padding: 0;
+    min-height: 60px;
+  }
+
+  .header-title {
+    text-align: center;
+    font-weight: 600;
+    font-size: 18px;
+    color: white;
+    margin: 0;
+    text-transform: uppercase;
+  }
+}
+
+.job-detail-content {
+  --background: #f5f5f5;
+}
+
+.form-container {
+  background: white;
+  margin: 0;
+  border-radius: 0;
+  padding: 20px 16px;
+  box-shadow: none;
+}
+
+.form-field {
+  margin-bottom: 20px;
+
+  .field-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 6px;
+  }
+
+  .custom-input,
+  .custom-textarea {
+    --background: #f5f5f5;
+    --color: #333333;
+    --border-radius: 8px;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    border: 1px solid #e0e0e0;
+    width: 100%;
+    font-size: 14px;
+    color: #333333;
+
+    &.readonly {
+      --background: #f9f9f9;
+      --color: #666666;
+      cursor: default;
+      opacity: 0.9;
+    }
+
+    &::placeholder {
+      color: #999999;
+    }
+  }
+
+  .custom-textarea {
+    min-height: 120px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  color: #666;
+  font-size: 16px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 0;
+
+  .cancel-button,
+  .update-button {
+    flex: 1;
+    --border-radius: 8px;
+    height: 48px;
+    font-weight: 500;
+    margin: 0;
+    --background: #3880ff;
+    --color: white;
+    text-transform: none;
+  }
+}
+
+
+
+
+

@@ -149,36 +149,18 @@ export class CreatePostPage implements OnInit {
   }
 
   ngOnInit() {
-    // Khởi tạo minDate một lần để tránh ExpressionChangedAfterItHasBeenCheckedError
+    // Khởi tạo minDate là ngày mai (chỉ cho phép chọn ngày lớn hơn ngày hiện tại)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    this.minDate = today.toISOString();
-    this.minDateValue = today;
+    
+    // Set minDate là ngày mai (today + 1 day)
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    this.minDate = tomorrow.toISOString();
+    this.minDateValue = tomorrow;
 
-    // Cleanup: Nếu có jobId cũ trong state (user quay lại), xóa draft cũ
-    const oldJobId = this.jobCreationState.getJobId();
-    if (oldJobId) {
-      console.log(
-        '[CreatePost] Found old jobId in state, cleaning up draft...',
-        oldJobId
-      );
-      // Xóa draft cũ ngầm (không hiển thị loading/error)
-      this.jobPostService.deleteJob(oldJobId).subscribe({
-        next: () => {
-          console.log('[CreatePost] Old draft deleted successfully');
-          // Clear state
-          this.jobCreationState.clear();
-        },
-        error: (error) => {
-          console.error(
-            '[CreatePost] Error deleting old draft (non-critical):',
-            error
-          );
-          // Vẫn clear state dù xóa thất bại
-          this.jobCreationState.clear();
-        },
-      });
-    }
+    // Clear state khi vào create-post (không cần xóa draft job vì không tạo draft nữa)
+    this.jobCreationState.clear();
   }
 
   formatDate(dateString: string): string {
@@ -197,8 +179,29 @@ export class CreatePostPage implements OnInit {
       // Chuyển đổi thành ISO string và đặt thời gian về 00:00:00
       const date = new Date(dateValue);
       date.setHours(0, 0, 0, 0);
+      
+      // Validation: Kiểm tra ngày phải lớn hơn ngày hiện tại
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (date <= today) {
+        // Nếu ngày chọn <= ngày hiện tại, hiển thị lỗi và không lưu
+        this.createPostForm.get('deadline')?.setErrors({ invalidDate: true });
+        this.createPostForm.get('deadline')?.markAsTouched();
+        
+        // Hiển thị toast thông báo
+        this.toastController.create({
+          message: 'Hạn bài đăng phải lớn hơn ngày hiện tại',
+          duration: 2000,
+          color: 'warning',
+          position: 'top',
+        }).then(toast => toast.present());
+        return;
+      }
+      
       const isoString = date.toISOString();
       this.createPostForm.patchValue({ deadline: isoString });
+      this.createPostForm.get('deadline')?.setErrors(null);
       this.createPostForm.get('deadline')?.markAsTouched();
     }
   }
@@ -208,7 +211,31 @@ export class CreatePostPage implements OnInit {
       // Lưu Date object để Material Datepicker hiển thị đúng format dd/mm/yyyy
       const date = new Date(event.value);
       date.setHours(0, 0, 0, 0);
+      
+      // Validation: Kiểm tra ngày phải lớn hơn ngày hiện tại
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (date <= today) {
+        // Nếu ngày chọn <= ngày hiện tại, hiển thị lỗi và không lưu
+        this.createPostForm.get('deadline')?.setErrors({ invalidDate: true });
+        this.createPostForm.get('deadline')?.markAsTouched();
+        
+        // Clear giá trị không hợp lệ
+        this.createPostForm.patchValue({ deadline: null });
+        
+        // Hiển thị toast thông báo
+        this.toastController.create({
+          message: 'Hạn bài đăng phải lớn hơn ngày hiện tại',
+          duration: 2000,
+          color: 'warning',
+          position: 'top',
+        }).then(toast => toast.present());
+        return;
+      }
+      
       this.createPostForm.patchValue({ deadline: date });
+      this.createPostForm.get('deadline')?.setErrors(null);
       this.createPostForm.get('deadline')?.markAsTouched();
     }
   }
@@ -251,6 +278,29 @@ export class CreatePostPage implements OnInit {
       });
       await toast.present();
       return;
+    }
+
+    // Validation: deadline phải lớn hơn ngày hiện tại
+    const deadlineValue = this.createPostForm.value.deadline;
+    if (deadlineValue) {
+      const deadlineDate = new Date(deadlineValue);
+      deadlineDate.setHours(0, 0, 0, 0);
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (deadlineDate <= today) {
+        const toast = await this.toastController.create({
+          message: 'Hạn bài đăng phải lớn hơn ngày hiện tại',
+          duration: 2000,
+          color: 'warning',
+          position: 'top',
+        });
+        await toast.present();
+        this.createPostForm.get('deadline')?.setErrors({ invalidDate: true });
+        this.createPostForm.get('deadline')?.markAsTouched();
+        return;
+      }
     }
 
     const loading = await this.loadingController.create({
@@ -307,61 +357,41 @@ export class CreatePostPage implements OnInit {
       yoe: yoe,
       unit: unit,
       roundCount: roundCount,
-      status: 'inactive' as any, // Mặc định inactive khi tạo job cơ bản
+      // Không cần status vì sẽ tạo job hoàn chỉnh luôn
       deadline: deadline,
     };
 
-    // Option 2: Tạo job draft ngầm ngay từ đầu (Silent Draft Creation)
-    // Gọi API tạo job draft (status='inactive')
-    this.jobPostService.createJob(createJobRequest).subscribe({
-      next: async (response) => {
-        await loading.dismiss();
+    // Không tạo draft job nữa, chỉ lưu data vào state
+    // Job sẽ được tạo hoàn chỉnh khi user submit ở configure-rounds
+    await loading.dismiss();
 
-        // Lưu jobId vào state (quan trọng cho các API calls sau)
-        this.jobCreationState.setJobId(response.jobId);
-        this.jobCreationState.setJobData(createJobRequest);
-        this.jobCreationState.setRoundCount(response.roundCount);
+    // Lưu job data vào state (KHÔNG tạo job trong database)
+    this.jobCreationState.setJobData(createJobRequest);
+    this.jobCreationState.setRoundCount(createJobRequest.roundCount);
 
-        // Khởi tạo rounds mặc định
-        const defaultRounds: RoundConfiguration[] = [];
-        for (let i = 0; i < response.roundCount; i++) {
-          defaultRounds.push({
-            roundIndex: i,
-            roundName: `Vòng ${i + 1}`,
-            isConfirmed: false,
-          });
-        }
-        this.jobCreationState.setRounds(defaultRounds);
+    // Khởi tạo rounds mặc định
+    const defaultRounds: RoundConfiguration[] = [];
+    for (let i = 0; i < createJobRequest.roundCount; i++) {
+      defaultRounds.push({
+        roundIndex: i,
+        roundName: `Vòng ${i + 1}`,
+        isConfirmed: false,
+      });
+    }
+    this.jobCreationState.setRounds(defaultRounds);
 
-        // Navigate sang trang configure-rounds với jobId
-        this.router
-          .navigate(['/configure-rounds'], {
-            queryParams: { jobId: response.jobId },
-          })
-          .then(() => {
-            // Hiển thị toast sau khi đã navigate
-            setTimeout(async () => {
-              const toast = await this.toastController.create({
-                message: 'Đã tạo job draft. Tiếp tục cấu hình rounds...',
-                duration: 2000,
-                color: 'success',
-                position: 'top',
-              });
-              await toast.present();
-            }, 300);
-          });
-      },
-      error: async (error) => {
-        await loading.dismiss();
-
+    // Navigate sang trang configure-rounds (KHÔNG có jobId vì chưa tạo job)
+    this.router.navigate(['/configure-rounds']).then(() => {
+      // Hiển thị toast sau khi đã navigate
+      setTimeout(async () => {
         const toast = await this.toastController.create({
-          message: error.message || 'Tạo job draft thất bại. Vui lòng thử lại.',
-          duration: 3000,
-          color: 'danger',
+          message: 'Tiếp tục cấu hình rounds...',
+          duration: 2000,
+          color: 'success',
           position: 'top',
         });
         await toast.present();
-      },
+      }, 300);
     });
   }
 

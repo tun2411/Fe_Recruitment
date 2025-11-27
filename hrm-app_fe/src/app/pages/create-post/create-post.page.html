@@ -145,6 +145,7 @@
             formControlName="deadline"
             placeholder="Chọn ngày"
             readonly
+            [min]="minDateValue"
             [class.invalid]="isFieldInvalid('deadline')"
             (dateChange)="onDatePickerChange($event)">
           <mat-datepicker-toggle

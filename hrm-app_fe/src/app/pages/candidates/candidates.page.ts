@@ -281,17 +281,17 @@ export class CandidatesPage implements OnInit {
     if (candidate.cvFilePath) {
       // Backend trả về cvUrl (có thể là relative path hoặc full URL)
       let downloadUrl = candidate.cvFilePath;
-      
+
       // Nếu là relative path (bắt đầu bằng /), cần thêm backend URL
       if (downloadUrl.startsWith('/') && !downloadUrl.startsWith('http')) {
         // Nếu dùng proxy, backend URL là http://localhost:8080
         // Nếu không dùng proxy, lấy từ environment
-        const backendUrl = environment.apiUrl.startsWith('http') 
+        const backendUrl = environment.apiUrl.startsWith('http')
           ? environment.apiUrl.replace('/api', '')
           : 'http://localhost:8080';
         downloadUrl = `${backendUrl}${candidate.cvFilePath}`;
       }
-      
+
       // Mở link download trong tab mới
       window.open(downloadUrl, '_blank');
       console.log('Download CV:', candidate.cvFileName || candidate.cvFilePath);
@@ -304,9 +304,6 @@ export class CandidatesPage implements OnInit {
     console.log('Notification clicked');
   }
 
-  onAddCandidate() {
-    console.log('Add new candidate');
-  }
 
   getStatusLabel(candidate: Candidate): string {
     switch (candidate.status) {

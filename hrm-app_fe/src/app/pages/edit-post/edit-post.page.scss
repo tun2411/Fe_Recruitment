@@ -103,6 +103,13 @@
     &::placeholder {
       color: #999999;
     }
+
+    &[readonly] {
+      --background: #f5f5f5;
+      --color: #666666;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
   }
 
   .custom-select {
@@ -111,20 +118,6 @@
     --color: #000000;
     position: relative;
     color: #000000;
-
-    &::after {
-      content: '';
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 0;
-      height: 0;
-      border-left: 5px solid transparent;
-      border-right: 5px solid transparent;
-      border-top: 5px solid #666;
-      pointer-events: none;
-    }
 
     &::part(text) {
       color: #000000;
@@ -155,6 +148,38 @@
       font-weight: 500;
       color: #333;
       margin: 0;
+    }
+  }
+
+  // Field header với button
+  .field-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+
+    .view-config-button {
+      --color: #3880ff;
+      --padding-start: 8px;
+      --padding-end: 8px;
+      height: 32px;
+      margin: 0;
+      font-size: 12px;
+      text-transform: none;
+      font-weight: 500;
+
+      &[disabled] {
+        --color: #999999;
+        opacity: 0.5;
+      }
+
+      .button-text {
+        margin-left: 4px;
+      }
+
+      ion-icon {
+        font-size: 16px;
+      }
     }
   }
 
@@ -579,6 +604,207 @@ ion-datetime ion-buttons {
     --background: #3880ff;
     --color: white;
     text-transform: none;
+  }
+}
+
+// Rounds Config Modal Styles
+.rounds-config-content {
+  --background: #f5f5f5;
+  --padding: 16px;
+}
+
+.rounds-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rounds-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.round-item {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  .round-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0;
+
+    .round-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .delete-round-button {
+      --color: #eb445a;
+      margin: 0;
+      height: 32px;
+      width: 32px;
+
+      &[disabled] {
+        opacity: 0.3;
+      }
+    }
+  }
+
+  .round-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .form-field {
+      margin-bottom: 0;
+
+      .field-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 6px;
+      }
+
+      .custom-input {
+        --background: #ffffff;
+        --color: #000000;
+        --border-radius: 8px;
+        --padding-start: 12px;
+        --padding-end: 12px;
+        --padding-top: 12px;
+        --padding-bottom: 12px;
+        border: 1px solid #e0e0e0;
+        width: 100%;
+        font-size: 14px;
+
+        &.invalid {
+          border-color: #eb445a;
+        }
+      }
+
+      &.toggle-field {
+        .toggle-item {
+          --background: transparent;
+          --padding-start: 0;
+          --padding-end: 0;
+          --inner-padding-end: 0;
+          --inner-padding-start: 0;
+          margin: 0;
+
+          ion-label {
+            font-size: 14px;
+            color: #333;
+          }
+        }
+      }
+    }
+  }
+}
+
+.add-round-section {
+  margin-top: 8px;
+  margin-bottom: 8px;
+
+  .add-round-button {
+    --border-radius: 8px;
+    height: 44px;
+    font-weight: 500;
+    text-transform: none;
+    --border-color: #3880ff;
+    --color: #3880ff;
+  }
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+
+  .cancel-button,
+  .save-button {
+    flex: 1;
+    --border-radius: 8px;
+    height: 44px;
+    font-weight: 500;
+    text-transform: none;
+  }
+
+  .cancel-button {
+    --color: #666;
+    --border-color: #e0e0e0;
+  }
+
+  .save-button {
+    --background: #3880ff;
+    --color: white;
+  }
+}
+
+// Dark mode cho rounds config modal
+@media (prefers-color-scheme: dark) {
+  .rounds-config-content {
+    --background: #1e1e1e;
+  }
+
+  .round-item {
+    background: #2d2d2d;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+
+    .round-header {
+      border-bottom-color: #404040;
+
+      .round-title {
+        color: #ffffff;
+      }
+    }
+
+    .round-content {
+      .form-field {
+        .field-label {
+          color: #ffffff;
+        }
+
+        .custom-input {
+          --background: #2d2d2d;
+          --color: #ffffff;
+          border-color: #404040;
+        }
+
+        &.toggle-field {
+          .toggle-item {
+            ion-label {
+              color: #ffffff;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .add-round-section {
+    .add-round-button {
+      --border-color: #3880ff;
+      --color: #3880ff;
+    }
+  }
+
+  .modal-actions {
+    border-top-color: #404040;
+
+    .cancel-button {
+      --color: #cccccc;
+      --border-color: #404040;
+    }
   }
 }
 

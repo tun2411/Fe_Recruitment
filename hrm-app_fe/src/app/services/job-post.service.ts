@@ -9,10 +9,19 @@ import { catchError, retry, map, expand, reduce } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 // Định nghĩa Interface theo DTO backend
+export interface UpdateFormRequest {
+  formId?: number; // ID của form cần cập nhật (bắt buộc khi update)
+  formName?: string;
+  type?: 'apply_confirm' | 'pass' | 'fail';
+  roundId?: number | null; // round_id là optional (có thể thay đổi round của form)
+}
+
 export interface JobRoundDTO {
+  roundId?: number; // ID của round trong database (dùng để config templates) - optional
   roundIndex: number; // Backend yêu cầu Integer, bắt đầu từ 0
   roundName: string;
   isConfirmed?: boolean; // Backend sử dụng Boolean (default: false)
+  forms?: UpdateFormRequest[]; // Danh sách forms cần cập nhật cho round này
 }
 
 export interface JobListItemDTO {
@@ -386,6 +395,28 @@ export class JobPostService {
       retry(2), // Retry 2 lần nếu lỗi
       catchError(this.handleError<any[]>('getSamples', []))
     );
+  }
+
+  /**
+   * GET /api/forms/job/{jobId} - Lấy tất cả forms (templates) của một job
+   * Trả về forms được nhóm theo rounds
+   * @param jobId ID của job
+   * @returns Observable với FormListResponse chứa danh sách forms
+   */
+  getFormsByJobId(jobId: number): Observable<{ forms: any[]; total: number }> {
+    return this.http
+      .get<{ forms: any[]; total: number }>(
+        `${environment.apiUrl}/forms/job/${jobId}`
+      )
+      .pipe(
+        retry(2),
+        catchError(
+          this.handleError<{ forms: any[]; total: number }>('getFormsByJobId', {
+            forms: [],
+            total: 0,
+          })
+        )
+      );
   }
 
   /**

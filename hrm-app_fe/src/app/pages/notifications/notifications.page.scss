@@ -1,0 +1,197 @@
+.custom-header {
+  ion-toolbar {
+    --background: linear-gradient(135deg, #3880ff 0%, #2c6dd5 50%, #1e5bb8 100%);
+    --color: white;
+    border-radius: 0 0 16px 16px;
+    padding: 0;
+    min-height: 60px;
+    box-shadow: 0 4px 12px rgba(56, 128, 255, 0.3);
+  }
+
+  .header-title {
+    text-align: center;
+    font-weight: 700;
+    font-size: 20px;
+    color: white;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  ion-button {
+    --color: white;
+  }
+}
+
+.notifications-content {
+  --background: #f5f5f5;
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+.notifications-container {
+  padding: 16px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+
+  .empty-icon {
+    font-size: 64px;
+    color: #ccc;
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: #999;
+    font-size: 16px;
+    margin: 0;
+  }
+}
+
+.notification-card {
+  margin: 0 0 12px 0;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --background: white;
+  border: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  &.unread {
+    border-left: 4px solid #3880ff;
+    background: linear-gradient(to right, #f5f8ff 0%, #ffffff 100%);
+  }
+
+  ion-card-content {
+    padding: 16px;
+  }
+
+  .notification-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .notification-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+
+    .notification-icon {
+      font-size: 24px;
+    }
+  }
+
+  .notification-card:hover .notification-icon-wrapper {
+    transform: scale(1.1);
+  }
+
+  .notification-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    gap: 12px;
+  }
+
+  .notification-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+    flex: 1;
+    line-height: 1.3;
+  }
+
+  .notification-time {
+    font-size: 12px;
+    color: #999;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .notification-message {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+    word-break: break-word;
+
+    // Style cho placeholders trong message
+    &::ng-deep {
+      // Có thể thêm style cho các placeholder nếu cần
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 480px) {
+  .notifications-container {
+    padding: 12px;
+  }
+
+  .notification-card {
+    margin-bottom: 10px;
+    border-radius: 12px;
+
+    ion-card-content {
+      padding: 12px;
+    }
+
+    .notification-content {
+      gap: 12px;
+    }
+
+    .notification-icon-wrapper {
+      width: 40px;
+      height: 40px;
+
+      .notification-icon {
+        font-size: 20px;
+      }
+    }
+
+    .notification-title {
+      font-size: 15px;
+    }
+
+    .notification-message {
+      font-size: 13px;
+    }
+  }
+}
+
+
+
+
+
