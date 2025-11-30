@@ -75,7 +75,6 @@ import {
     IonTextarea,
     IonSelect,
     IonSelectOption,
-    IonItem,
     IonLabel,
     IonModal,
     IonDatetime,

@@ -36,7 +36,6 @@ import { JobPostService, JobResponse } from '../../services/job-post.service';
     IonIcon,
     IonInput,
     IonTextarea,
-    IonItem,
     IonLabel,
   ],
 })

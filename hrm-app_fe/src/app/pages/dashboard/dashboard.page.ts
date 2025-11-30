@@ -50,7 +50,6 @@ import { JobPostService } from '../../services/job-post.service';
     IonIcon,
     IonCard,
     IonCardContent,
-    IonButton,
     IonItem,
     IonLabel,
     IonBadge,

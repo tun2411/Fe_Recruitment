@@ -77,8 +77,6 @@ export interface Candidate {
     IonCardContent,
     IonBadge,
     IonAvatar,
-    IonFab,
-    IonFabButton,
   ],
 })
 export class CandidatesPage implements OnInit {

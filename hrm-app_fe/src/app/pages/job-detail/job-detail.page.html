@@ -60,7 +60,7 @@
     <div class="form-field">
       <ion-label class="field-label">Vòng tuyển dụng</ion-label>
       <ion-input
-        [value]="jobData.roundCount?.toString() || ''"
+        [value]="(jobData ? jobData.roundCount : 0).toString()"
         placeholder="Vòng tuyển dụng"
         readonly
         class="custom-input readonly"

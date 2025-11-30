@@ -47,7 +47,6 @@ export interface Notification {
     IonIcon,
     IonCard,
     IonCardContent,
-    IonLabel,
   ],
 })
 export class NotificationsPage implements OnInit {

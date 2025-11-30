@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Preview: {{ template?.formName || 'Template' }}</ion-title>
+    <ion-title>Preview: {{ template.formName || 'Template' }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="onCancel()">
         <span style="font-size: 24px;">×</span>
@@ -14,13 +14,13 @@
     <!-- Subject Line -->
     <div class="subject-section">
       <div class="subject-label">Subject:</div>
-      <div class="subject-content">{{ getPreviewSubject(template?.subject || '') }}</div>
+      <div class="subject-content">{{ getPreviewSubject(template.subject || '') }}</div>
     </div>
 
     <!-- Email Body Preview -->
     <div class="email-body-preview">
       <div class="email-content">
-        {{ getPreviewContent(template?.content || '') }}
+        {{ getPreviewContent(template.content || '') }}
       </div>
     </div>
 
