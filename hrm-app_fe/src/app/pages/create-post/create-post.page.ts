@@ -175,7 +175,7 @@ export class CreatePostPage implements OnInit {
   onDateChange(event: any) {
     const dateValue = event.detail.value;
     if (dateValue) {
-      // Chuyển đổi thành ISO string và đặt thời gian về 00:00:00
+      // Chuẩn hóa ngày về 00:00:00 theo giờ local để tránh lệch timezone
       const date = new Date(dateValue);
       date.setHours(0, 0, 0, 0);
 
@@ -200,8 +200,8 @@ export class CreatePostPage implements OnInit {
         return;
       }
 
-      const isoString = date.toISOString();
-      this.createPostForm.patchValue({ deadline: isoString });
+      // Lưu trực tiếp Date object, sẽ format đúng sang LocalDateTime khi submit
+      this.createPostForm.patchValue({ deadline: date });
       this.createPostForm.get('deadline')?.setErrors(null);
       this.createPostForm.get('deadline')?.markAsTouched();
     }

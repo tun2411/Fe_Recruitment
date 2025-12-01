@@ -1096,11 +1096,14 @@ export class ConfigureRoundsPage implements OnInit {
       // Interceptor đã xử lý logout, không cần hiển thị toast lỗi nữa
       const errorStatus = (error as any)?.status;
       const isAuthError = errorStatus === 401 || errorStatus === 403;
-      const isAuthErrorMessage = error?.message?.includes('quyền truy cập') ||
-                                  error?.message?.includes('quyền thực hiện');
+      const isAuthErrorMessage =
+        error?.message?.includes('quyền truy cập') ||
+        error?.message?.includes('quyền thực hiện');
 
       if (isAuthError || isAuthErrorMessage) {
-        console.log('[ConfigureRounds] Authentication error detected, interceptor will handle logout');
+        console.log(
+          '[ConfigureRounds] Authentication error detected, interceptor will handle logout'
+        );
         // Không hiển thị toast vì interceptor đã xử lý logout và redirect
         return;
       }
@@ -1214,7 +1217,10 @@ export class ConfigureRoundsPage implements OnInit {
               }));
             this.jobCreationState.setRounds(updatedRounds);
 
-            console.log('[ConfigureRounds] Deleted round and updated state:', updatedRounds);
+            console.log(
+              '[ConfigureRounds] Deleted round and updated state:',
+              updatedRounds
+            );
 
             // Đồng bộ lại roundIds trong state: xóa roundId của vòng bị xóa và dịch các index phía sau
             const oldRoundIds = this.jobCreationState.getRoundIds();
@@ -1395,6 +1401,7 @@ export class ConfigureRoundsPage implements OnInit {
     }
 
     // Build CompleteJobRequest từ state
+    // Sử dụng đúng trạng thái mà user đã chọn ở bước tạo bài (active / inactive / closed)
     const completeRequest: CompleteJobRequest = {
       title: jobData.title!,
       description: jobData.description!,
@@ -1406,7 +1413,7 @@ export class ConfigureRoundsPage implements OnInit {
       unit: jobData.unit,
       roundCount: jobData.roundCount!,
       deadline: jobData.deadline!,
-      status: jobData.status || 'inactive', // Lấy status từ jobData, mặc định inactive
+      status: (jobData.status as any) || 'inactive',
       rounds: rounds.map((round: RoundConfiguration) => {
         const roundWithTemplates: CompleteJobRequest['rounds'][0] = {
           roundIndex: round.roundIndex,
@@ -1524,7 +1531,9 @@ export class ConfigureRoundsPage implements OnInit {
 
     // Cập nhật state với dữ liệu hiện tại từ form
     const updatedRounds = roundsArray.controls.map((control, index) => {
-      const existingRound = roundsFromState.find((r) => r.roundIndex === index) || {
+      const existingRound = roundsFromState.find(
+        (r) => r.roundIndex === index
+      ) || {
         roundIndex: index,
         roundName: `Vòng ${index + 1}`,
         isConfirmed: false,
@@ -1534,7 +1543,8 @@ export class ConfigureRoundsPage implements OnInit {
         ...existingRound,
         roundIndex: index,
         roundName: control.get('roundName')?.value || existingRound.roundName,
-        isConfirmed: control.get('isConfirmed')?.value || existingRound.isConfirmed,
+        isConfirmed:
+          control.get('isConfirmed')?.value || existingRound.isConfirmed,
         // Giữ lại template data từ state
         passEmailTemplate: existingRound.passEmailTemplate,
         failEmailTemplate: existingRound.failEmailTemplate,
@@ -1544,7 +1554,9 @@ export class ConfigureRoundsPage implements OnInit {
     });
 
     this.jobCreationState.setRounds(updatedRounds);
-    console.log('[ConfigureRounds] Synced form data to state before navigating to email-templates');
+    console.log(
+      '[ConfigureRounds] Synced form data to state before navigating to email-templates'
+    );
 
     // Option 2: Cần jobId và roundId (nếu có)
     // Navigate đến email-templates với jobId, roundIndex, và type
@@ -1560,5 +1572,3 @@ export class ConfigureRoundsPage implements OnInit {
     });
   }
 }
-
-
