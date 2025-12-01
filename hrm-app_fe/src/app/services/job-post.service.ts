@@ -464,7 +464,14 @@ export class JobPostService {
       if (result !== undefined) {
         return of(result as T);
       } else {
-        return throwError(() => new Error(errorMessage));
+        // Giữ lại thông tin HTTP từ HttpErrorResponse gốc
+        // Tạo error object mới với message tùy chỉnh nhưng giữ lại các thuộc tính HTTP
+        const customError: any = new Error(errorMessage);
+        customError.status = error.status;
+        customError.statusText = error.statusText;
+        customError.url = error.url;
+        customError.error = error.error;
+        return throwError(() => customError);
       }
     };
   }

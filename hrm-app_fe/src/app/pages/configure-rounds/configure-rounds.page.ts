@@ -972,6 +972,7 @@ export class ConfigureRoundsPage implements OnInit {
       };
 
       console.log('[ConfigureRounds] UpdateJobRequest:', JSON.stringify(updateJobRequest, null, 2));
+      console.log('[ConfigureRounds] Sending update request for job ID:', this.jobId);
 
       await firstValueFrom(
         this.jobPostService.updateJobPost(this.jobId!, updateJobRequest)
@@ -996,12 +997,54 @@ export class ConfigureRoundsPage implements OnInit {
       }
     } catch (error: any) {
       await loading.dismiss();
-      console.error('Error saving rounds:', error);
+      
+      // Log chi tiết lỗi để debug
+      console.error('[ConfigureRounds] Error saving rounds:', {
+        error,
+        message: error?.message,
+        status: (error as any)?.status,
+        statusText: (error as any)?.statusText,
+        url: (error as any)?.url,
+        errorDetails: (error as any)?.error,
+      });
+
+      // Kiểm tra nếu là lỗi authentication (401/403)
+      // Interceptor đã xử lý logout, không cần hiển thị toast lỗi nữa
+      const errorStatus = (error as any)?.status;
+      const isAuthError = errorStatus === 401 || errorStatus === 403;
+      const isAuthErrorMessage = error?.message?.includes('quyền truy cập') || 
+                                  error?.message?.includes('quyền thực hiện');
+      
+      if (isAuthError || isAuthErrorMessage) {
+        console.log('[ConfigureRounds] Authentication error detected, interceptor will handle logout');
+        // Không hiển thị toast vì interceptor đã xử lý logout và redirect
+        return;
+      }
+
+      // Hiển thị thông báo lỗi cho các lỗi khác
+      let errorMessage = 'Lưu cấu hình thất bại. Vui lòng thử lại.';
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.status === 400) {
+        errorMessage = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin.';
+      } else if (error?.status === 404) {
+        errorMessage = 'Không tìm thấy bài đăng tuyển dụng.';
+      } else if (error?.status === 500) {
+        errorMessage = 'Lỗi server. Vui lòng thử lại sau.';
+      }
+
       const toast = await this.toastController.create({
-        message: error.message || 'Lưu cấu hình thất bại. Vui lòng thử lại.',
-        duration: 2000,
+        message: errorMessage,
+        duration: 3000,
         color: 'danger',
         position: 'top',
+        buttons: [
+          {
+            text: 'Đóng',
+            role: 'cancel',
+          },
+        ],
       });
       await toast.present();
     }
@@ -1026,6 +1069,17 @@ export class ConfigureRoundsPage implements OnInit {
     // Cập nhật roundCount
     this.roundCount = roundsArray.length;
     this.jobCreationState.setRoundCount(this.roundCount);
+
+    // QUAN TRỌNG: Thêm vòng mới vào state để đảm bảo đồng bộ
+    const roundsFromState = this.jobCreationState.getRounds();
+    const newRound: RoundConfiguration = {
+      roundIndex: newRoundIndex,
+      roundName: `Vòng ${newRoundIndex + 1}`,
+      isConfirmed: false,
+    };
+    this.jobCreationState.setRounds([...roundsFromState, newRound]);
+    
+    console.log('[ConfigureRounds] Added new round to state:', newRound);
   }
 
   /**
@@ -1063,6 +1117,18 @@ export class ConfigureRoundsPage implements OnInit {
             // Cập nhật roundCount
             this.roundCount = roundsArray.length;
             this.jobCreationState.setRoundCount(this.roundCount);
+            
+            // QUAN TRỌNG: Xóa vòng khỏi state và cập nhật lại roundIndex cho các vòng còn lại
+            const roundsFromState = this.jobCreationState.getRounds();
+            const updatedRounds = roundsFromState
+              .filter((r) => r.roundIndex !== index) // Xóa vòng bị xóa
+              .map((r, newIndex) => ({
+                ...r,
+                roundIndex: newIndex, // Cập nhật lại roundIndex
+              }));
+            this.jobCreationState.setRounds(updatedRounds);
+            
+            console.log('[ConfigureRounds] Deleted round and updated state:', updatedRounds);
           },
         },
       ],
@@ -1415,6 +1481,34 @@ export class ConfigureRoundsPage implements OnInit {
   }
 
   onEmailTemplateClick(type: 'pass' | 'fail', roundIndex: number) {
+    // Sync form data vào state trước khi navigate để đảm bảo không mất dữ liệu khi quay lại
+    const roundsArray = this.roundsArray;
+    const roundsFromState = this.jobCreationState.getRounds();
+    
+    // Cập nhật state với dữ liệu hiện tại từ form
+    const updatedRounds = roundsArray.controls.map((control, index) => {
+      const existingRound = roundsFromState.find((r) => r.roundIndex === index) || {
+        roundIndex: index,
+        roundName: `Vòng ${index + 1}`,
+        isConfirmed: false,
+      };
+      
+      return {
+        ...existingRound,
+        roundIndex: index,
+        roundName: control.get('roundName')?.value || existingRound.roundName,
+        isConfirmed: control.get('isConfirmed')?.value || existingRound.isConfirmed,
+        // Giữ lại template data từ state
+        passEmailTemplate: existingRound.passEmailTemplate,
+        failEmailTemplate: existingRound.failEmailTemplate,
+        passTemplateId: (existingRound as any).passTemplateId,
+        failTemplateId: (existingRound as any).failTemplateId,
+      };
+    });
+    
+    this.jobCreationState.setRounds(updatedRounds);
+    console.log('[ConfigureRounds] Synced form data to state before navigating to email-templates');
+    
     // Option 2: Cần jobId và roundId (nếu có)
     // Navigate đến email-templates với jobId, roundIndex, và type
     const roundId = this.jobCreationState.getRoundId(roundIndex);
