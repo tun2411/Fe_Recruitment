@@ -216,6 +216,7 @@ export class DashboardPage implements OnInit {
   }
 
   navigateToMessages() {
-    console.log('Navigate to messages');
+    // Navigate đến email-management thay vì notifications
+    this.router.navigate(['/email-management']);
   }
 }

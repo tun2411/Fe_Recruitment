@@ -96,7 +96,18 @@ export class JobDetailPage implements OnInit {
   formatDate(dateString: string | undefined): string {
     if (!dateString) return 'Chưa có';
     try {
-      const date = new Date(dateString);
+      // Parse LocalDateTime string (yyyy-MM-ddTHH:mm:ss) từ backend
+      // LocalDateTime không có timezone, nên parse như local date
+      let date: Date;
+      if (dateString.includes('T')) {
+        const [datePart] = dateString.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        // Tạo Date object với local date (không bị ảnh hưởng timezone)
+        date = new Date(year, month - 1, day);
+      } else {
+        date = new Date(dateString);
+      }
+      
       if (isNaN(date.getTime())) return 'Chưa có';
       return date.toLocaleDateString('vi-VN', {
         year: 'numeric',

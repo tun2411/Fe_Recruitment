@@ -189,12 +189,14 @@ export class CreatePostPage implements OnInit {
         this.createPostForm.get('deadline')?.markAsTouched();
 
         // Hiển thị toast thông báo
-        this.toastController.create({
-          message: 'Hạn bài đăng phải lớn hơn ngày hiện tại',
-          duration: 2000,
-          color: 'warning',
-          position: 'top',
-        }).then(toast => toast.present());
+        this.toastController
+          .create({
+            message: 'Hạn bài đăng phải lớn hơn ngày hiện tại',
+            duration: 2000,
+            color: 'warning',
+            position: 'top',
+          })
+          .then((toast) => toast.present());
         return;
       }
 
@@ -224,12 +226,14 @@ export class CreatePostPage implements OnInit {
         this.createPostForm.patchValue({ deadline: null });
 
         // Hiển thị toast thông báo
-        this.toastController.create({
-          message: 'Hạn bài đăng phải lớn hơn ngày hiện tại',
-          duration: 2000,
-          color: 'warning',
-          position: 'top',
-        }).then(toast => toast.present());
+        this.toastController
+          .create({
+            message: 'Hạn bài đăng phải lớn hơn ngày hiện tại',
+            duration: 2000,
+            color: 'warning',
+            position: 'top',
+          })
+          .then((toast) => toast.present());
         return;
       }
 
@@ -345,7 +349,7 @@ export class CreatePostPage implements OnInit {
     // Parse roundCount
     const roundCount = parseInt(formValue.roundCount) || 1;
 
-    // Tạo CreateJobRequest (Bước 1: Tạo job cơ bản)
+    // Tạo CreateJobRequest (Bước 1: Lưu job data vào state để tạo job hoàn chỉnh ở bước sau)
     const createJobRequest: CreateJobRequest = {
       title: formValue.title,
       description: formValue.content || '',
@@ -356,8 +360,8 @@ export class CreatePostPage implements OnInit {
       yoe: yoe,
       unit: unit,
       roundCount: roundCount,
-      status: status as any, // Lấy từ form, có thể là 'active', 'inactive', hoặc 'closed'
-      // Không cần status vì sẽ tạo job hoàn chỉnh luôn
+      // Lấy status đúng từ form (có thể là 'active', 'inactive', hoặc 'closed')
+      status: formValue.status as any,
       deadline: deadline,
     };
 

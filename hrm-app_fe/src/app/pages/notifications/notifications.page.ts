@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Router } from '@angular/router';
 import {
   IonHeader,
@@ -12,6 +12,8 @@ import {
   IonCard,
   IonCardContent,
   IonLabel,
+  LoadingController,
+  ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -20,16 +22,15 @@ import {
   close,
   documentTextOutline,
   notificationsOutline,
+  checkmarkCircleOutline,
+  closeCircleOutline,
+  personAddOutline,
+  informationCircleOutline,
 } from 'ionicons/icons';
-
-export interface Notification {
-  id: number;
-  type: 'confirmed' | 'rejected' | 'applied';
-  title: string;
-  message: string;
-  timestamp: string;
-  isRead: boolean;
-}
+import {
+  NotificationService,
+  Notification,
+} from '../../services/notification.service';
 
 @Component({
   selector: 'app-notifications',
@@ -51,14 +52,25 @@ export interface Notification {
 })
 export class NotificationsPage implements OnInit {
   notifications: Notification[] = [];
+  isLoading = false;
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private location: Location,
+    private notificationService: NotificationService,
+    private loadingController: LoadingController,
+    private toastController: ToastController
+  ) {
     addIcons({
       arrowBackOutline,
       checkmark,
       close,
       documentTextOutline,
       notificationsOutline,
+      checkmarkCircleOutline,
+      closeCircleOutline,
+      personAddOutline,
+      informationCircleOutline,
     });
   }
 
@@ -66,57 +78,63 @@ export class NotificationsPage implements OnInit {
     this.loadNotifications();
   }
 
-  loadNotifications() {
-    // Mock data - sau này sẽ load từ API
-    this.notifications = [
-      {
-        id: 1,
-        type: 'confirmed',
-        title: 'Ứng viên xác nhận',
-        message: '{Name} xác nhận tham gia {Vòng...}',
-        timestamp: '12:00 PM',
-        isRead: false,
+  async loadNotifications() {
+    this.isLoading = true;
+    const loading = await this.loadingController.create({
+      message: 'Đang tải thông báo...',
+      spinner: 'crescent',
+    });
+    await loading.present();
+
+    this.notificationService.getNotifications().subscribe({
+      next: (notifications) => {
+        // Sort theo thời gian (mới nhất trước)
+        this.notifications = notifications.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        loading.dismiss();
+        this.isLoading = false;
       },
-      {
-        id: 2,
-        type: 'rejected',
-        title: 'Ứng viên xác nhận',
-        message: '{Name} xác nhận tham gia {Vòng...}',
-        timestamp: '12:00 PM',
-        isRead: false,
+      error: async (error) => {
+        await loading.dismiss();
+        this.isLoading = false;
+        const toast = await this.toastController.create({
+          message: error.message || 'Không thể tải thông báo',
+          duration: 3000,
+          color: 'danger',
+          position: 'top',
+        });
+        await toast.present();
       },
-      {
-        id: 3,
-        type: 'applied',
-        title: 'Ứng viên ứng tuyển',
-        message: '{Name} ứng tuyển vào {Job Name}',
-        timestamp: '12:00 PM',
-        isRead: false,
-      },
-    ];
+    });
   }
 
   getNotificationIcon(type: string): string {
     switch (type) {
-      case 'confirmed':
-        return 'checkmark';
-      case 'rejected':
-        return 'close';
-      case 'applied':
-        return 'document-text-outline';
+      case 'pass':
+        return 'checkmark-circle-outline';
+      case 'fail':
+        return 'close-circle-outline';
+      case 'new_application':
+        return 'person-add-outline';
+      case 'system':
+        return 'information-circle-outline';
       default:
-        return 'document-text-outline';
+        return 'notifications-outline';
     }
   }
 
   getNotificationColor(type: string): string {
     switch (type) {
-      case 'confirmed':
+      case 'pass':
         return 'success';
-      case 'rejected':
+      case 'fail':
         return 'danger';
-      case 'applied':
+      case 'new_application':
         return 'primary';
+      case 'system':
+        return 'medium';
       default:
         return 'medium';
     }
@@ -124,12 +142,14 @@ export class NotificationsPage implements OnInit {
 
   getNotificationBgColor(type: string): string {
     switch (type) {
-      case 'confirmed':
+      case 'pass':
         return '#e8f5e9';
-      case 'rejected':
+      case 'fail':
         return '#ffebee';
-      case 'applied':
+      case 'new_application':
         return '#e3f2fd';
+      case 'system':
+        return '#f5f5f5';
       default:
         return '#f5f5f5';
     }
@@ -137,26 +157,77 @@ export class NotificationsPage implements OnInit {
 
   getNotificationIconColor(type: string): string {
     switch (type) {
-      case 'confirmed':
+      case 'pass':
         return '#2e7d32';
-      case 'rejected':
+      case 'fail':
         return '#c62828';
-      case 'applied':
+      case 'new_application':
         return '#1565c0';
+      case 'system':
+        return '#666';
       default:
         return '#666';
     }
   }
 
-  onBack() {
-    this.router.navigate(['/home']);
+  formatTime(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return 'Vừa xong';
+    if (diffMins < 60) return `${diffMins} phút trước`;
+
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+
+    // Format full date nếu quá 7 ngày
+    const options: Intl.DateTimeFormatOptions = {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    };
+    return date.toLocaleDateString('vi-VN', options);
   }
 
-  onNotificationClick(notification: Notification) {
-    // Mark as read
-    notification.isRead = true;
-    // Có thể navigate đến chi tiết notification hoặc job/candidate
-    console.log('Notification clicked:', notification);
+  onBack() {
+    // Back về trang trước đó thay vì hardcode về dashboard
+    this.location.back();
+  }
+
+  async onNotificationClick(notification: Notification) {
+    // Mark as read nếu chưa đọc
+    if (!notification.isRead) {
+      this.notificationService.markAsRead(notification.id).subscribe({
+        next: () => {
+          // Update local state
+          notification.isRead = true;
+        },
+        error: async (error) => {
+          const toast = await this.toastController.create({
+            message: error.message || 'Không thể đánh dấu đã đọc',
+            duration: 2000,
+            color: 'warning',
+            position: 'top',
+          });
+          await toast.present();
+        },
+      });
+    }
+
+    // Navigate dựa trên type và applicationId
+    if (notification.applicationId) {
+      // Navigate đến application detail
+      this.router.navigate(['/application-detail', notification.applicationId]);
+    } else if (notification.type === 'system') {
+      // Navigate đến dashboard hoặc jobs list
+      this.router.navigate(['/dashboard']);
+    }
   }
 }
-

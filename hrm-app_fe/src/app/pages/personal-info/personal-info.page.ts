@@ -19,6 +19,7 @@ import {
   personOutline,
   arrowBackOutline,
 } from 'ionicons/icons';
+import { BusinessService } from '../../services/business.service';
 
 @Component({
   selector: 'app-personal-info',
@@ -46,7 +47,8 @@ export class PersonalInfoPage implements OnInit {
     private formBuilder: FormBuilder,
     private router: Router,
     private toastController: ToastController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private businessService: BusinessService
   ) {
     addIcons({
       personOutline,
@@ -54,15 +56,43 @@ export class PersonalInfoPage implements OnInit {
     });
 
     this.personalInfoForm = this.formBuilder.group({
-      companyName: ['Công ty TNHH KKKKKK', [Validators.required]],
-      phoneNumber: ['0987654323', [Validators.required, Validators.pattern(/^[0-9]{10,11}$/)]],
-      email: ['kkkkk@gmail.com', [Validators.required, Validators.email]],
+      companyName: ['', [Validators.required]],
+      phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{10,11}$/)]],
+      email: ['', [Validators.required, Validators.email]],
     });
   }
 
   ngOnInit() {
-    // Load user data from service or storage if needed
-    // this.loadPersonalInfo();
+    this.loadPersonalInfo();
+  }
+
+  async loadPersonalInfo() {
+    const loading = await this.loadingController.create({
+      message: 'Đang tải thông tin...',
+      spinner: 'crescent',
+    });
+    await loading.present();
+
+    this.businessService.getCurrentBusiness().subscribe({
+      next: (business) => {
+        this.personalInfoForm.patchValue({
+          companyName: business.companyName || '',
+          phoneNumber: business.phone || '',
+          email: business.email || '',
+        });
+        loading.dismiss();
+      },
+      error: async (error) => {
+        await loading.dismiss();
+        const toast = await this.toastController.create({
+          message: error.message || 'Không thể tải thông tin',
+          duration: 3000,
+          color: 'danger',
+          position: 'top',
+        });
+        await toast.present();
+      },
+    });
   }
 
   async onUpdate() {
@@ -85,21 +115,39 @@ export class PersonalInfoPage implements OnInit {
     });
     await loading.present();
 
-    // Simulate API call
-    setTimeout(async () => {
-      await loading.dismiss();
+    const updateRequest = {
+      companyName: this.personalInfoForm.value.companyName,
+      phone: this.personalInfoForm.value.phoneNumber,
+      email: this.personalInfoForm.value.email,
+    };
 
-      const toast = await this.toastController.create({
-        message: 'Cập nhật thông tin thành công!',
-        duration: 2000,
-        color: 'success',
-        position: 'top',
-      });
-      await toast.present();
+    this.businessService.updateBusiness(updateRequest).subscribe({
+      next: async () => {
+        await loading.dismiss();
 
-      // Navigate back
-      this.router.navigate(['/dashboard']);
-    }, 1500);
+        const toast = await this.toastController.create({
+          message: 'Cập nhật thông tin thành công!',
+          duration: 2000,
+          color: 'success',
+          position: 'top',
+        });
+        await toast.present();
+
+        // Navigate back
+        this.router.navigate(['/dashboard']);
+      },
+      error: async (error) => {
+        await loading.dismiss();
+
+        const toast = await this.toastController.create({
+          message: error.message || 'Cập nhật thông tin thất bại',
+          duration: 3000,
+          color: 'danger',
+          position: 'top',
+        });
+        await toast.present();
+      },
+    });
   }
 
   onBack() {

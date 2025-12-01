@@ -228,15 +228,35 @@ export class EditPostPage implements OnInit {
       content: job.description || '',
     });
 
-    // Set deadline từ job.deadline (LocalDateTime format từ backend)
+    // Set deadline từ job.deadline (LocalDateTime format từ backend: yyyy-MM-ddTHH:mm:ss)
     if (job.deadline) {
       // Parse LocalDateTime string (yyyy-MM-ddTHH:mm:ss) thành Date object
-      const deadlineDate = new Date(job.deadline);
-      this.editPostForm.patchValue({ deadline: deadlineDate });
+      // LocalDateTime không có timezone, nên parse như local date
+      const deadlineStr = job.deadline;
+      // Nếu có format yyyy-MM-ddTHH:mm:ss, parse trực tiếp
+      if (deadlineStr.includes('T')) {
+        const [datePart, timePart] = deadlineStr.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        // Tạo Date object với local date (không bị ảnh hưởng timezone)
+        const deadlineDate = new Date(year, month - 1, day);
+        this.editPostForm.patchValue({ deadline: deadlineDate });
+      } else {
+        // Fallback: parse như bình thường
+        const deadlineDate = new Date(job.deadline);
+        this.editPostForm.patchValue({ deadline: deadlineDate });
+      }
     } else if (job.publishedAt) {
       // Fallback: sử dụng publishedAt nếu không có deadline
-      const deadlineDate = new Date(job.publishedAt);
-      this.editPostForm.patchValue({ deadline: deadlineDate });
+      const publishedStr = job.publishedAt;
+      if (publishedStr && publishedStr.includes('T')) {
+        const [datePart] = publishedStr.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const publishedDate = new Date(year, month - 1, day);
+        this.editPostForm.patchValue({ deadline: publishedDate });
+      } else {
+        const publishedDate = new Date(job.publishedAt);
+        this.editPostForm.patchValue({ deadline: publishedDate });
+      }
     }
   }
 
@@ -324,14 +344,22 @@ export class EditPostPage implements OnInit {
     const unit: string | undefined = formValue.experienceUnit || undefined;
 
     // Format deadline thành LocalDateTime format (yyyy-MM-ddTHH:mm:ss)
+    // QUAN TRỌNG: Dùng local date để tránh timezone conversion
     let deadline: string | undefined = undefined;
     if (formValue.deadline) {
-      const deadlineDate = new Date(formValue.deadline);
-      deadlineDate.setHours(0, 0, 0, 0);
-      // Format: yyyy-MM-ddTHH:mm:ss (LocalDateTime format)
-      const year = deadlineDate.getFullYear();
-      const month = String(deadlineDate.getMonth() + 1).padStart(2, '0');
-      const day = String(deadlineDate.getDate()).padStart(2, '0');
+      // Nếu là Date object, lấy local date components
+      let date: Date;
+      if (formValue.deadline instanceof Date) {
+        date = formValue.deadline;
+      } else {
+        date = new Date(formValue.deadline);
+      }
+      
+      // Lấy local date components (không bị ảnh hưởng timezone)
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      // Format: yyyy-MM-ddTHH:mm:ss (LocalDateTime format, không có timezone)
       deadline = `${year}-${month}-${day}T00:00:00`;
     }
 

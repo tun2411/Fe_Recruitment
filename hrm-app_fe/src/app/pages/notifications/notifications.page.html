@@ -41,7 +41,7 @@
           <div class="notification-info">
             <div class="notification-header">
               <h3 class="notification-title">{{ notification.title }}</h3>
-              <span class="notification-time">{{ notification.timestamp }}</span>
+              <span class="notification-time">{{ formatTime(notification.createdAt) }}</span>
             </div>
             <p class="notification-message">{{ notification.message }}</p>
           </div>

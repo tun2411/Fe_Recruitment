@@ -175,7 +175,9 @@ export class ConfigureRoundsPage implements OnInit {
 
       // Nếu đến từ edit-post, luôn load lại từ backend để đảm bảo có dữ liệu mới nhất
       if (this.fromEdit) {
-        console.log('[ConfigureRounds] From edit-post, loading from backend...');
+        console.log(
+          '[ConfigureRounds] From edit-post, loading from backend...'
+        );
         this.loadJobDetail();
         return;
       }
@@ -187,7 +189,9 @@ export class ConfigureRoundsPage implements OnInit {
         const existingRoundIds = this.jobCreationState.getRoundIds();
         if (Object.keys(existingRoundIds).length === 0) {
           // Chưa có roundIds, load từ backend
-          console.log('[ConfigureRounds] No roundIds found, loading job detail...');
+          console.log(
+            '[ConfigureRounds] No roundIds found, loading job detail...'
+          );
           this.loadJobDetail();
           return;
         }
@@ -320,7 +324,7 @@ export class ConfigureRoundsPage implements OnInit {
             const existingRound = existingRounds?.find(
               (r) => r.roundIndex === round.roundIndex
             );
-            
+
             const newRound: RoundConfiguration = {
               roundIndex: round.roundIndex,
               roundName: round.roundName,
@@ -342,7 +346,7 @@ export class ConfigureRoundsPage implements OnInit {
             return newRound;
           }
         );
-        
+
         // Merge với existingRounds để giữ template của rounds không có trong job.rounds
         // (trường hợp hiếm, nhưng đảm bảo không mất data)
         if (existingRounds && existingRounds.length > 0) {
@@ -357,7 +361,7 @@ export class ConfigureRoundsPage implements OnInit {
             }
           });
         }
-        
+
         this.jobCreationState.setRounds(roundsConfig);
         console.log(
           '[ConfigureRounds] Rounds config saved with templates',
@@ -366,7 +370,7 @@ export class ConfigureRoundsPage implements OnInit {
 
         // Initialize rounds trước
         this.initializeRounds(false); // Không load template names từ API cũ
-        
+
         // Load forms từ API mới để cập nhật template names
         setTimeout(() => {
           this.loadFormsByJobId();
@@ -388,7 +392,9 @@ export class ConfigureRoundsPage implements OnInit {
       return;
     }
 
-    console.log('[ConfigureRounds] Loading forms by jobId', { jobId: this.jobId });
+    console.log('[ConfigureRounds] Loading forms by jobId', {
+      jobId: this.jobId,
+    });
 
     this.jobPostService.getFormsByJobId(this.jobId).subscribe({
       next: (response) => {
@@ -412,51 +418,66 @@ export class ConfigureRoundsPage implements OnInit {
           }
         });
 
-        console.log('[ConfigureRounds] Forms grouped by roundId:', formsByRoundId);
+        console.log(
+          '[ConfigureRounds] Forms grouped by roundId:',
+          formsByRoundId
+        );
 
         // Map forms to rounds
-        const updatedRounds: RoundConfiguration[] = roundsFromState.map((round) => {
-          const roundId = roundIds[round.roundIndex];
-          console.log(`[ConfigureRounds] Mapping round ${round.roundIndex} (roundId: ${roundId})`);
-          
-          if (!roundId || !formsByRoundId[roundId]) {
-            console.log(`[ConfigureRounds] No forms found for round ${round.roundIndex} (roundId: ${roundId})`);
-            return round; // Giữ nguyên nếu không có forms
+        const updatedRounds: RoundConfiguration[] = roundsFromState.map(
+          (round) => {
+            const roundId = roundIds[round.roundIndex];
+            console.log(
+              `[ConfigureRounds] Mapping round ${round.roundIndex} (roundId: ${roundId})`
+            );
+
+            if (!roundId || !formsByRoundId[roundId]) {
+              console.log(
+                `[ConfigureRounds] No forms found for round ${round.roundIndex} (roundId: ${roundId})`
+              );
+              return round; // Giữ nguyên nếu không có forms
+            }
+
+            const roundForms = formsByRoundId[roundId];
+            const passForm = roundForms.find((f: any) => f.type === 'pass');
+            const failForm = roundForms.find((f: any) => f.type === 'fail');
+
+            console.log(
+              `[ConfigureRounds] Found forms for round ${round.roundIndex}:`,
+              {
+                pass: passForm?.formName,
+                fail: failForm?.formName,
+              }
+            );
+
+            const updatedRound: RoundConfiguration = {
+              ...round,
+              passEmailTemplate: passForm
+                ? { formName: passForm.formName }
+                : round.passEmailTemplate,
+              failEmailTemplate: failForm
+                ? { formName: failForm.formName }
+                : round.failEmailTemplate,
+            };
+
+            // Lưu formId để có thể sử dụng sau
+            if (passForm) {
+              (updatedRound as any).passTemplateId = passForm.id;
+            }
+            if (failForm) {
+              (updatedRound as any).failTemplateId = failForm.id;
+            }
+
+            return updatedRound;
           }
-
-          const roundForms = formsByRoundId[roundId];
-          const passForm = roundForms.find((f: any) => f.type === 'pass');
-          const failForm = roundForms.find((f: any) => f.type === 'fail');
-
-          console.log(`[ConfigureRounds] Found forms for round ${round.roundIndex}:`, {
-            pass: passForm?.formName,
-            fail: failForm?.formName
-          });
-
-          const updatedRound: RoundConfiguration = {
-            ...round,
-            passEmailTemplate: passForm
-              ? { formName: passForm.formName }
-              : round.passEmailTemplate,
-            failEmailTemplate: failForm
-              ? { formName: failForm.formName }
-              : round.failEmailTemplate,
-          };
-
-          // Lưu formId để có thể sử dụng sau
-          if (passForm) {
-            (updatedRound as any).passTemplateId = passForm.id;
-          }
-          if (failForm) {
-            (updatedRound as any).failTemplateId = failForm.id;
-          }
-
-          return updatedRound;
-        });
+        );
 
         // Cập nhật state với template names
         this.jobCreationState.setRounds(updatedRounds);
-        console.log('[ConfigureRounds] Rounds updated with forms', updatedRounds);
+        console.log(
+          '[ConfigureRounds] Rounds updated with forms',
+          updatedRounds
+        );
 
         // Cập nhật form với template names mới
         const roundsArray = this.roundsForm.get('rounds') as FormArray;
@@ -466,17 +487,19 @@ export class ConfigureRoundsPage implements OnInit {
             // Luôn cập nhật, kể cả khi là empty string để clear giá trị cũ
             updates.passEmailTemplate = round.passEmailTemplate?.formName || '';
             updates.failEmailTemplate = round.failEmailTemplate?.formName || '';
-            
+
             roundsArray.at(index).patchValue(updates, { emitEvent: false });
             console.log(
               `[ConfigureRounds] Updated round ${index} (roundIndex: ${round.roundIndex}) with template names:`,
               updates
             );
           } else {
-            console.warn(`[ConfigureRounds] Round array at index ${index} does not exist`);
+            console.warn(
+              `[ConfigureRounds] Round array at index ${index} does not exist`
+            );
           }
         });
-        
+
         // Force change detection
         this.roundsForm.markAsDirty();
         this.roundsForm.updateValueAndValidity({ emitEvent: false });
@@ -661,12 +684,12 @@ export class ConfigureRoundsPage implements OnInit {
 
       // Nếu đến từ edit-post, luôn load từ API để đảm bảo có dữ liệu mới nhất
       // Nếu không đến từ edit-post, chỉ load nếu round đã có template trong state
-      const hasTemplateInState = roundFromState && (
-        roundFromState.passEmailTemplate || 
-        roundFromState.failEmailTemplate ||
-        (roundFromState as any).passTemplateId ||
-        (roundFromState as any).failTemplateId
-      );
+      const hasTemplateInState =
+        roundFromState &&
+        (roundFromState.passEmailTemplate ||
+          roundFromState.failEmailTemplate ||
+          (roundFromState as any).passTemplateId ||
+          (roundFromState as any).failTemplateId);
 
       // Nếu không đến từ edit-post và không có template trong state, skip
       if (!this.fromEdit && !hasTemplateInState) {
@@ -680,8 +703,12 @@ export class ConfigureRoundsPage implements OnInit {
       // Nếu đến từ edit-post: luôn load và update form
       // Nếu không: chỉ update nếu state chưa có
       Promise.all([
-        firstValueFrom(this.templateService.getTemplates('pass', roundId)).catch(() => ({ templates: [] } as any)),
-        firstValueFrom(this.templateService.getTemplates('fail', roundId)).catch(() => ({ templates: [] } as any)),
+        firstValueFrom(
+          this.templateService.getTemplates('pass', roundId)
+        ).catch(() => ({ templates: [] } as any)),
+        firstValueFrom(
+          this.templateService.getTemplates('fail', roundId)
+        ).catch(() => ({ templates: [] } as any)),
       ])
         .then(([passResult, failResult]) => {
           const passTemplate = passResult?.templates?.[0];
@@ -689,7 +716,7 @@ export class ConfigureRoundsPage implements OnInit {
 
           if (roundsArray.at(i)) {
             const updates: any = {};
-            
+
             // Nếu đến từ edit-post, luôn update từ API
             // Nếu không, chỉ update nếu state chưa có
             if (this.fromEdit) {
@@ -708,14 +735,22 @@ export class ConfigureRoundsPage implements OnInit {
               }
             } else {
               // Chỉ update nếu state chưa có
-              const roundFromStateAfter = roundsFromState.find((r) => r.roundIndex === i);
-              if (passTemplate && (!roundFromStateAfter || !roundFromStateAfter.passEmailTemplate)) {
+              const roundFromStateAfter = roundsFromState.find(
+                (r) => r.roundIndex === i
+              );
+              if (
+                passTemplate &&
+                (!roundFromStateAfter || !roundFromStateAfter.passEmailTemplate)
+              ) {
                 updates.passEmailTemplate =
                   passTemplate.formName ||
                   passTemplate.subject?.substring(0, 30) ||
                   'Template pass';
               }
-              if (failTemplate && (!roundFromStateAfter || !roundFromStateAfter.failEmailTemplate)) {
+              if (
+                failTemplate &&
+                (!roundFromStateAfter || !roundFromStateAfter.failEmailTemplate)
+              ) {
                 updates.failEmailTemplate =
                   failTemplate.formName ||
                   failTemplate.subject?.substring(0, 30) ||
@@ -726,14 +761,18 @@ export class ConfigureRoundsPage implements OnInit {
             if (Object.keys(updates).length > 0) {
               roundsArray.at(i).patchValue(updates);
               console.log(
-                `[ConfigureRounds] Updated round ${i} from API${this.fromEdit ? ' (from edit-post)' : ''}`,
+                `[ConfigureRounds] Updated round ${i} from API${
+                  this.fromEdit ? ' (from edit-post)' : ''
+                }`,
                 updates
               );
-              
+
               // Cập nhật state nếu đến từ edit-post
               if (this.fromEdit) {
                 const roundsFromState = this.jobCreationState.getRounds();
-                const roundToUpdate = roundsFromState.find((r) => r.roundIndex === i);
+                const roundToUpdate = roundsFromState.find(
+                  (r) => r.roundIndex === i
+                );
                 if (roundToUpdate) {
                   if (updates.passEmailTemplate) {
                     roundToUpdate.passEmailTemplate = {
@@ -778,7 +817,7 @@ export class ConfigureRoundsPage implements OnInit {
     // Không có draft job nữa, chỉ cần clear state và quay về
     // Clear state để xóa dữ liệu tạm
     this.jobCreationState.clear();
-    
+
     // Quay về create-post hoặc home
     if (this.jobId) {
       // Nếu có jobId (từ edit-post), quay về home
@@ -788,7 +827,6 @@ export class ConfigureRoundsPage implements OnInit {
       this.router.navigate(['/create-post']);
     }
   }
-
 
   async onSubmit() {
     if (this.roundsForm.invalid) {
@@ -808,20 +846,25 @@ export class ConfigureRoundsPage implements OnInit {
     const roundIds = this.jobCreationState.getRoundIds();
     const hasExistingRounds = Object.keys(roundIds).length > 0;
     const isPublishedJob = this.jobStatus && this.jobStatus !== 'inactive';
-    
+
     console.log('[ConfigureRounds] onSubmit check:', {
       fromEdit: this.fromEdit,
       jobId: this.jobId,
       jobStatus: this.jobStatus,
       hasExistingRounds: hasExistingRounds,
       roundIds: roundIds,
-      isPublishedJob: isPublishedJob
+      isPublishedJob: isPublishedJob,
     });
-    
+
     // Nếu đến từ edit-post, job đã được publish, hoặc job đã có rounds (roundIds), update job thay vì tạo mới
-    if (this.fromEdit || (this.jobId && (isPublishedJob || hasExistingRounds))) {
+    if (
+      this.fromEdit ||
+      (this.jobId && (isPublishedJob || hasExistingRounds))
+    ) {
       // Job đã tồn tại, update thay vì tạo mới
-      console.log('[ConfigureRounds] Job exists, updating instead of creating new');
+      console.log(
+        '[ConfigureRounds] Job exists, updating instead of creating new'
+      );
       await this.saveRoundsAndBackToEdit();
       return;
     }
@@ -872,87 +915,126 @@ export class ConfigureRoundsPage implements OnInit {
       );
 
       const roundsArray = this.roundsArray;
+
+      // Đồng bộ lại rounds trong state theo form hiện tại để đảm bảo roundIndex khớp UI
+      const existingRoundsState = this.jobCreationState.getRounds();
+      const syncedRoundsState: RoundConfiguration[] = roundsArray.controls.map(
+        (control, index) => {
+          const existingRound = existingRoundsState.find(
+            (r) => r.roundIndex === index
+          );
+
+          return {
+            roundIndex: index,
+            roundName: control.get('roundName')?.value || `Vòng ${index + 1}`,
+            isConfirmed: control.get('isConfirmed')?.value === true,
+            passEmailTemplate: existingRound?.passEmailTemplate,
+            failEmailTemplate: existingRound?.failEmailTemplate,
+            passTemplateId: existingRound?.passTemplateId,
+            failTemplateId: existingRound?.failTemplateId,
+          };
+        }
+      );
+      this.jobCreationState.setRounds(syncedRoundsState);
+
       const roundIds = this.jobCreationState.getRoundIds();
       const roundsFromState = this.jobCreationState.getRounds();
-      
-      console.log('[ConfigureRounds] RoundIds from state before mapping:', roundIds);
+
+      console.log(
+        '[ConfigureRounds] RoundIds from state before mapping:',
+        roundIds
+      );
       console.log('[ConfigureRounds] Rounds array length:', roundsArray.length);
       console.log('[ConfigureRounds] Current job data:', currentJob);
       console.log('[ConfigureRounds] Rounds from state:', roundsFromState);
-      
-      // Build JobRoundDTO với đầy đủ các trường: roundId, roundIndex, roundName, isConfirmed, forms
-      const rounds: JobRoundDTO[] = roundsArray.controls.map((control, index) => {
-        const roundId = roundIds[index]; // Lấy roundId từ state
-        const roundName = control.get('roundName')?.value || '';
-        const isConfirmed = control.get('isConfirmed')?.value === true;
-        
-        // Lấy round configuration từ state để lấy template info
-        const roundFromState = roundsFromState.find((r) => r.roundIndex === index);
-        
-        // Build forms array cho round này
-        const forms: UpdateFormRequest[] = [];
-        
-        // Thêm pass form nếu có template được cấu hình
-        const passFormName = roundFromState?.passEmailTemplate?.formName;
-        const passTemplateId = (roundFromState as any)?.passTemplateId;
-        if (passTemplateId) {
-          // formId là bắt buộc khi update, sử dụng passTemplateId làm formId
-          forms.push({
-            formId: passTemplateId,
-            formName: passFormName, // Optional, nhưng nên gửi nếu có
-            type: 'pass',
-            roundId: roundId || null,
-          });
-        } else if (passFormName) {
-          // Nếu không có formId nhưng có formName, có thể là tạo mới (nhưng backend yêu cầu formId khi update)
-          console.warn(`[ConfigureRounds] Round ${index} has passFormName but no passTemplateId, skipping pass form (formId is required for update)`);
-        }
-        
-        // Thêm fail form nếu có template được cấu hình
-        const failFormName = roundFromState?.failEmailTemplate?.formName;
-        const failTemplateId = (roundFromState as any)?.failTemplateId;
-        if (failTemplateId) {
-          // formId là bắt buộc khi update, sử dụng failTemplateId làm formId
-          forms.push({
-            formId: failTemplateId,
-            formName: failFormName, // Optional, nhưng nên gửi nếu có
-            type: 'fail',
-            roundId: roundId || null,
-          });
-        } else if (failFormName) {
-          // Nếu không có formId nhưng có formName, có thể là tạo mới (nhưng backend yêu cầu formId khi update)
-          console.warn(`[ConfigureRounds] Round ${index} has failFormName but no failTemplateId, skipping fail form (formId is required for update)`);
-        }
-        
-        // Đảm bảo JobRoundDTO có đầy đủ các trường
-        const roundDTO: JobRoundDTO = {
-          roundIndex: index,
-          roundName: roundName,
-          isConfirmed: isConfirmed,
-        };
-        
-        // Thêm roundId nếu có (để backend biết round nào cần update)
-        if (roundId) {
-          roundDTO.roundId = roundId;
-        }
-        
-        // Thêm forms array nếu có
-        if (forms.length > 0) {
-          roundDTO.forms = forms;
-        }
-        
-        console.log(`[ConfigureRounds] Round ${index}:`, {
-          roundId: roundDTO.roundId,
-          roundIndex: roundDTO.roundIndex,
-          roundName: roundDTO.roundName,
-          isConfirmed: roundDTO.isConfirmed,
-          forms: roundDTO.forms
-        });
-        
-        return roundDTO;
-      });
 
-      console.log('[ConfigureRounds] Final rounds to save:', JSON.stringify(rounds, null, 2));
+      // Build JobRoundDTO với đầy đủ các trường: roundIndex, roundName, isConfirmed, forms
+      // NOTE: Backend TRUE UPSERT rounds ưu tiên roundId, fallback roundIndex
+      const rounds: JobRoundDTO[] = roundsArray.controls.map(
+        (control, index) => {
+          // Lấy roundId từ state (nếu có) - optional, backend sẽ tự động tìm round theo roundIndex
+          const roundId = roundIds[index];
+          const roundName = control.get('roundName')?.value || '';
+          const isConfirmed = control.get('isConfirmed')?.value === true;
+
+          // Lấy round configuration từ state để lấy template info
+          const roundFromState = roundsFromState.find(
+            (r) => r.roundIndex === index
+          );
+
+          // Build forms array cho round này (nếu có templates đã được cấu hình)
+          const forms: UpdateFormRequest[] = [];
+
+          // Thêm pass form nếu có template được cấu hình
+          const passFormName = roundFromState?.passEmailTemplate?.formName;
+          const passTemplateId = (roundFromState as any)?.passTemplateId;
+          if (passTemplateId) {
+            // formId là bắt buộc khi update, sử dụng passTemplateId làm formId
+            forms.push({
+              formId: passTemplateId,
+              formName: passFormName, // Optional, nhưng nên gửi nếu có
+              type: 'pass',
+              roundId: roundId || null, // roundId để đảm bảo form được gắn đúng round
+            });
+          } else if (passFormName) {
+            // Nếu không có formId nhưng có formName, có thể là tạo mới (nhưng backend yêu cầu formId khi update)
+            console.warn(
+              `[ConfigureRounds] Round ${index} has passFormName but no passTemplateId, skipping pass form (formId is required for update)`
+            );
+          }
+
+          // Thêm fail form nếu có template được cấu hình
+          const failFormName = roundFromState?.failEmailTemplate?.formName;
+          const failTemplateId = (roundFromState as any)?.failTemplateId;
+          if (failTemplateId) {
+            // formId là bắt buộc khi update, sử dụng failTemplateId làm formId
+            forms.push({
+              formId: failTemplateId,
+              formName: failFormName, // Optional, nhưng nên gửi nếu có
+              type: 'fail',
+              roundId: roundId || null, // roundId để đảm bảo form được gắn đúng round
+            });
+          } else if (failFormName) {
+            // Nếu không có formId nhưng có formName, có thể là tạo mới (nhưng backend yêu cầu formId khi update)
+            console.warn(
+              `[ConfigureRounds] Round ${index} has failFormName but no failTemplateId, skipping fail form (formId is required for update)`
+            );
+          }
+
+          // Đảm bảo JobRoundDTO có đầy đủ các trường
+          // Backend UPSERT dựa trên roundIndex, roundId là optional (chỉ để reference)
+          const roundDTO: JobRoundDTO = {
+            roundIndex: index, // QUAN TRỌNG: Backend dùng roundIndex để UPSERT
+            roundName: roundName,
+            isConfirmed: isConfirmed,
+          };
+
+          // Thêm roundId nếu có (optional, backend sẽ tự động tìm round theo roundIndex nếu không có)
+          if (roundId) {
+            roundDTO.roundId = roundId;
+          }
+
+          // Thêm forms array nếu có
+          if (forms.length > 0) {
+            roundDTO.forms = forms;
+          }
+
+          console.log(`[ConfigureRounds] Round ${index}:`, {
+            roundId: roundDTO.roundId,
+            roundIndex: roundDTO.roundIndex,
+            roundName: roundDTO.roundName,
+            isConfirmed: roundDTO.isConfirmed,
+            forms: roundDTO.forms,
+          });
+
+          return roundDTO;
+        }
+      );
+
+      console.log(
+        '[ConfigureRounds] Final rounds to save:',
+        JSON.stringify(rounds, null, 2)
+      );
 
       // Build UpdateJobRequest với đầy đủ thông tin từ job hiện tại
       const updateJobRequest: UpdateJobRequest = {
@@ -971,7 +1053,10 @@ export class ConfigureRoundsPage implements OnInit {
         rounds: rounds,
       };
 
-      console.log('[ConfigureRounds] UpdateJobRequest:', JSON.stringify(updateJobRequest, null, 2));
+      console.log(
+        '[ConfigureRounds] UpdateJobRequest:',
+        JSON.stringify(updateJobRequest, null, 2)
+      );
 
       await firstValueFrom(
         this.jobPostService.updateJobPost(this.jobId!, updateJobRequest)
@@ -1047,7 +1132,8 @@ export class ConfigureRoundsPage implements OnInit {
 
     const alert = await this.alertController.create({
       header: 'Xác nhận xóa',
-      message: 'Bạn có chắc chắn muốn xóa vòng này? Tất cả cấu hình (templates, email) của vòng này sẽ bị xóa.',
+      message:
+        'Bạn có chắc chắn muốn xóa vòng này? Tất cả cấu hình (templates, email) của vòng này sẽ bị xóa.',
       buttons: [
         {
           text: 'Hủy',
@@ -1058,11 +1144,46 @@ export class ConfigureRoundsPage implements OnInit {
           role: 'destructive',
           handler: () => {
             roundsArray.removeAt(index);
-            // Cập nhật lại roundIndex cho các rounds còn lại
+
+            // Cập nhật lại roundIndex và tên vòng cho các rounds còn lại trong form
             this.updateRoundIndexes();
+
             // Cập nhật roundCount
             this.roundCount = roundsArray.length;
             this.jobCreationState.setRoundCount(this.roundCount);
+
+            // Đồng bộ lại roundIds trong state: xóa roundId của vòng bị xóa và dịch các index phía sau
+            const oldRoundIds = this.jobCreationState.getRoundIds();
+            const newRoundIds: { [roundIndex: number]: number } = {};
+            this.roundsArray.controls.forEach((_, newIndex) => {
+              const oldIndex = newIndex >= index ? newIndex + 1 : newIndex;
+              const oldId = oldRoundIds[oldIndex];
+              if (oldId) {
+                newRoundIds[newIndex] = oldId;
+              }
+            });
+            this.jobCreationState.setRoundIds(newRoundIds);
+
+            // Đồng bộ lại rounds trong state theo form hiện tại để tránh lệch index
+            const existingRoundsState = this.jobCreationState.getRounds();
+            const syncedRoundsState: RoundConfiguration[] =
+              this.roundsArray.controls.map((control, idx) => {
+                const existingRound = existingRoundsState.find(
+                  (r) => r.roundIndex === idx
+                );
+
+                return {
+                  roundIndex: idx,
+                  roundName:
+                    control.get('roundName')?.value || `Vòng ${idx + 1}`,
+                  isConfirmed: control.get('isConfirmed')?.value === true,
+                  passEmailTemplate: existingRound?.passEmailTemplate,
+                  failEmailTemplate: existingRound?.failEmailTemplate,
+                  passTemplateId: existingRound?.passTemplateId,
+                  failTemplateId: existingRound?.failTemplateId,
+                };
+              });
+            this.jobCreationState.setRounds(syncedRoundsState);
           },
         },
       ],
@@ -1080,97 +1201,17 @@ export class ConfigureRoundsPage implements OnInit {
       const roundName = control.get('roundName')?.value || `Vòng ${index + 1}`;
       // Cập nhật tên nếu là tên mặc định
       if (roundName.startsWith('Vòng ')) {
-        control.patchValue({ roundName: `Vòng ${index + 1}` }, { emitEvent: false });
+        control.patchValue(
+          { roundName: `Vòng ${index + 1}` },
+          { emitEvent: false }
+        );
       }
     });
   }
 
-  private async createRounds(rounds: JobRoundDTO[]) {
-    if (!this.jobId) return;
-
-    const loading = await this.loadingController.create({
-      message: 'Đang tạo rounds...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
-    this.jobPostService.createRounds(this.jobId, rounds).subscribe({
-      next: async (response: any) => {
-        await loading.dismiss();
-
-        // Lấy job detail để lấy roundIds (Bước 2.2)
-        this.jobPostService.getJobPostById(this.jobId!).subscribe({
-          next: (job) => {
-            // Lưu roundIds vào state
-            const roundIds: { [roundIndex: number]: number } = {};
-            job.rounds.forEach((round: any) => {
-              if (round.roundId) {
-                roundIds[round.roundIndex] = round.roundId;
-              }
-            });
-            this.jobCreationState.setRoundIds(roundIds);
-
-            // Lưu rounds vào state
-            const roundsConfig: RoundConfiguration[] = rounds.map(
-              (round, index) => ({
-                roundIndex: round.roundIndex,
-                roundName: round.roundName,
-                isConfirmed: round.isConfirmed || false, // Đảm bảo luôn là boolean
-              })
-            );
-            this.jobCreationState.setRounds(roundsConfig);
-
-            // Reload form với dữ liệu từ job detail
-            this.roundCount = job.roundCount;
-            this.initializeRounds();
-
-            // Cập nhật form với round names từ job
-            const roundsArray = this.roundsForm.get('rounds') as FormArray;
-            job.rounds.forEach((round: any, index: number) => {
-              if (roundsArray.at(index)) {
-                roundsArray.at(index).patchValue({
-                  roundName: round.roundName,
-                  isConfirmed: round.isConfirmed || false,
-                });
-              }
-            });
-
-            // Load selected template names nếu có
-            this.loadSelectedTemplateNames();
-
-            // Sau khi tạo rounds thành công, tự động show review và publish
-            console.log(
-              '[ConfigureRounds] Rounds created, showing review and publish...'
-            );
-            setTimeout(() => {
-              this.showReviewAndPublish();
-            }, 500); // Delay một chút để đảm bảo UI đã cập nhật
-          },
-          error: async (error: any) => {
-            console.error('Error loading job detail:', error);
-            const toast = await this.toastController.create({
-              message: 'Không thể lấy thông tin rounds. Vui lòng thử lại.',
-              duration: 3000,
-              color: 'warning',
-              position: 'top',
-            });
-            await toast.present();
-          },
-        });
-      },
-      error: async (error: any) => {
-        await loading.dismiss();
-
-        const toast = await this.toastController.create({
-          message: error.message || 'Tạo rounds thất bại. Vui lòng thử lại.',
-          duration: 3000,
-          color: 'danger',
-          position: 'top',
-        });
-        await toast.present();
-      },
-    });
-  }
+  // NOTE: Method createRounds đã được xóa vì backend không còn endpoint /api/jobs/{job_id}/rounds
+  // Sử dụng updateJobPost với rounds trong request body thay vì createRounds
+  // Backend sẽ UPSERT rounds dựa trên roundIndex, không cần endpoint riêng
 
   async showReviewAndPublish() {
     console.log('[ConfigureRounds] showReviewAndPublish called');
@@ -1389,10 +1430,7 @@ export class ConfigureRoundsPage implements OnInit {
         this.router.navigate(['/home']);
       },
       error: async (error: any) => {
-        console.error(
-          '[ConfigureRounds] Error creating complete job',
-          error
-        );
+        console.error('[ConfigureRounds] Error creating complete job', error);
         await loading.dismiss();
 
         // Không có draft job để xóa (không tạo draft nữa)
@@ -1430,5 +1468,3 @@ export class ConfigureRoundsPage implements OnInit {
     });
   }
 }
-
-

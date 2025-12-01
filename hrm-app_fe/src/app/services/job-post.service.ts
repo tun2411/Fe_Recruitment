@@ -49,7 +49,7 @@ export interface JobResponse {
   roundCount: number;
   status: string;
   deadline?: string; // LocalDateTime format từ backend
-  publishedAt: string;
+  publishedAt?: string; // Có thể null nếu job chưa được publish
   applyUrl?: string;
   createdAt: string;
   updatedAt: string;
@@ -253,20 +253,8 @@ export class JobPostService {
       );
   }
 
-  /**
-   * POST /api/jobs/{job_id}/rounds - Tạo rounds cho job
-   * @param jobId ID của job
-   * @param rounds Danh sách rounds cần tạo
-   * @returns Observable<MessageResponse>
-   */
-  createRounds(
-    jobId: number,
-    rounds: JobRoundDTO[]
-  ): Observable<MessageResponse> {
-    return this.http
-      .post<MessageResponse>(`${this.apiUrl}/${jobId}/rounds`, rounds)
-      .pipe(catchError(this.handleError<MessageResponse>('createRounds')));
-  }
+  // NOTE: createRounds endpoint đã được xóa ở backend
+  // Sử dụng updateJobPost với rounds trong request body thay vì createRounds
 
   /**
    * Helper method để convert JobListResponse thành array JobPost[] (backward compatibility)

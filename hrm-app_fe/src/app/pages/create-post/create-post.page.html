@@ -99,18 +99,9 @@
       <div class="form-field">
         <ion-label class="field-label">Hạn bài đăng</ion-label>
         <mat-form-field appearance="outline" class="datepicker-field">
-          <input
-            matInput
-            [matDatepicker]="picker"
-            formControlName="deadline"
-            placeholder="Chọn ngày"
-            readonly
-            [min]="minDateValue"
-            [class.invalid]="isFieldInvalid('deadline')"
-            (dateChange)="onDatePickerChange($event)">
-          <mat-datepicker-toggle
-            matIconSuffix
-            [for]="picker">
+          <input matInput [matDatepicker]="picker" formControlName="deadline" placeholder="Chọn ngày" readonly
+            [min]="minDateValue" [class.invalid]="isFieldInvalid('deadline')" (dateChange)="onDatePickerChange($event)">
+          <mat-datepicker-toggle matIconSuffix [for]="picker">
           </mat-datepicker-toggle>
           <mat-datepicker #picker [startAt]="minDateValue"></mat-datepicker>
         </mat-form-field>
