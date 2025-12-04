@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader,
@@ -55,7 +56,10 @@ import {
 export class TemplateEditorPage implements OnInit {
   templateForm: FormGroup;
   samples: any[] = [];
-  type: 'pass' | 'fail' = 'pass';
+  // Hỗ trợ cả 3 loại template: pass, fail, apply_confirm
+  type: 'pass' | 'fail' | 'apply_confirm' = 'pass';
+  isEditMode = false;
+  templateId: number | null = null;
   roundIndex: number = -1;
   roundId: number | null = null;
   jobId: number | null = null;
@@ -73,6 +77,7 @@ export class TemplateEditorPage implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private route: ActivatedRoute,
+    private location: Location,
     private jobPostService: JobPostService,
     private jobCreationState: JobCreationStateService,
     private templateService: TemplateService,
@@ -88,7 +93,7 @@ export class TemplateEditorPage implements OnInit {
 
   ngOnInit() {
     this.route.queryParams.subscribe((params) => {
-      this.type = (params['type'] as 'pass' | 'fail') || 'pass';
+      this.type = (params['type'] as 'pass' | 'fail' | 'apply_confirm') || 'pass';
       this.roundIndex = parseInt(params['roundIndex'] || '-1');
 
       // Lấy jobId và roundId từ queryParams
@@ -107,8 +112,20 @@ export class TemplateEditorPage implements OnInit {
       // Load samples (optional - để tham khảo)
       // this.loadSamples();
 
-      // Load data từ queryParams nếu có (từ sample)
-      if (
+      // Ưu tiên: nếu đi từ email-management để CHỈNH SỬA, dùng dữ liệu từ queryParams
+      // (editMode=true, templateId, formName, subject, content)
+      if (params['editMode'] === 'true' || params['editMode'] === true) {
+        this.isEditMode = true;
+        this.templateId = params['templateId']
+          ? parseInt(params['templateId'], 10)
+          : null;
+        this.templateForm.patchValue({
+          formName: params['formName'] || '',
+          subject: params['subject'] || '',
+          content: params['content'] || '',
+        });
+      } else if (
+        // Trường hợp chọn sample từ email-templates
         params['sampleName'] ||
         params['sampleSubject'] ||
         params['sampleContent']
@@ -119,7 +136,7 @@ export class TemplateEditorPage implements OnInit {
           content: params['sampleContent'] || '',
         });
       } else {
-        // Load existing data từ state (nếu có)
+        // Mặc định: Load existing data từ state (nếu có)
         const rounds = this.jobCreationState.getRounds();
         if (rounds && rounds[this.roundIndex]) {
           const round = rounds[this.roundIndex];
@@ -186,15 +203,8 @@ export class TemplateEditorPage implements OnInit {
   }
 
   onCancel() {
-    // Quay lại email-templates hoặc configure-rounds
-    if (this.jobId) {
-      this.router.navigate(['/configure-rounds'], {
-        queryParams: { jobId: this.jobId },
-        replaceUrl: true,
-      });
-    } else {
-      this.router.navigate(['/email-templates'], { replaceUrl: true });
-    }
+    // Quay lại trang trước đó
+    this.location.back();
   }
 
   async onConfirm() {
@@ -219,102 +229,93 @@ export class TemplateEditorPage implements OnInit {
       return;
     }
 
-    // Bước 1: Kiểm tra và tạo rounds nếu chưa có
-    const roundIds = this.jobCreationState.getRoundIds();
-    const hasRoundIds = Object.keys(roundIds).length > 0;
-
-    if (!hasRoundIds || !this.roundId) {
-      console.log(
-        '[TemplateEditor] Rounds chưa được tạo, sẽ tạo rounds trước...'
-      );
-      // Lấy roundId từ state (nếu có)
-      if (!this.roundId && this.roundIndex >= 0) {
-        this.roundId = this.jobCreationState.getRoundId(this.roundIndex);
-        console.log('[TemplateEditor] RoundId sau khi tạo rounds:', this.roundId);
-      }
-
-      if (!this.roundId) {
-        console.error('[TemplateEditor] Vẫn không có roundId sau khi tạo rounds');
-        const toast = await this.toastController.create({
-          message: 'Không tìm thấy round ID. Vui lòng thử lại.',
-          duration: 3000,
-          color: 'danger',
-          position: 'top',
-        });
-        await toast.present();
-        return;
-      }
-    }
-
     const loading = await this.loadingController.create({
-      message: 'Đang tạo template...',
+      message: this.isEditMode ? 'Đang cập nhật template...' : 'Đang tạo template...',
       spinner: 'crescent',
     });
     await loading.present();
 
-    // Tạo template request
-    const createTemplateRequest: CreateTemplateRequest = {
+    // Build request cho cả tạo mới và cập nhật
+    const baseRequest: CreateTemplateRequest = {
       formName:
         this.templateForm.get('formName')?.value ||
         `Email ${this.type} ${this.roundIndex + 1}`,
       type: this.type,
-      roundId: this.roundId, // Per round template
+      // Luôn gửi roundId = null để tạo form/template chung (không gắn với round cụ thể)
+      roundId: null,
       subject: this.templateForm.get('subject')?.value || '',
       content: this.templateForm.get('content')?.value || '',
     };
 
-    console.log('[TemplateEditor] Creating template', createTemplateRequest);
+    // Nếu đang chỉnh sửa và có templateId, thêm formId vào request
+    const request: CreateTemplateRequest = this.isEditMode && this.templateId
+      ? { ...baseRequest, formId: this.templateId }
+      : baseRequest;
 
-    // Gọi API tạo template
-    this.templateService.createTemplate(createTemplateRequest).subscribe({
+    console.log(
+      this.isEditMode
+        ? '[TemplateEditor] Updating template'
+        : '[TemplateEditor] Creating template',
+      request
+    );
+
+    // Gọi API: tạo mới (POST) hoặc cập nhật (PUT)
+    const api$ = this.isEditMode
+      ? this.templateService.updateTemplate(request)
+      : this.templateService.createTemplate(request);
+
+    api$.subscribe({
       next: async (response) => {
-        console.log('[TemplateEditor] Template created successfully', response);
+        console.log(
+          this.isEditMode
+            ? '[TemplateEditor] Template updated successfully'
+            : '[TemplateEditor] Template created successfully',
+          response
+        );
         await loading.dismiss();
 
-        // Cập nhật state với template đã tạo
-        const rounds = this.jobCreationState.getRounds();
-        if (rounds && rounds[this.roundIndex]) {
-          const updatedRounds = rounds.map((round, index) => {
-            if (index === this.roundIndex) {
-              const updatedRound = { ...round };
-              const templateData: EmailTemplate = {
-                formName: createTemplateRequest.formName,
-                subject: createTemplateRequest.subject,
-                content: createTemplateRequest.content,
-              };
+        // Nếu đang trong flow tạo job (configure-rounds), cập nhật state; nếu chỉ edit từ email-management thì state có thể rỗng
+        if (!this.isEditMode) {
+          const rounds = this.jobCreationState.getRounds();
+          if (rounds && this.roundIndex >= 0 && rounds[this.roundIndex]) {
+            const updatedRounds = rounds.map((round, index) => {
+              if (index === this.roundIndex) {
+                const updatedRound = { ...round };
+                const templateData: EmailTemplate = {
+                  formName: baseRequest.formName,
+                  subject: baseRequest.subject,
+                  content: baseRequest.content,
+                };
 
-              if (this.type === 'pass') {
-                updatedRound.passEmailTemplate = templateData;
-              } else {
-                updatedRound.failEmailTemplate = templateData;
+                if (this.type === 'pass') {
+                  updatedRound.passEmailTemplate = templateData;
+                } else {
+                  updatedRound.failEmailTemplate = templateData;
+                }
+                return updatedRound;
               }
-              return updatedRound;
-            }
-            return { ...round };
-          });
-          this.jobCreationState.setRounds(updatedRounds);
-          console.log(
-            '[TemplateEditor] State updated with template',
-            updatedRounds[this.roundIndex]
-          );
+              return { ...round };
+            });
+            this.jobCreationState.setRounds(updatedRounds);
+            console.log(
+              '[TemplateEditor] State updated with template',
+              updatedRounds[this.roundIndex]
+            );
+          }
         }
 
         const toast = await this.toastController.create({
-          message: `Tạo template "${createTemplateRequest.formName}" thành công!`,
+          message: this.isEditMode
+            ? `Cập nhật template "${baseRequest.formName}" thành công!`
+            : `Tạo template "${baseRequest.formName}" thành công!`,
           duration: 2000,
           color: 'success',
           position: 'top',
         });
         await toast.present();
 
-        // Quay lại configure-rounds với flag để refresh
-        this.router.navigate(['/configure-rounds'], {
-          queryParams: {
-            jobId: this.jobId,
-            refresh: Date.now(), // Force refresh
-          },
-          replaceUrl: true,
-        });
+        // Quay lại TRANG TRƯỚC ĐÓ (ví dụ: email-templates, configure-rounds, email-management, ...)
+        this.location.back();
       },
       error: async (error) => {
         console.error('[TemplateEditor] Error creating template', error);

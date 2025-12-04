@@ -92,6 +92,10 @@ export class HomePage implements OnInit {
   notificationCount: number = 2;
   filterCount: number = 2;
   userInfo: any = null;
+  pageSize: number = 5;
+  currentPage: number = 1;
+  totalPages: number = 1;
+  pages: number[] = [];
 
   constructor(
     private router: Router,
@@ -123,6 +127,11 @@ export class HomePage implements OnInit {
   ngOnInit() {
     this.loadPosts();
     this.loadUserInfo();
+  }
+
+  get displayedPosts(): Post[] {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    return this.filteredPosts.slice(startIndex, startIndex + this.pageSize);
   }
 
   loadUserInfo() {
@@ -251,8 +260,10 @@ export class HomePage implements OnInit {
             this.posts = jobDetails
               .filter((job): job is JobResponse => job !== null)
               .map((job) => this.mapJobResponseToPost(job));
-            
+
             this.filteredPosts = [...this.posts];
+            this.currentPage = 1;
+            this.updatePagination();
             console.log('[HomePage] Mapped posts with details:', this.posts);
             loading.dismiss();
           },
@@ -272,7 +283,9 @@ export class HomePage implements OnInit {
               roundCount: jobPost.roundCount,
             }));
             this.filteredPosts = [...this.posts];
-            
+            this.currentPage = 1;
+            this.updatePagination();
+
             const toast = await this.toastController.create({
               message: 'Đã tải danh sách nhưng một số thông tin chi tiết chưa có',
               duration: 2000,
@@ -311,6 +324,8 @@ export class HomePage implements OnInit {
   filterPosts() {
     if (!this.searchTerm.trim()) {
       this.filteredPosts = [...this.posts];
+      this.currentPage = 1;
+      this.updatePagination();
       return;
     }
 
@@ -320,6 +335,8 @@ export class HomePage implements OnInit {
         post.title.toLowerCase().includes(term) ||
         post.description.toLowerCase().includes(term)
     );
+    this.currentPage = 1;
+    this.updatePagination();
   }
 
   onSort() {
@@ -392,5 +409,32 @@ export class HomePage implements OnInit {
    */
   trackByPostId(index: number, post: Post): number {
     return post.id;
+  }
+
+  private updatePagination() {
+    this.totalPages = Math.max(1, Math.ceil(this.filteredPosts.length / this.pageSize));
+    this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+  }
+
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages) {
+      return;
+    }
+    this.currentPage = page;
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
   }
 }

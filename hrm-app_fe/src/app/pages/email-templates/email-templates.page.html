@@ -10,67 +10,19 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <!-- Hiển thị list samples -->
-  <div *ngIf="showSamplesList">
+  <!-- Chỉ hiển thị nội dung khi có query params hợp lệ -->
+  <div *ngIf="hasValidParams">
+    <!-- Hiển thị list samples -->
+    <div *ngIf="showSamplesList">
     <ion-list>
       <ion-item button *ngFor="let sample of (samples || []); let i = index" (click)="selectTemplate(sample)">
         <ion-label>{{getTemplateDisplayName(sample) || 'Template ' + (i + 1)}}</ion-label>
-        <span slot="end">›</span>
       </ion-item>
     </ion-list>
     <ion-button expand="block" fill="outline" (click)="openTemplateEditor()" style="margin-top: 20px;">
       Tạo mới
     </ion-button>
   </div>
-
-  <!-- Hiển thị rounds và buttons -->
-  <div *ngIf="!showSamplesList">
-    <ion-list>
-      <ng-container *ngFor="let round of (rounds || []); let i = index">
-        <!-- Header cho mỗi vòng -->
-        <ion-item lines="full" style="background-color: #f5f5f5;">
-          <ion-label>
-            <h2 style="font-weight: bold; margin: 0;">Vòng {{i+1}}: {{round.roundName || 'Chưa đặt tên'}}</h2>
-          </ion-label>
-        </ion-item>
-
-        <!-- Button Mẫu email Pass -->
-        <ion-item button (click)="showSamples(i, 'pass')" lines="full">
-          <ion-label>
-            <h3>Mẫu email Pass</h3>
-            <p *ngIf="hasTemplate(i, 'pass')" style="color: green; font-size: 12px;">✓ Đã cấu hình</p>
-            <p *ngIf="!hasTemplate(i, 'pass')" style="color: rgb(128,128,128); font-size: 12px;">Chưa cấu hình</p>
-          </ion-label>
-          <span slot="end" style="font-size: 24px; color: #3880ff;">›</span>
-        </ion-item>
-
-        <!-- Button Mẫu email Fail -->
-        <ion-item button (click)="showSamples(i, 'fail')" lines="full">
-          <ion-label>
-            <h3>Mẫu email Fail</h3>
-            <p *ngIf="hasTemplate(i, 'fail')" style="color: green; font-size: 12px;">✓ Đã cấu hình</p>
-            <p *ngIf="!hasTemplate(i, 'fail')" style="color: rgb(128,128,128); font-size: 12px;">Chưa cấu hình</p>
-          </ion-label>
-          <span slot="end" style="font-size: 24px; color: #3880ff;">›</span>
-        </ion-item>
-
-        <!-- Toggle xác nhận (nếu cần hiển thị) -->
-        <ion-item *ngIf="round.isConfirmed !== undefined" lines="full">
-          <ion-label>Xác nhận của ứng viên</ion-label>
-          <ion-toggle [checked]="round.isConfirmed" disabled></ion-toggle>
-        </ion-item>
-
-        <!-- Divider giữa các vòng -->
-        <div style="height: 10px;"></div>
-      </ng-container>
-    </ion-list>
-  </div>
-
-  <!-- Button Confirm - Fixed at bottom -->
-  <div *ngIf="!showSamplesList" style="position: sticky; bottom: 0; background: white; padding: 15px; margin-top: 20px; z-index: 10; border-top: 1px solid #e0e0e0;">
-    <ion-button expand="block" color="primary" (click)="onConfirm()" style="font-weight: bold; height: 50px;">
-      Xác Nhận Tạo Job
-    </ion-button>
   </div>
 </ion-content>
 

@@ -1,97 +1,203 @@
-<ion-header class="dashboard-header">
-  <ion-toolbar>
-    <div class="header-content">
-      <div class="profile-icon" (click)="onProfileClick()">
+<ion-content [fullscreen]="true" class="dashboard-content">
+  <!-- Profile Card with Notification -->
+  <div class="profile-card">
+    <div class="profile-info">
+      <div class="profile-avatar">
         <ion-icon name="person-circle-outline"></ion-icon>
       </div>
-      <ion-title class="header-title">Dashboard</ion-title>
-      <div class="settings-icon" (click)="onSettingsClick()">
-        <ion-icon name="settings-outline"></ion-icon>
+      <div class="profile-text">
+        <h2>Hello, {{ userName }}</h2>
+        <p>{{ currentDate }}</p>
       </div>
     </div>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true" class="dashboard-content">
-  <!-- Key Metrics Section -->
-  <div class="metrics-section">
-    <div class="metrics-grid">
-      <!-- Open Jobs -->
-      <ion-card class="metric-card">
-        <ion-card-content>
-          <div class="metric-content">
-            <ion-icon name="briefcase-outline" class="metric-icon"></ion-icon>
-            <div class="metric-info">
-              <span class="metric-label">Open Jobs</span>
-              <span class="metric-value">{{ metrics.openJobs }}</span>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
-
-      <!-- New Candidates -->
-      <ion-card class="metric-card">
-        <ion-card-content>
-          <div class="metric-content">
-            <ion-icon name="people-outline" class="metric-icon"></ion-icon>
-            <div class="metric-info">
-              <span class="metric-label">New Candidates</span>
-              <span class="metric-value">{{ metrics.newCandidates }}</span>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
-
-      <!-- Passed -->
-      <ion-card class="metric-card">
-        <ion-card-content>
-          <div class="metric-content">
-            <ion-icon name="checkmark-circle-outline" class="metric-icon green"></ion-icon>
-            <div class="metric-info">
-              <span class="metric-label">Passed</span>
-              <span class="metric-value">{{ metrics.passed }}</span>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
-
-      <!-- Failed -->
-      <ion-card class="metric-card">
-        <ion-card-content>
-          <div class="metric-content">
-            <ion-icon name="close-circle-outline" class="metric-icon red"></ion-icon>
-            <div class="metric-info">
-              <span class="metric-label">Failed</span>
-              <span class="metric-value">{{ metrics.failed }}</span>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
+    <div class="notification-bell" (click)="onNotificationClick()">
+      <ion-icon name="notifications-outline"></ion-icon>
+      <ion-badge *ngIf="notificationCount > 0" color="danger" class="notification-badge">
+        {{ notificationCount }}
+      </ion-badge>
     </div>
   </div>
 
-  <!-- Notifications Section -->
-  <div class="activity-section">
-    <div class="section-header">
-      <h2 class="section-title">Thông báo</h2>
-      <ion-badge *ngIf="unreadCount > 0" color="danger">{{ unreadCount }}</ion-badge>
+  <!-- Filter Buttons -->
+  <div class="filter-buttons">
+    <div class="job-select-wrapper">
+      <ion-icon name="briefcase-outline" class="select-icon"></ion-icon>
+      <ion-select
+        [value]="selectedFilter === 'week' ? null : (selectedJobId === null ? 'all' : selectedJobId.toString())"
+        (ionChange)="onJobChange($event)"
+        placeholder="Chọn Job"
+        class="job-select"
+        interface="popover"
+      >
+        <ion-select-option value="all">All Jobs</ion-select-option>
+        <ion-select-option *ngFor="let job of jobs" [value]="job.id.toString()">
+          {{ job.title }}
+        </ion-select-option>
+      </ion-select>
+      <ion-icon name="chevron-down-outline" class="chevron-icon"></ion-icon>
     </div>
-    <ion-list *ngIf="notifications.length > 0">
-      <ion-item *ngFor="let notification of notifications" button (click)="onNotificationClick(notification)"
-        [class.unread]="!notification.isRead" class="notification-item">
-        <ion-icon [name]="getNotificationIcon(notification.type)" [color]="getNotificationColor(notification.type)"
-          slot="start">
-        </ion-icon>
-        <ion-label>
-          <h3>{{ notification.title }}</h3>
-          <p>{{ notification.message }}</p>
-          <p class="notification-time">{{ formatTime(notification.createdAt) }}</p>
-        </ion-label>
-        <ion-badge *ngIf="!notification.isRead" color="primary" slot="end">Mới</ion-badge>
-      </ion-item>
-    </ion-list>
-    <div *ngIf="notifications.length === 0" class="empty-state">
-      <p>Chưa có thông báo nào</p>
+    <ion-button
+      [class.active]="selectedFilter === 'week'"
+      fill="outline"
+      class="filter-button"
+      (click)="onFilterChange('week')"
+    >
+      <ion-icon name="calendar-outline" slot="start"></ion-icon>
+      This Week
+    </ion-button>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-cards">
+    <ion-card class="summary-card pending-review">
+      <ion-card-content>
+        <div class="card-content">
+          <div class="card-icon">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+          </div>
+          <div class="card-info">
+            <p class="card-label">Pending Review</p>
+            <h3 class="card-value">{{ metrics.pendingReview }}</h3>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="summary-card new-candidates">
+      <ion-card-content>
+        <div class="card-content">
+          <div class="card-icon">
+            <ion-icon name="arrow-up-outline"></ion-icon>
+            <ion-icon name="people-outline" class="people-icon"></ion-icon>
+          </div>
+          <div class="card-info">
+            <p class="card-label">New Candidates</p>
+            <h3 class="card-value">{{ metrics.newCandidates }}</h3>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="summary-card active-jobs">
+      <ion-card-content>
+        <div class="card-content">
+          <div class="card-icon">
+            <ion-icon name="briefcase-outline"></ion-icon>
+          </div>
+          <div class="card-info">
+            <p class="card-label">Active Jobs</p>
+            <h3 class="card-value">{{ metrics.activeJobs }}</h3>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="summary-card pass-all">
+      <ion-card-content>
+        <div class="card-content">
+          <div class="card-icon">
+            <ion-icon name="trophy-outline"></ion-icon>
+          </div>
+          <div class="card-info">
+            <p class="card-label">Pass hết</p>
+            <h3 class="card-value">{{ metrics.passAll }}</h3>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Pass / Fail Ratio Chart -->
+  <div class="chart-section">
+    <h3 class="chart-title">Pass / Fail Ratio</h3>
+    <div class="donut-chart-container">
+      <div class="donut-chart-wrapper">
+        <svg class="donut-chart" viewBox="0 0 200 200">
+          <circle
+            class="donut-ring"
+            cx="100"
+            cy="100"
+            r="80"
+            fill="none"
+            stroke="#e0e0e0"
+            stroke-width="40"
+          ></circle>
+          <circle
+            class="donut-segment donut-segment-pass"
+            cx="100"
+            cy="100"
+            r="80"
+            fill="none"
+            stroke="#2dd36f"
+            stroke-width="40"
+            [attr.stroke-dasharray]="getDonutChartData().passAll * 5.026 + ' ' + (502.6 - getDonutChartData().passAll * 5.026)"
+            stroke-dashoffset="0"
+            transform="rotate(-90 100 100)"
+          ></circle>
+          <circle
+            class="donut-segment donut-segment-fail"
+            cx="100"
+            cy="100"
+            r="80"
+            fill="none"
+            stroke="#eb445a"
+            stroke-width="40"
+            [attr.stroke-dasharray]="getDonutChartData().fail * 5.026 + ' ' + (502.6 - getDonutChartData().fail * 5.026)"
+            [attr.stroke-dashoffset]="-(getDonutChartData().passAll * 5.026)"
+            transform="rotate(-90 100 100)"
+          ></circle>
+          <circle
+            class="donut-segment donut-segment-pending"
+            cx="100"
+            cy="100"
+            r="80"
+            fill="none"
+            stroke="#999"
+            stroke-width="40"
+            [attr.stroke-dasharray]="getDonutChartData().pending * 5.026 + ' ' + (502.6 - getDonutChartData().pending * 5.026)"
+            [attr.stroke-dashoffset]="-(getDonutChartData().passAll * 5.026 + getDonutChartData().fail * 5.026)"
+            transform="rotate(-90 100 100)"
+          ></circle>
+        </svg>
+        <!-- Center: tổng số ứng viên ứng tuyển -->
+        <div class="donut-center">
+          <div class="donut-center-value">
+            {{ totalCandidates }}
+          </div>
+          <div class="donut-center-label">Ứng viên</div>
+        </div>
+      </div>
+      <div class="donut-legend">
+        <div class="legend-item">
+          <span class="legend-color pass"></span>
+          <span class="legend-label">Pass hết</span>
+          <span class="legend-value">{{ getDonutChartData().passAll | number:'1.0-0' }}%</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color fail"></span>
+          <span class="legend-label">Fail</span>
+          <span class="legend-value">{{ getDonutChartData().fail | number:'1.0-0' }}%</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color pending"></span>
+          <span class="legend-label">Đang chờ</span>
+          <span class="legend-value">{{ getDonutChartData().pending | number:'1.0-0' }}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Insights Section -->
+  <div class="chart-section">
+    <h3 class="chart-title">Insights</h3>
+    <div class="insights-list">
+      <div class="insight-item" *ngFor="let insight of insights">
+        <div class="insight-number">{{ insight.number }}</div>
+        <div class="insight-content">
+          <h4 class="insight-title">{{ insight.title }}</h4>
+          <p class="insight-subtitle">{{ insight.subtitle }}</p>
+        </div>
+      </div>
     </div>
   </div>
 </ion-content>

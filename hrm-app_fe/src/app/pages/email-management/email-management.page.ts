@@ -36,6 +36,7 @@ export interface EmailTemplateItem {
   name: string;
   type: 'pass' | 'fail' | 'apply_confirm';
   subject: string;
+  content: string;
   lastModified: string;
   isActive: boolean;
 }
@@ -133,6 +134,7 @@ export class EmailManagementPage implements OnInit {
         name: template.formName || 'Unnamed Template',
         type: template.type,
         subject: template.subject || '',
+        content: template.content || '',
         lastModified: this.formatDate(template.updatedAt || template.createdAt),
         isActive: true,
       }));
@@ -189,6 +191,7 @@ export class EmailManagementPage implements OnInit {
           name: template.formName || 'Unnamed Template',
           type: template.type,
           subject: template.subject || '',
+          content: template.content || '',
           lastModified: this.formatDate(template.updatedAt || template.createdAt),
           isActive: true,
         })
@@ -294,6 +297,7 @@ export class EmailManagementPage implements OnInit {
         editMode: 'true',
         formName: template.name,
         subject: template.subject,
+        content: template.content,
       },
     });
   }

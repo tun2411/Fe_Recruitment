@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import {
   IonHeader,
   IonToolbar,
@@ -10,11 +12,9 @@ import {
   IonCard,
   IonCardContent,
   IonButton,
-  IonItem,
-  IonLabel,
   IonBadge,
-  IonList,
-  ToastController,
+  IonSelect,
+  IonSelectOption,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -28,13 +28,41 @@ import {
   megaphoneOutline,
   gridOutline,
   mailOutline,
+  notificationsOutline,
+  calendarOutline,
+  alertCircleOutline,
+  arrowUpOutline,
+  trophyOutline,
+  chevronDownOutline,
 } from 'ionicons/icons';
-import {
-  NotificationService,
-  Notification,
-} from '../../services/notification.service';
-import { ApplicationService } from '../../services/application.service';
 import { JobPostService } from '../../services/job-post.service';
+// TODO: Uncomment when backend is ready
+// import { NotificationService, Notification } from '../../services/notification.service';
+// import { ApplicationService } from '../../services/application.service';
+
+interface DashboardMetrics {
+  pendingReview: number;
+  newCandidates: number;
+  activeJobs: number;
+  passAll: number;
+}
+
+interface PassFailRatio {
+  passAll: number;
+  fail: number;
+  pending: number;
+}
+
+interface FunnelData {
+  label: string;
+  value: number;
+}
+
+interface InsightItem {
+  number: number;
+  title: string;
+  subtitle: string;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -43,6 +71,7 @@ import { JobPostService } from '../../services/job-post.service';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -50,29 +79,58 @@ import { JobPostService } from '../../services/job-post.service';
     IonIcon,
     IonCard,
     IonCardContent,
-    IonItem,
-    IonLabel,
+    IonButton,
     IonBadge,
-    IonList,
+    IonSelect,
+    IonSelectOption,
   ],
 })
 export class DashboardPage implements OnInit {
-  metrics = {
-    openJobs: 0,
-    newCandidates: 0,
-    passed: 0,
-    failed: 0,
+  // User info - TODO: Get from authentication service
+  userName: string = 'Alex Johnson';
+  currentDate: string = '';
+  notificationCount: number = 2;
+
+  // Filter state
+  selectedFilter: 'all' | 'week' = 'all';
+
+  // Jobs list for dropdown
+  jobs: Array<{ id: number; title: string }> = [];
+  selectedJobId: number | null = null; // null = All Jobs
+
+  // Metrics data - TODO: Replace with API calls
+  metrics: DashboardMetrics = {
+    pendingReview: 14,
+    newCandidates: 5,
+    activeJobs: 8,
+    passAll: 12,
   };
 
-  notifications: Notification[] = [];
-  unreadCount: number = 0;
+  // Tổng số ứng viên ứng tuyển (hiển thị ở giữa vòng tròn)
+  totalCandidates: number = 0;
+
+  // Pass/Fail Ratio data - TODO: Replace with API calls
+  passFailRatio: PassFailRatio = {
+    passAll: 60, // 60%
+    fail: 25, // 25%
+    pending: 15, // 15%
+  };
+
+  // Recruitment Funnel data - TODO: Replace with API calls
+  funnelData: FunnelData[] = [
+    { label: 'Ứng tuyển', value: 100 },
+    { label: 'Pass v1', value: 70 },
+    { label: 'Pass v2', value: 50 },
+    { label: 'Pass hết', value: 30 },
+  ];
+
+  // Insights data - TODO: Replace with API calls
+  insights: InsightItem[] = [];
 
   constructor(
     private router: Router,
-    private notificationService: NotificationService,
-    private applicationService: ApplicationService,
     private jobPostService: JobPostService,
-    private toastController: ToastController
+    private cdr: ChangeDetectorRef
   ) {
     addIcons({
       personCircleOutline,
@@ -85,130 +143,221 @@ export class DashboardPage implements OnInit {
       megaphoneOutline,
       gridOutline,
       mailOutline,
+      notificationsOutline,
+      calendarOutline,
+      alertCircleOutline,
+      arrowUpOutline,
+      trophyOutline,
+      chevronDownOutline,
     });
   }
 
   ngOnInit() {
-    this.loadNotifications();
-    this.loadJobCount();
+    this.updateCurrentDate();
+    this.loadJobsList(); // Load danh sách jobs trước
+    this.loadAllJobs(); // Load thống kê
   }
 
-  loadJobCount() {
-    this.jobPostService.getAllJobPosts('active').subscribe({
-      next: (jobs: any[]) => {
-        this.metrics.openJobs = jobs.length;
-      },
-      error: (error: any) => {
-        console.error('Error loading job count:', error);
-      },
-    });
+  updateCurrentDate() {
+    const today = new Date();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    this.currentDate = `${days[today.getDay()]}, ${today.getDate()} ${months[today.getMonth()]}`;
   }
 
-  async loadNotifications() {
-    this.notificationService.getNotifications().subscribe({
-      next: (notifications) => {
-        this.notifications = notifications.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  /**
+   * Load danh sách jobs để hiển thị trong dropdown
+   */
+  async loadJobsList() {
+    try {
+      const response = await firstValueFrom(
+        this.jobPostService.getJobPosts(undefined, 1, 100)
+      );
+
+      this.jobs = response.jobs.map((job) => ({
+        id: job.id,
+        title: job.title,
+      }));
+
+      console.log('[Dashboard] Loaded jobs list:', this.jobs);
+    } catch (error) {
+      console.error('[Dashboard] Error loading jobs list:', error);
+    }
+  }
+
+  /**
+   * Load dashboard statistics from backend
+   * GET /api/jobdetail - Lấy thông tin thống kê (tổng job, tổng ứng viên, etc.)
+   * @param jobId ID của job (optional) - nếu có sẽ lấy thống kê theo job đó
+   */
+  async loadAllJobs() {
+    try {
+      console.log('[Dashboard] Loading statistics for jobId:', this.selectedJobId);
+
+      const response = await firstValueFrom(
+        this.jobPostService.getDetailJob(this.selectedJobId)
+      );
+
+      console.log('[Dashboard] API Response:', response);
+      console.log('[Dashboard] Response passFailRatio:', response.passFailRatio);
+
+      this.metrics = {
+        activeJobs: response.activeJobs || 0,
+        pendingReview: response.pendingReview || 0,
+        newCandidates: response.newCandidates || 0,
+        passAll: response.passAll || 0,
+      };
+
+      // Lưu tổng số ứng viên để hiển thị ở giữa vòng tròn
+      this.totalCandidates = response.totalCandidates || 0;
+
+      if (
+        response.passFailRatio &&
+        (response.passFailRatio.passAll !== undefined ||
+          response.passFailRatio.fail !== undefined ||
+          response.passFailRatio.pending !== undefined)
+      ) {
+        const newPassFailRatio = {
+          passAll: Number(response.passFailRatio.passAll) || 0,
+          fail: Number(response.passFailRatio.fail) || 0,
+          pending: Number(response.passFailRatio.pending) || 0,
+        };
+
+        console.log(
+          '[Dashboard] Updating passFailRatio from:',
+          this.passFailRatio,
+          'to:',
+          newPassFailRatio
         );
-        this.unreadCount = notifications.filter((n) => !n.isRead).length;
-        this.updateMetrics();
-      },
-      error: (error) => {
-        console.error('Error loading notifications:', error);
-      },
+        this.passFailRatio = newPassFailRatio;
+      } else {
+        console.warn('[Dashboard] No passFailRatio in response, resetting to 0');
+        console.warn('[Dashboard] Full response:', JSON.stringify(response, null, 2));
+        this.passFailRatio = {
+          passAll: 0,
+          fail: 0,
+          pending: 0,
+        };
+      }
+
+      console.log('[Dashboard] Final passFailRatio:', this.passFailRatio);
+      console.log('[Dashboard] Donut chart data:', this.getDonutChartData());
+
+      // Build Insights từ response.insights
+      const insights: InsightItem[] = [];
+      const apiInsights = (response as any).insights || {};
+
+      // 1) Job có nhiều ứng viên ứng tuyển nhất
+      if (apiInsights.topAppliedJobName) {
+        insights.push({
+          number: insights.length + 1,
+          title: apiInsights.topAppliedJobName,
+          subtitle: 'Job có nhiều ứng viên ứng tuyển nhất',
+        });
+      }
+
+      // 2) Vòng có nhiều ứng viên fail nhất + tên job của vòng đó (gộp thành một mục)
+      if (apiInsights.topFailRoundName || apiInsights.topFailRoundJobName) {
+        const roundName = apiInsights.topFailRoundName || 'Vòng có nhiều ứng viên fail nhất';
+        const jobName = apiInsights.topFailRoundJobName
+          ? `Job: ${apiInsights.topFailRoundJobName}`
+          : '';
+
+        insights.push({
+          number: insights.length + 1,
+          title: roundName,
+          subtitle: jobName
+            ? `${jobName} - vòng có nhiều ứng viên fail nhất`
+            : 'Vòng có nhiều ứng viên fail nhất',
+        });
+      }
+
+      this.insights = insights;
+
+      setTimeout(() => {
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+        console.log('[Dashboard] Change detection triggered');
+      }, 0);
+    } catch (error) {
+      console.error('[Dashboard] Error loading statistics:', error);
+      this.passFailRatio = {
+        passAll: 0,
+        fail: 0,
+        pending: 0,
+      };
+      this.cdr.detectChanges();
+    }
+  }
+
+  /**
+   * Handle khi user chọn job từ dropdown
+   */
+  onJobChange(event: any) {
+    const jobId = event.detail.value;
+    this.selectedJobId = jobId === 'all' ? null : parseInt(jobId, 10);
+
+    // Khi chọn job: bỏ trạng thái "This Week" để mất màu xanh
+    this.selectedFilter = 'all';
+
+    console.log('[Dashboard] Job changed:', {
+      selectedValue: jobId,
+      selectedJobId: this.selectedJobId,
+      selectedFilter: this.selectedFilter,
     });
+
+    this.loadAllJobs();
   }
 
-  updateMetrics() {
-    // Count applications by status from notifications
-    this.metrics.newCandidates = this.notifications.filter(
-      (n) => n.type === 'new_application' && !n.isRead
-    ).length;
-    this.metrics.passed = this.notifications.filter(
-      (n) => n.type === 'pass'
-    ).length;
-    this.metrics.failed = this.notifications.filter(
-      (n) => n.type === 'fail'
-    ).length;
+  /**
+   * Lấy title của job đang được chọn để hiển thị trong dropdown
+   */
+  getSelectedJobTitle(): string {
+    if (this.selectedJobId === null) {
+      return 'All Jobs';
+    }
+    const selectedJob = this.jobs.find((job) => job.id === this.selectedJobId);
+    return selectedJob ? selectedJob.title : 'All Jobs';
   }
 
-  async onNotificationClick(notification: Notification) {
-    if (!notification.isRead) {
-      this.notificationService.markAsRead(notification.id).subscribe({
-        next: () => {
-          notification.isRead = true;
-          this.unreadCount = Math.max(0, this.unreadCount - 1);
-        },
-        error: (error) => {
-          console.error('Error marking notification as read:', error);
-        },
-      });
+  onFilterChange(filter: 'all' | 'week') {
+    this.selectedFilter = filter;
+
+    if (filter === 'week') {
+      // Khi chọn This Week: xem thống kê 1 tuần, không filter theo job cụ thể
+      this.selectedJobId = null;
     }
 
-    // Navigate based on notification type
-    if (notification.applicationId) {
-      // Navigate to application detail
-      // We need jobId, so we might need to load it or pass it differently
-      this.router.navigate(['/application-detail', notification.applicationId]);
-    }
+    this.loadAllJobs();
   }
 
-  getNotificationIcon(type: string): string {
-    switch (type) {
-      case 'new_application':
-        return 'document-text-outline';
-      case 'pass':
-        return 'checkmark-circle-outline';
-      case 'fail':
-        return 'close-circle-outline';
-      case 'system':
-        return 'megaphone-outline';
-      default:
-        return 'notifications-outline';
-    }
-  }
-
-  getNotificationColor(type: string): string {
-    switch (type) {
-      case 'new_application':
-        return 'primary';
-      case 'pass':
-        return 'success';
-      case 'fail':
-        return 'danger';
-      case 'system':
-        return 'medium';
-      default:
-        return 'primary';
-    }
-  }
-
-  formatTime(dateString: string): string {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Vừa xong';
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    if (diffDays < 7) return `${diffDays} ngày trước`;
-    return date.toLocaleDateString('vi-VN');
-  }
-
-  onSettingsClick() {
-    console.log('Settings clicked');
+  onNotificationClick() {
+    this.router.navigate(['/notifications']);
   }
 
   onProfileClick() {
     this.router.navigate(['/personal-info']);
   }
 
+  onSettingsClick() {
+    console.log('Settings clicked');
+  }
+
   navigateToDashboard() {
-    // Already on dashboard, do nothing
+    // Already on dashboard
   }
 
   navigateToJobs() {
@@ -216,7 +365,34 @@ export class DashboardPage implements OnInit {
   }
 
   navigateToMessages() {
-    // Navigate đến email-management thay vì notifications
     this.router.navigate(['/email-management']);
+  }
+
+  // Calculate donut chart percentages
+  getDonutChartData() {
+    const total =
+      this.passFailRatio.passAll +
+      this.passFailRatio.fail +
+      this.passFailRatio.pending;
+
+    if (total === 0) {
+      return {
+        passAll: 0,
+        fail: 0,
+        pending: 0,
+      };
+    }
+
+    return {
+      passAll: (this.passFailRatio.passAll / total) * 100,
+      fail: (this.passFailRatio.fail / total) * 100,
+      pending: (this.passFailRatio.pending / total) * 100,
+    };
+  }
+
+  // Calculate funnel bar widths (percentage of max value)
+  getFunnelBarWidth(value: number): number {
+    const maxValue = Math.max(...this.funnelData.map((d) => d.value));
+    return (value / maxValue) * 100;
   }
 }

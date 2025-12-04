@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button></ion-back-button>
     </ion-buttons>
-    <ion-title>TẠO MAIL</ion-title>
+    <ion-title>{{ isEditMode ? 'CHỈNH SỬA MAIL' : 'TẠO MAIL' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -12,7 +12,6 @@
   <ion-list *ngIf="samples && samples.length > 0">
     <ion-item button *ngFor="let sample of samples" (click)="selectSample(sample)">
       <ion-label>{{sample.sampleName || sample.name}}</ion-label>
-      <span slot="end">›</span>
     </ion-item>
   </ion-list>
 
@@ -40,9 +39,9 @@
     <ion-item>
       <ion-label>Placeholders:</ion-label>
       <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;">
-        <ion-button 
-          size="small" 
-          fill="outline" 
+        <ion-button
+          size="small"
+          fill="outline"
           *ngFor="let placeholder of placeholders"
           (click)="insertPlaceholder(placeholder)">
           {{placeholder}}

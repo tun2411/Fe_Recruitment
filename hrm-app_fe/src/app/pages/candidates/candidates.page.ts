@@ -87,6 +87,10 @@ export class CandidatesPage implements OnInit {
   filterCount: number = 2;
   postId: number | null = null;
   jobTitle: string = '';
+  pageSize: number = 5;
+  currentPage: number = 1;
+  totalPages: number = 1;
+  pages: number[] = [];
   private authService = inject(AuthService);
 
   constructor(
@@ -138,8 +142,17 @@ export class CandidatesPage implements OnInit {
         this.showToast('Không tìm thấy bài đăng', 'warning');
         this.candidates = [];
         this.filteredCandidates = [];
+        this.updatePagination();
       }
     });
+  }
+
+  /**
+   * Getter để lấy danh sách candidates hiển thị trên trang hiện tại (tối đa 5 items)
+   */
+  get displayedCandidates(): Candidate[] {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    return this.filteredCandidates.slice(startIndex, startIndex + this.pageSize);
   }
 
   /**
@@ -194,6 +207,8 @@ export class CandidatesPage implements OnInit {
           this.mapApplicationToCandidate(app)
         );
         this.filteredCandidates = [...this.candidates];
+        this.currentPage = 1;
+        this.updatePagination();
         loading.dismiss();
 
         if (this.candidates.length === 0) {
@@ -212,6 +227,7 @@ export class CandidatesPage implements OnInit {
         );
         this.candidates = [];
         this.filteredCandidates = [];
+        this.updatePagination();
       },
     });
   }
@@ -277,6 +293,8 @@ export class CandidatesPage implements OnInit {
   filterCandidates() {
     if (!this.searchTerm.trim()) {
       this.filteredCandidates = [...this.candidates];
+      this.currentPage = 1;
+      this.updatePagination();
       return;
     }
 
@@ -288,6 +306,8 @@ export class CandidatesPage implements OnInit {
         candidate.email.toLowerCase().includes(term) ||
         candidate.phone.includes(term)
     );
+    this.currentPage = 1;
+    this.updatePagination();
   }
 
   onSort() {
@@ -527,6 +547,45 @@ export class CandidatesPage implements OnInit {
         return 'card-new';
       default:
         return 'card-new';
+    }
+  }
+
+  /**
+   * Cập nhật thông tin phân trang
+   */
+  private updatePagination() {
+    this.totalPages = Math.max(1, Math.ceil(this.filteredCandidates.length / this.pageSize));
+    this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+  }
+
+  /**
+   * Chuyển đến trang cụ thể
+   */
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages) {
+      return;
+    }
+    this.currentPage = page;
+  }
+
+  /**
+   * Chuyển đến trang tiếp theo
+   */
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
+
+  /**
+   * Chuyển đến trang trước
+   */
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
     }
   }
 }

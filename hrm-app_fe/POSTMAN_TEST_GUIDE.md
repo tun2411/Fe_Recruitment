@@ -227,3 +227,8 @@ A: Dùng GET job detail để lấy jobId và roundIds thực tế, sau đó c�
 
 **Q: Có thể test mà không cần token không?**
 A: Không, tất cả API đều yêu cầu authentication (trừ login/register).
+
+
+
+
+

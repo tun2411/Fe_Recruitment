@@ -57,8 +57,54 @@ import { JobConfirmationComponent } from '../../components/job-confirmation/job-
 export class EmailTemplatesPage implements OnInit, OnDestroy {
   // Lifecycle hook của Ionic - được gọi mỗi khi vào trang này
   ionViewWillEnter() {
-    console.log('[EmailTemplates] ionViewWillEnter - reloading data...');
-    this.loadRoundsData();
+    // Kiểm tra query params ngay khi vào trang
+    const params = this.route.snapshot.queryParams;
+    const hasRequiredParams = params['roundIndex'] !== undefined && params['type'];
+    
+    if (!hasRequiredParams) {
+      console.log('[EmailTemplates] ionViewWillEnter - No required query params, navigating to home');
+      this.hasValidParams = false;
+      this.router.navigate(['/home'], {
+        replaceUrl: true,
+      });
+      return;
+    }
+    
+    this.hasValidParams = true;
+    
+    // Cập nhật các biến từ query params
+    if (params['jobId']) {
+      this.currentJobId = parseInt(params['jobId']);
+      this.jobCreationState.setJobId(this.currentJobId);
+    }
+
+    if (params['roundId']) {
+      this.currentRoundId = parseInt(params['roundId']);
+    }
+
+    if (params['roundIndex'] !== undefined) {
+      this.currentRoundIndex = parseInt(params['roundIndex']);
+      // Nếu chưa có roundId, lấy từ state
+      if (!this.currentRoundId && this.currentRoundIndex >= 0) {
+        this.currentRoundId = this.jobCreationState.getRoundId(
+          this.currentRoundIndex
+        );
+      }
+    }
+
+    if (params['type']) {
+      this.currentType = params['type'] as 'pass' | 'fail';
+    }
+    
+    console.log('[EmailTemplates] ionViewWillEnter - loading templates...');
+    
+    // Tự động hiển thị danh sách templates khi có query params
+    if (this.currentRoundIndex >= 0 && this.currentType) {
+      setTimeout(() => {
+        this.showSamples(this.currentRoundIndex, this.currentType);
+      }, 100);
+    }
+    
     // Force change detection
     setTimeout(() => {
       this.cdr.markForCheck();
@@ -73,6 +119,7 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
   currentRoundId: number | null = null;
   currentJobId: number | null = null;
   currentType: 'pass' | 'fail' = 'pass';
+  hasValidParams = false; // Flag để kiểm tra có query params hợp lệ không
   private queryParamsSubscription?: Subscription;
 
   constructor(
@@ -90,29 +137,25 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.loadRoundsData();
-
-    // Detect khi navigate về trang này (kể cả khi quay lại từ template-editor)
-    this.router.events
-      .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe((event: any) => {
-        const url = event.url || event.urlAfterRedirects || '';
-        if (url.includes('/email-templates')) {
-          // Reload data khi quay lại trang này
-          console.log(
-            '[EmailTemplates] NavigationEnd detected, reloading data...'
-          );
-          this.loadRoundsData();
-          // Delay một chút để đảm bảo data được load xong
-          setTimeout(() => {
-            this.cdr.detectChanges();
-          }, 50);
-        }
-      });
-
-    // Kiểm tra queryParams để tự động mở samples list
+    // Kiểm tra queryParams trước khi load data
     this.queryParamsSubscription = this.route.queryParams.subscribe(
       (params) => {
+        // Kiểm tra xem có query params cần thiết không (roundIndex và type)
+        const hasRequiredParams = params['roundIndex'] !== undefined && params['type'];
+        
+        // Nếu không có query params cần thiết, navigate về home
+        if (!hasRequiredParams) {
+          console.log('[EmailTemplates] No required query params, navigating to home');
+          this.hasValidParams = false;
+          this.router.navigate(['/home'], {
+            replaceUrl: true,
+          });
+          return;
+        }
+
+        // Đánh dấu có query params hợp lệ
+        this.hasValidParams = true;
+
         // Option 2: Cần jobId, roundIndex, roundId (nếu có), và type
         if (params['jobId']) {
           this.currentJobId = parseInt(params['jobId']);
@@ -142,13 +185,37 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
           setTimeout(() => {
             this.showSamples(this.currentRoundIndex, this.currentType);
           }, 100);
-        } else {
-          // Nếu không có queryParams, ẩn samples list
-          this.showSamplesList = false;
-          this.loadRoundsData();
         }
       }
     );
+
+    // Detect khi navigate về trang này (kể cả khi quay lại từ template-editor)
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event: any) => {
+        const url = event.url || event.urlAfterRedirects || '';
+        if (url.includes('/email-templates')) {
+          // Chỉ reload nếu có query params (roundIndex và type)
+          const urlParts = url.split('?');
+          if (urlParts.length > 1) {
+            const queryString = urlParts[1];
+            const hasRoundIndex = queryString.includes('roundIndex=');
+            const hasType = queryString.includes('type=');
+            
+            if (hasRoundIndex && hasType) {
+              // Reload data khi quay lại trang này
+              console.log(
+                '[EmailTemplates] NavigationEnd detected, reloading data...'
+              );
+              this.loadRoundsData();
+              // Delay một chút để đảm bảo data được load xong
+              setTimeout(() => {
+                this.cdr.detectChanges();
+              }, 50);
+            }
+          }
+        }
+      });
   }
 
   ngOnDestroy() {

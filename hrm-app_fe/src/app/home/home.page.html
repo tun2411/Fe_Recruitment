@@ -110,8 +110,8 @@
       </ion-button>
     </div>
 
-    <!-- Danh sách posts -->
-    <ion-card *ngFor="let post of filteredPosts; trackBy: trackByPostId" class="post-card">
+    <!-- Danh sách posts (phân trang, tối đa 5 item mỗi trang) -->
+    <ion-card *ngFor="let post of displayedPosts; trackBy: trackByPostId" class="post-card">
       <ion-card-content>
         <div class="post-content">
           <div class="post-header">
@@ -160,11 +160,22 @@
       </ion-card-content>
     </ion-card>
 
-    <!-- Pagination dots -->
-    <div class="pagination-dots">
-      <span class="dot active"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
+    <!-- Pagination controls -->
+    <div class="pagination-dots" *ngIf="totalPages > 1">
+      <ion-button fill="clear" size="small" (click)="prevPage()" [disabled]="currentPage === 1">
+        Trước
+      </ion-button>
+
+      <span
+        class="dot"
+        *ngFor="let page of pages"
+        [class.active]="page === currentPage"
+        (click)="goToPage(page)"
+      ></span>
+
+      <ion-button fill="clear" size="small" (click)="nextPage()" [disabled]="currentPage === totalPages">
+        Sau
+      </ion-button>
     </div>
   </div>
 
