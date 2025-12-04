@@ -1,264 +1,532 @@
-.dashboard-header {
-  ion-toolbar {
-    --background: #ffffff;
-    --color: #333;
-    border-bottom: 1px solid #e0e0e0;
-    padding: 0;
-  }
+.dashboard-content {
+  --background: #f5f5f5;
+  padding-bottom: 100px; // Increased to prevent footer overlap
+}
 
-  .header-content {
+// Profile Card
+.profile-card {
+  background: linear-gradient(135deg, #3880ff 0%, #2c5aa0 100%);
+  margin: 0;
+  padding: 20px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+
+  .profile-info {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    width: 100%;
+    gap: 12px;
+
+    .profile-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      ion-icon {
+        font-size: 40px;
+        color: white;
+      }
+    }
+
+    .profile-text {
+      h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      p {
+        margin: 4px 0 0 0;
+        font-size: 14px;
+        opacity: 0.9;
+      }
+    }
   }
 
-  .profile-icon,
-  .settings-icon {
+  .notification-bell {
+    position: relative;
     width: 40px;
     height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    flex-shrink: 0;
 
     ion-icon {
       font-size: 28px;
-      color: #333;
+      color: white;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      font-size: 10px;
+      min-width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+// Filter Buttons
+.filter-buttons {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  margin: 0 0 16px 0;
+
+  .job-select-wrapper {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    transition: all 0.3s ease;
+    cursor: pointer;
+
+    &:hover {
+      border-color: #3880ff;
+      box-shadow: 0 2px 4px rgba(56, 128, 255, 0.1);
+    }
+
+    .select-icon {
+      position: absolute;
+      left: 12px;
+      font-size: 18px;
+      color: #666;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .chevron-icon {
+      position: absolute;
+      right: 12px;
+      font-size: 18px;
+      color: #999;
+      z-index: 1;
+      pointer-events: none;
+      transition: transform 0.3s ease;
+    }
+
+    .job-select {
+      flex: 1;
+      --border-radius: 8px;
+      --border-width: 0;
+      --border-color: transparent;
+      --color: #333;
+      --padding-start: 40px;
+      --padding-end: 40px;
+      --padding-top: 10px;
+      --padding-bottom: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      min-height: 40px;
+      width: 100%;
+
+      &::part(icon) {
+        display: none;
+      }
+
+      &::part(placeholder) {
+        color: #666;
+      }
+
+      &::part(text) {
+        color: #333;
+      }
+    }
+
+    // Khi select được mở, rotate chevron
+    &:has(.job-select[aria-expanded="true"]) .chevron-icon {
+      transform: rotate(180deg);
     }
   }
 
-  .header-title {
+  .filter-button {
     flex: 1;
-    text-align: center;
-    font-weight: 600;
-    font-size: 20px;
-    color: #333;
+    --border-radius: 8px;
+    --border-width: 1px;
+    --border-color: #e0e0e0;
+    --color: #666;
     margin: 0;
-  }
-}
+    height: 40px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: #3880ff;
+      box-shadow: 0 2px 4px rgba(56, 128, 255, 0.1);
+    }
 
 .dashboard-content {
   --background: #f5f5f5;
   // Dùng padding-bottom qua CSS variable của ion-content cho đồng bộ với home
   --padding-bottom: 88px; // Space cho bottom nav
 }
+    &.active {
+      --background: #3880ff;
+      --color: white;
+      --border-color: #3880ff;
+    }
 
-.metrics-section {
-  padding: 16px;
+    ion-icon {
+      font-size: 18px;
+    }
+  }
 }
 
-.metrics-grid {
+// Summary Cards
+.summary-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  padding: 0 16px 16px;
 }
 
-.metric-card {
+.summary-card {
   margin: 0;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   --background: white;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+  }
+
+  &.pending-review::before {
+    background: #eb445a;
+  }
+
+  &.new-candidates::before {
+    background: #2dd36f;
+  }
+
+  &.active-jobs::before {
+    background: #3880ff;
+  }
+
+  &.pass-all::before {
+    background: #9c27b0;
+  }
 
   ion-card-content {
     padding: 16px;
   }
 
-  .metric-content {
+  .card-content {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 12px;
   }
 
-  .metric-icon {
-    font-size: 32px;
-    color: #3880ff;
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
 
-    &.green {
-      color: #2dd36f;
+    ion-icon {
+      font-size: 24px;
     }
+  }
 
-    &.red {
+  &.pending-review .card-icon {
+    background: rgba(235, 68, 90, 0.1);
+
+    ion-icon {
       color: #eb445a;
     }
   }
 
-  .metric-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  &.new-candidates .card-icon {
+    background: rgba(45, 211, 111, 0.1);
+    position: relative;
+
+    ion-icon {
+      color: #2dd36f;
+    }
+
+    .people-icon {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      font-size: 18px;
+      background: white;
+      border-radius: 50%;
+      padding: 2px;
+    }
   }
 
-  .metric-label {
-    font-size: 12px;
-    color: #999;
-    font-weight: 500;
+  &.active-jobs .card-icon {
+    background: rgba(56, 128, 255, 0.1);
+
+    ion-icon {
+      color: #3880ff;
+    }
   }
 
-  .metric-value {
-    font-size: 28px;
-    font-weight: 700;
-    color: #333;
-  }
-}
+  &.pass-all .card-icon {
+    background: rgba(156, 39, 176, 0.1);
 
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-
-  .section-title {
-    margin: 0;
-  }
-}
-
-.notification-item {
-  --padding-start: 16px;
-  --inner-padding-end: 16px;
-  margin-bottom: 8px;
-
-  &.unread {
-    --background: var(--ion-color-light);
-    font-weight: 500;
+    ion-icon {
+      color: #9c27b0;
+    }
   }
 
-  ion-label {
-    h3 {
+  .card-info {
+    flex: 1;
+
+    .card-label {
       margin: 0 0 4px 0;
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    p {
-      margin: 4px 0;
-      font-size: 14px;
-      color: var(--ion-color-medium);
-    }
-
-    .notification-time {
       font-size: 12px;
-      color: var(--ion-color-medium);
-      margin-top: 4px;
+      color: #999;
+      font-weight: 500;
+    }
+
+    .card-value {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      color: #333;
     }
   }
 }
 
-.empty-state {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--ion-color-medium);
+// Chart Section
+.chart-section {
+  background: white;
+  margin: 0 16px 16px;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
-  p {
-    margin: 0;
-    font-size: 14px;
-  }
-}
-
-.activity-section {
-  padding: 0 16px 16px;
-
-  .section-title {
+  .chart-title {
+    margin: 0 0 20px 0;
     font-size: 18px;
     font-weight: 600;
     color: #333;
-    margin: 0 0 16px 0;
+  }
+
+  // Add extra margin for the last chart section (Insights) to prevent footer overlap
+  &:last-of-type {
+    margin-bottom: 100px;
   }
 }
 
-.activity-list {
+// Donut Chart
+.donut-chart-container {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.donut-chart-wrapper {
+  flex-shrink: 0;
+  width: 150px;
+  height: 150px;
+  position: relative;
+}
+
+.donut-chart {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.donut-ring {
+  stroke: #e0e0e0;
+}
+
+.donut-segment {
+  transition: stroke-dasharray 0.3s ease;
+}
+
+.donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.donut-center-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+}
+
+.donut-center-label {
+  font-size: 12px;
+  color: #999;
+}
+
+.donut-legend {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.activity-card {
-  margin: 0;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --background: white;
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-  ion-card-content {
-    padding: 16px;
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.pass {
+    background: #2dd36f;
   }
 
-  .activity-content {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
+  &.fail {
+    background: #eb445a;
   }
 
-  .activity-icon-wrapper {
-    position: relative;
-    flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .activity-icon {
-    font-size: 24px;
-
-    &.blue {
-      color: #3880ff;
-    }
-
-    &.green {
-      color: #2dd36f;
-    }
-
-    &.grey {
-      color: #999;
-    }
-  }
-
-  .activity-dot {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 2px solid white;
-
-    &.dot-blue {
-      background: #3880ff;
-    }
-
-    &.dot-green {
-      background: #2dd36f;
-    }
-
-    &.dot-grey {
-      background: #999;
-    }
-  }
-
-  .activity-text {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .activity-title {
-    font-size: 14px;
-    color: #333;
-    margin: 0;
-    line-height: 1.4;
-  }
-
-  .activity-time {
-    font-size: 12px;
-    color: #999;
-    margin: 0;
+  &.pending {
+    background: #999;
   }
 }
 
+.legend-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.legend-value {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+// Funnel Chart (no longer used but kept for reference)
+.funnel-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.funnel-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.funnel-label {
+  min-width: 80px;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.funnel-bar-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  height: 32px;
+}
+
+.funnel-bar {
+  height: 100%;
+  background: #ff9800;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  min-width: 20px;
+}
+
+.funnel-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  min-width: 40px;
+  text-align: right;
+}
+
+// Insights Section
+.insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 20px; // Extra padding to prevent footer overlap
+}
+
+.insight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.insight-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e3f2fd;
+  color: #1976d2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.insight-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.insight-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.insight-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #999;
+  line-height: 1.4;
+}
+
+// Bottom Navigation
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -282,7 +550,7 @@
     justify-content: center;
     flex: 1; // mỗi item chiếm 1/3 chiều rộng
     gap: 4px;
-    padding: 8px 0;
+    padding: 8px 16px;
     cursor: pointer;
     transition: color 0.3s;
 
@@ -308,3 +576,4 @@
     }
   }
 }
+

@@ -39,6 +39,7 @@ export interface EmailTemplateItem {
   name: string;
   type: 'pass' | 'fail' | 'apply_confirm';
   subject: string;
+  content: string;
   lastModified: string;
   isActive: boolean;
 }
@@ -128,9 +129,7 @@ export class EmailManagementPage implements OnInit {
 
     try {
       // Load tất cả templates (không filter)
-      const response = await firstValueFrom(
-        this.templateService.getTemplates()
-      );
+      const response = await firstValueFrom(this.templateService.getTemplates());
 
       // Convert TemplateResponse sang EmailTemplateItem và group theo type
       this.emailTemplates = (response.templates || []).map((template) => ({
@@ -138,6 +137,7 @@ export class EmailManagementPage implements OnInit {
         name: template.formName || 'Unnamed Template',
         type: template.type,
         subject: template.subject || '',
+        content: template.content || '',
         lastModified: this.formatDate(template.updatedAt || template.createdAt),
         isActive: true,
       }));
@@ -182,9 +182,7 @@ export class EmailManagementPage implements OnInit {
     }
   }
 
-  async loadTemplatesForCategory(
-    categoryType: 'pass' | 'fail' | 'apply_confirm'
-  ) {
+  async loadTemplatesForCategory(categoryType: 'pass' | 'fail' | 'apply_confirm') {
     try {
       const response = await firstValueFrom(
         this.templateService.getTemplates(categoryType)
@@ -196,9 +194,8 @@ export class EmailManagementPage implements OnInit {
           name: template.formName || 'Unnamed Template',
           type: template.type,
           subject: template.subject || '',
-          lastModified: this.formatDate(
-            template.updatedAt || template.createdAt
-          ),
+          content: template.content || '',
+          lastModified: this.formatDate(template.updatedAt || template.createdAt),
           isActive: true,
         })
       );
@@ -207,9 +204,7 @@ export class EmailManagementPage implements OnInit {
     }
   }
 
-  getTemplatesForCategory(
-    categoryType: 'pass' | 'fail' | 'apply_confirm'
-  ): EmailTemplateItem[] {
+  getTemplatesForCategory(categoryType: 'pass' | 'fail' | 'apply_confirm'): EmailTemplateItem[] {
     return this.templatesByCategory[categoryType] || [];
   }
 
@@ -305,6 +300,7 @@ export class EmailManagementPage implements OnInit {
         editMode: 'true',
         formName: template.name,
         subject: template.subject,
+        content: template.content,
       },
     });
   }
@@ -321,9 +317,7 @@ export class EmailManagementPage implements OnInit {
     return this.selectedCategory === categoryType;
   }
 
-  getCategoryLabel(
-    categoryType: 'pass' | 'fail' | 'apply_confirm' | null
-  ): string {
+  getCategoryLabel(categoryType: 'pass' | 'fail' | 'apply_confirm' | null): string {
     if (!categoryType) return '';
     const category = this.categories.find((c) => c.type === categoryType);
     return category?.label || '';

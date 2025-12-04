@@ -94,6 +94,31 @@ export interface MessageResponse {
   message: string;
 }
 
+// Interface cho Dashboard Statistics Response
+export interface DashboardStatisticsResponse {
+  totalJobs: number;
+  activeJobs: number;
+  totalCandidates: number;
+  pendingReview: number;
+  newCandidates: number;
+  passAll: number;
+  // Pass/Fail Ratio data
+  passFailRatio?: {
+    passAll: number; // Số lượng hoặc phần trăm
+    fail: number; // Số lượng hoặc phần trăm
+    pending: number; // Số lượng hoặc phần trăm
+  };
+  // Insights data cho dashboard
+  insights?: {
+    // Job có nhiều ứng viên ứng tuyển nhất
+    topAppliedJobName?: string;
+    // Tên vòng có nhiều ứng viên fail nhất
+    topFailRoundName?: string;
+    // Tên job chứa vòng có nhiều ứng viên fail nhất
+    topFailRoundJobName?: string;
+  };
+}
+
 // Interface cho CompleteJobRequest (tạo job + rounds + templates trong một transaction)
 export interface TemplateDTO {
   templateId?: number; // Nếu có, sẽ attach template existing
@@ -180,6 +205,31 @@ export class JobPostService {
         return response;
       }),
       catchError(this.handleError<JobListResponse>('getJobPosts'))
+    );
+  }
+
+  /**
+   * GET /api/jobdetail - Lấy thông tin thống kê cho dashboard
+   * Trả về 1 object chứa các thống kê: tổng job, tổng ứng viên, etc.
+   * @param jobId ID của job (optional) - nếu có sẽ lấy thống kê theo job đó, nếu null sẽ lấy tất cả
+   * @returns Observable<DashboardStatisticsResponse>
+   */
+  getDetailJob(jobId?: number | null): Observable<DashboardStatisticsResponse> {
+    let jobdetailUrl = `${environment.apiUrl}/jobdetail`;
+    let params = new HttpParams();
+    
+    if (jobId !== null && jobId !== undefined) {
+      params = params.set('jobId', jobId.toString());
+    }
+
+    return this.http.get<DashboardStatisticsResponse>(jobdetailUrl, { params }).pipe(
+      retry(2), // Retry 2 lần nếu lỗi
+      map((response: DashboardStatisticsResponse) => {
+        // Debug log để kiểm tra response
+        console.log(`[getDetailJob] Statistics response for jobId ${jobId}:`, response);
+        return response;
+      }),
+      catchError(this.handleError<DashboardStatisticsResponse>('getDetailJob'))
     );
   }
 
@@ -369,10 +419,10 @@ export class JobPostService {
    * GET /api/forms?type={type} - Lấy danh sách email template forms của user hiện tại
    * API yêu cầu Bearer token trong headers để xác minh người dùng và lấy form thông qua người dùng đó
    * Token sẽ được tự động thêm bởi authInterceptor
-   * @param type Loại form: 'pass' hoặc 'fail'
+   * @param type Loại form: 'pass', 'fail' hoặc 'apply_confirm'
    * @returns Observable<any[]>
    */
-  getSamples(type: 'pass' | 'fail'): Observable<any[]> {
+  getSamples(type: 'pass' | 'fail' | 'apply_confirm'): Observable<any[]> {
     // Sử dụng query parameter thay vì path parameter
     // Token sẽ được tự động thêm bởi authInterceptor vào headers
     // Backend sẽ decode token để lấy user ID và trả về forms của user đó

@@ -112,6 +112,10 @@ export class HomePage implements OnInit {
   notificationCount: number = 0;
   filterCount: number = 2;
   userInfo: any = null;
+  pageSize: number = 5;
+  currentPage: number = 1;
+  totalPages: number = 1;
+  pages: number[] = [];
 
   constructor(
     private router: Router,
@@ -161,6 +165,11 @@ export class HomePage implements OnInit {
         }
       });
     }
+  }
+
+  get displayedPosts(): Post[] {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    return this.filteredPosts.slice(startIndex, startIndex + this.pageSize);
   }
 
   loadUserInfo() {
@@ -371,6 +380,16 @@ export class HomePage implements OnInit {
                 await toast.present();
               },
             });
+            // Filter bỏ các job null và map sang Post
+            this.posts = jobDetails
+              .filter((job): job is JobResponse => job !== null)
+              .map((job) => this.mapJobResponseToPost(job));
+
+            this.filteredPosts = [...this.posts];
+            this.currentPage = 1;
+            this.updatePagination();
+            console.log('[HomePage] Mapped posts with details:', this.posts);
+            loading.dismiss();
           },
           error: async (error) => {
             loading.dismiss();
@@ -389,6 +408,8 @@ export class HomePage implements OnInit {
               candidateCount: 0,
             }));
             this.filteredPosts = [...this.posts];
+            this.currentPage = 1;
+            this.updatePagination();
 
             const toast = await this.toastController.create({
               message:
@@ -441,6 +462,8 @@ export class HomePage implements OnInit {
   filterPosts() {
     if (!this.searchTerm.trim()) {
       this.filteredPosts = [...this.posts];
+      this.currentPage = 1;
+      this.updatePagination();
       return;
     }
 
@@ -450,6 +473,8 @@ export class HomePage implements OnInit {
         post.title.toLowerCase().includes(term) ||
         post.description.toLowerCase().includes(term)
     );
+    this.currentPage = 1;
+    this.updatePagination();
   }
 
   onSort() {
@@ -520,5 +545,32 @@ export class HomePage implements OnInit {
    */
   trackByPostId(index: number, post: Post): number {
     return post.id;
+  }
+
+  private updatePagination() {
+    this.totalPages = Math.max(1, Math.ceil(this.filteredPosts.length / this.pageSize));
+    this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+  }
+
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages) {
+      return;
+    }
+    this.currentPage = page;
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
   }
 }

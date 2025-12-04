@@ -581,13 +581,31 @@ export class ConfigureRoundsPage implements OnInit {
 
     // Load selected template names nếu có roundIds và không skip
     if (!skipLoadTemplates && Object.keys(roundIds).length > 0) {
-      // Nếu đến từ edit-post, luôn load từ API để đảm bảo có dữ liệu mới nhất
-      // Nếu không, chỉ load nếu chưa có template names trong state
+      // Nếu đến từ edit-post, KHÔNG gọi API /api/templates
+      // Chỉ sử dụng dữ liệu từ state (đã được load từ GET /api/jobs/{jobId})
       if (this.fromEdit) {
-        // Luôn load từ API khi đến từ edit-post
-        setTimeout(() => {
-          this.loadSelectedTemplateNames();
-        }, 200);
+        // Chỉ sử dụng data từ state, không gọi API
+        console.log('[ConfigureRounds] From edit-post, using state data only, skipping API calls');
+        if (roundsFromState && roundsArray) {
+          roundsFromState.forEach((round, index) => {
+            if (roundsArray.at(index)) {
+              const updates: any = {};
+              if (round.passEmailTemplate?.formName) {
+                updates.passEmailTemplate = round.passEmailTemplate.formName;
+              }
+              if (round.failEmailTemplate?.formName) {
+                updates.failEmailTemplate = round.failEmailTemplate.formName;
+              }
+              if (Object.keys(updates).length > 0) {
+                roundsArray.at(index).patchValue(updates, { emitEvent: false });
+                console.log(
+                  `[ConfigureRounds] Updated round ${index} with templates from state (from edit-post)`,
+                  updates
+                );
+              }
+            }
+          });
+        }
       } else {
         // Chỉ load từ API nếu chưa có template names trong state
         const hasTemplatesInState = roundsFromState?.some(
@@ -683,7 +701,15 @@ export class ConfigureRoundsPage implements OnInit {
         }
       }
 
-      // Nếu đến từ edit-post, luôn load từ API để đảm bảo có dữ liệu mới nhất
+      // Nếu đến từ edit-post, KHÔNG gọi API /api/templates
+      // Chỉ sử dụng dữ liệu từ state (đã được load từ GET /api/jobs/{jobId})
+      if (this.fromEdit) {
+        console.log(
+          `[ConfigureRounds] From edit-post, skipping API call for round ${i}, using state data only`
+        );
+        continue; // Không gọi API khi đến từ edit-post
+      }
+
       // Nếu không đến từ edit-post, chỉ load nếu round đã có template trong state
       const hasTemplateInState =
         roundFromState &&
@@ -692,17 +718,15 @@ export class ConfigureRoundsPage implements OnInit {
           (roundFromState as any).passTemplateId ||
           (roundFromState as any).failTemplateId);
 
-      // Nếu không đến từ edit-post và không có template trong state, skip
-      if (!this.fromEdit && !hasTemplateInState) {
+      // Nếu không có template trong state, skip
+      if (!hasTemplateInState) {
         console.log(
           `[ConfigureRounds] Round ${i} is new or has no template in state, skipping API load`
         );
         continue; // Không load template cho rounds mới
       }
 
-      // Load templates cho round này từ API
-      // Nếu đến từ edit-post: luôn load và update form
-      // Nếu không: chỉ update nếu state chưa có
+      // Load templates cho round này từ API (chỉ khi không đến từ edit-post)
       Promise.all([
         firstValueFrom(
           this.templateService.getTemplates('pass', roundId)

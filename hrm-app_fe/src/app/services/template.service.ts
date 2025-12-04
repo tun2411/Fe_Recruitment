@@ -28,6 +28,8 @@ export interface TemplateListResponse {
 }
 
 export interface CreateTemplateRequest {
+  // formId optional: dùng cho trường hợp cập nhật template existing (PUT)
+  formId?: number;
   formName: string;
   type: 'apply_confirm' | 'pass' | 'fail';
   roundId: number | null;
@@ -88,6 +90,22 @@ export class TemplateService {
       .post<TemplateResponse>(this.apiUrl, request)
       .pipe(
         catchError(this.handleError<TemplateResponse>('createTemplate'))
+      );
+  }
+
+  /**
+   * PUT /api/templates - Cập nhật template hiện có (Form + EmailTemplate)
+   * Backend sử dụng CreateTemplateRequest (kèm formId) để update
+   * @param request CreateTemplateRequest (bao gồm formId của template cần cập nhật)
+   * @returns Observable<TemplateResponse>
+   */
+  updateTemplate(
+    request: CreateTemplateRequest
+  ): Observable<TemplateResponse> {
+    return this.http
+      .put<TemplateResponse>(this.apiUrl, request)
+      .pipe(
+        catchError(this.handleError<TemplateResponse>('updateTemplate'))
       );
   }
 

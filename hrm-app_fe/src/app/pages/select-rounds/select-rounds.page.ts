@@ -176,8 +176,8 @@ export class SelectRoundsPage implements OnInit {
 
     this.jobCreationState.setRounds(rounds);
 
-    // Chuyển sang trang email templates thay vì tạo job ngay
-    this.router.navigate(['/email-templates']);
+    // Chuyển sang trang configure-rounds để cấu hình rounds và templates
+    this.router.navigate(['/configure-rounds']);
   }
 
 
@@ -188,9 +188,15 @@ export class SelectRoundsPage implements OnInit {
   }
 
   onEmailTemplateClick(type: 'pass' | 'fail', roundIndex: number) {
-    // Navigate to email templates page với queryParams
-    this.router.navigate(['/email-templates'], {
-      queryParams: { roundIndex, type },
+    // Navigate to configure-rounds page với queryParams để chọn template
+    // Lấy jobId từ state nếu có
+    const jobId = this.jobCreationState.getJobId();
+    this.router.navigate(['/configure-rounds'], {
+      queryParams: { 
+        jobId: jobId || undefined,
+        roundIndex, 
+        type 
+      },
     });
   }
 }

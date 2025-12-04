@@ -17,8 +17,13 @@
 
 <ion-content [fullscreen]="true" class="candidates-content">
   <!-- Search Bar -->
-  <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="onSearch($event)" placeholder="Tìm kiếm..."
-    class="custom-searchbar" show-clear-button="focus"></ion-searchbar>
+  <ion-searchbar
+    [(ngModel)]="searchTerm"
+    (ionInput)="onSearch($event)"
+    placeholder="Tìm kiếm..."
+    class="custom-searchbar"
+    show-clear-button="focus"
+  ></ion-searchbar>
 
   <!-- Action Bar -->
   <div class="action-bar">
@@ -44,9 +49,12 @@
       <p class="empty-message">Chưa có ứng viên nào ứng tuyển cho bài đăng này</p>
     </div>
 
-    <!-- Candidates Cards -->
-    <ion-card *ngFor="let candidate of filteredCandidates" [class]="getCardColorClass(candidate.status)"
-      class="candidate-card" (click)="onView(candidate)">
+    <!-- Candidates Cards (phân trang, tối đa 5 item mỗi trang) -->
+    <ion-card
+      *ngFor="let candidate of displayedCandidates"
+      [class]="getCardColorClass(candidate.status)"
+      class="candidate-card"
+    >
       <ion-card-content>
         <div class="candidate-header">
           <div class="candidate-info">
@@ -54,9 +62,15 @@
             <p class="candidate-position">{{ candidate.position }}</p>
             <p class="candidate-contact">{{ candidate.email }} / {{ candidate.phone }}</p>
           </div>
-          <ion-button fill="clear" class="favorite-button" (click)="toggleFavorite(candidate)">
-            <ion-icon [name]="candidate.isFavorite ? 'star' : 'star-outline'"
-              [class.filled]="candidate.isFavorite"></ion-icon>
+          <ion-button
+            fill="clear"
+            class="favorite-button"
+            (click)="toggleFavorite(candidate)"
+          >
+            <ion-icon
+              [name]="candidate.isFavorite ? 'star' : 'star-outline'"
+              [class.filled]="candidate.isFavorite"
+            ></ion-icon>
           </ion-button>
         </div>
 
@@ -78,6 +92,25 @@
         </div>
       </ion-card-content>
     </ion-card>
+
+    <!-- Pagination controls -->
+    <div class="pagination-dots" *ngIf="totalPages > 1">
+      <ion-button fill="clear" size="small" (click)="prevPage()" [disabled]="currentPage === 1">
+        Trước
+      </ion-button>
+
+      <span
+        class="dot"
+        *ngFor="let page of pages"
+        [class.active]="page === currentPage"
+        (click)="goToPage(page)"
+      ></span>
+
+      <ion-button fill="clear" size="small" (click)="nextPage()" [disabled]="currentPage === totalPages">
+        Sau
+      </ion-button>
+    </div>
   </div>
 
 </ion-content>
+
