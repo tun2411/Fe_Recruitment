@@ -65,6 +65,9 @@ export class AuthService {
     this.getUserInfo()
   );
   public currentUser$ = this.currentUserSubject.asObservable();
+  
+  // Observable để theo dõi trạng thái đăng nhập
+  public isLoggedIn$ = new BehaviorSubject<boolean>(this.isAuthenticated());
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -94,6 +97,7 @@ export class AuthService {
             };
             this.setUserInfo(userInfo);
             this.currentUserSubject.next(userInfo);
+            this.isLoggedIn$.next(true);
           }
         })
       );
@@ -125,6 +129,7 @@ export class AuthService {
             };
             this.setUserInfo(userInfo);
             this.currentUserSubject.next(userInfo);
+            this.isLoggedIn$.next(true);
           }
         })
       );
@@ -156,6 +161,7 @@ export class AuthService {
             };
             this.setUserInfo(userInfo);
             this.currentUserSubject.next(userInfo);
+            this.isLoggedIn$.next(true);
           }
         })
       );
@@ -179,6 +185,7 @@ export class AuthService {
             };
             this.setUserInfo(userInfo);
             this.currentUserSubject.next(userInfo);
+            this.isLoggedIn$.next(true);
           }
         })
       );
@@ -189,6 +196,7 @@ export class AuthService {
     this.clearRefreshToken();
     this.clearUserInfo();
     this.currentUserSubject.next(null);
+    this.isLoggedIn$.next(false);
     this.router.navigate(['/login']);
   }
 
@@ -265,9 +273,12 @@ export class AuthService {
       const now = Date.now();
       if (exp < now) {
         console.warn('[AuthService] Token has expired. Exp:', new Date(exp), 'Now:', new Date(now));
+        this.isLoggedIn$.next(false);
         return false;
       }
-      return true;
+      const isAuth = true;
+      this.isLoggedIn$.next(isAuth);
+      return isAuth;
     } catch (e) {
       console.error('[AuthService] Error decoding token:', e);
       // Nếu không decode được, vẫn return true để backend xử lý

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -31,6 +31,8 @@ import {
   NotificationService,
   Notification,
 } from '../../services/notification.service';
+import { WebSocketService } from '../../services/websocket.service';
+import { Subscription, combineLatest } from 'rxjs';
 
 @Component({
   selector: 'app-notifications',
@@ -50,14 +52,16 @@ import {
     IonCardContent,
   ],
 })
-export class NotificationsPage implements OnInit {
+export class NotificationsPage implements OnInit, OnDestroy {
   notifications: Notification[] = [];
   isLoading = false;
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private router: Router,
     private location: Location,
     private notificationService: NotificationService,
+    private wsService: WebSocketService,
     private loadingController: LoadingController,
     private toastController: ToastController
   ) {
@@ -76,6 +80,28 @@ export class NotificationsPage implements OnInit {
 
   ngOnInit() {
     this.loadNotifications();
+    
+    // Subscribe vào WebSocket notifications để cập nhật real-time
+    const wsSubscription = this.wsService.notifications$.subscribe((wsNotifications) => {
+      // Merge WebSocket notifications với notifications từ API
+      // WebSocket notifications sẽ được thêm vào đầu danh sách
+      if (wsNotifications.length > 0) {
+        // Lọc bỏ các notification trùng lặp (dựa trên id)
+        const existingIds = new Set(this.notifications.map(n => n.id));
+        const newNotifications = wsNotifications.filter(n => !existingIds.has(n.id));
+        
+        if (newNotifications.length > 0) {
+          // Thêm notifications mới vào đầu danh sách
+          this.notifications = [...newNotifications, ...this.notifications];
+        }
+      }
+    });
+    
+    this.subscriptions.push(wsSubscription);
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   async loadNotifications() {

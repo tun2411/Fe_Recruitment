@@ -1,8 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import {
   IonHeader,
   IonToolbar,
@@ -36,9 +36,8 @@ import {
   chevronDownOutline,
 } from 'ionicons/icons';
 import { JobPostService } from '../../services/job-post.service';
-// TODO: Uncomment when backend is ready
-// import { NotificationService, Notification } from '../../services/notification.service';
-// import { ApplicationService } from '../../services/application.service';
+import { NotificationService, Notification } from '../../services/notification.service';
+import { WebSocketService } from '../../services/websocket.service';
 
 interface DashboardMetrics {
   pendingReview: number;
@@ -85,11 +84,12 @@ interface InsightItem {
     IonSelectOption,
   ],
 })
-export class DashboardPage implements OnInit {
+export class DashboardPage implements OnInit, OnDestroy {
   // User info - TODO: Get from authentication service
   userName: string = 'Alex Johnson';
   currentDate: string = '';
-  notificationCount: number = 2;
+  notificationCount: number = 0;
+  private subscriptions: Subscription[] = [];
 
   // Filter state
   selectedFilter: 'all' | 'week' = 'all';
@@ -130,6 +130,8 @@ export class DashboardPage implements OnInit {
   constructor(
     private router: Router,
     private jobPostService: JobPostService,
+    private notificationService: NotificationService,
+    private wsService: WebSocketService,
     private cdr: ChangeDetectorRef
   ) {
     addIcons({
@@ -156,6 +158,12 @@ export class DashboardPage implements OnInit {
     this.updateCurrentDate();
     this.loadJobsList(); // Load danh sách jobs trước
     this.loadAllJobs(); // Load thống kê
+    this.loadNotificationCount(); // Load notification count
+    this.subscribeToWebSocketNotifications(); // Subscribe vào WebSocket
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   updateCurrentDate() {
@@ -342,6 +350,35 @@ export class DashboardPage implements OnInit {
     }
 
     this.loadAllJobs();
+  }
+
+  /**
+   * Load notification count từ API
+   */
+  async loadNotificationCount() {
+    try {
+      const notifications = await firstValueFrom(
+        this.notificationService.getNotifications()
+      );
+      // Đếm số notification chưa đọc
+      this.notificationCount = notifications.filter(n => !n.isRead).length;
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('[Dashboard] Error loading notification count:', error);
+    }
+  }
+
+  /**
+   * Subscribe vào WebSocket để cập nhật notification count real-time
+   */
+  private subscribeToWebSocketNotifications() {
+    const wsSubscription = this.wsService.notifications$.subscribe((notifications) => {
+      // Khi có notification mới từ WebSocket, reload notification count từ API
+      // để đảm bảo số đếm chính xác (bao gồm cả notifications cũ)
+      this.loadNotificationCount();
+    });
+    
+    this.subscriptions.push(wsSubscription);
   }
 
   onNotificationClick() {

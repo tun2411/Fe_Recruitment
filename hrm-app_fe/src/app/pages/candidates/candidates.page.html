@@ -18,7 +18,7 @@
 <ion-content [fullscreen]="true" class="candidates-content">
   <!-- Search Bar -->
   <ion-searchbar
-    [(ngModel)]="searchTerm"
+    [(ngModel)]="searchTerm"c
     (ionInput)="onSearch($event)"
     placeholder="Tìm kiếm..."
     class="custom-searchbar"
@@ -51,7 +51,7 @@
 
     <!-- Candidates Cards (phân trang, tối đa 5 item mỗi trang) -->
     <ion-card
-      *ngFor="let candidate of displayedCandidates"
+      *ngFor="let candidate of filteredCandidates"
       [class]="getCardColorClass(candidate.status)"
       class="candidate-card"
     >
@@ -101,24 +101,6 @@
         </div>
       </ion-card-content>
     </ion-card>
-
-    <!-- Pagination controls -->
-    <div class="pagination-dots" *ngIf="totalPages > 1">
-      <ion-button fill="clear" size="small" (click)="prevPage()" [disabled]="currentPage === 1">
-        Trước
-      </ion-button>
-
-      <span
-        class="dot"
-        *ngFor="let page of pages"
-        [class.active]="page === currentPage"
-        (click)="goToPage(page)"
-      ></span>
-
-      <ion-button fill="clear" size="small" (click)="nextPage()" [disabled]="currentPage === totalPages">
-        Sau
-      </ion-button>
-    </div>
   </div>
 
 </ion-content>

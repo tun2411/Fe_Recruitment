@@ -56,44 +56,45 @@
   </ion-content>
 </ion-menu>
 
-<ion-header class="custom-header" id="main-content">
-  <ion-toolbar color="primary">
-    <div class="header-content">
-      <ion-menu-button menu="main-menu" class="menu-button">
-      <div class="header-icon-circle">
-        <ion-icon name="person-outline"></ion-icon>
+<ion-content [fullscreen]="true" class="home-content" id="main-content">
+  <!-- Profile Card with Notification and Search -->
+  <div class="profile-card">
+    <div class="profile-header">
+      <div class="profile-info">
+        <ion-menu-button menu="main-menu" class="menu-button">
+          <div class="profile-avatar">
+            <ion-icon name="person-circle-outline"></ion-icon>
+          </div>
+        </ion-menu-button>
+        <div class="profile-text">
+          <h2>Bài đăng</h2>
+        </div>
       </div>
-      </ion-menu-button>
-      <ion-title class="header-title">BÀI ĐĂNG</ion-title>
-      <div class="notification-wrapper" (click)="onNotificationClick()">
-        <ion-icon name="notifications-outline" class="notification-icon"></ion-icon>
-        <ion-badge color="danger" class="notification-badge">{{ notificationCount }}</ion-badge>
+      <div class="notification-bell" (click)="onNotificationClick()">
+        <ion-icon name="notifications-outline"></ion-icon>
+        <ion-badge *ngIf="notificationCount > 0" color="danger" class="notification-badge">
+          {{ notificationCount }}
+        </ion-badge>
       </div>
     </div>
-  </ion-toolbar>
-</ion-header>
-
-<div class="search-container">
-  <ion-searchbar
-    [(ngModel)]="searchTerm"
-    (ionInput)="onSearch($event)"
-    placeholder="Tìm kiếm..."
-    class="custom-searchbar"
-    show-clear-button="focus"
-  ></ion-searchbar>
-</div>
-
-<ion-content [fullscreen]="true" class="home-content">
+    <div class="search-container">
+      <ion-searchbar
+        [(ngModel)]="searchTerm"
+        (ionInput)="onSearch($event)"
+        placeholder="Tìm kiếm bài đăng..."
+        class="custom-searchbar"
+        show-clear-button="focus"
+        debounce="300"
+      ></ion-searchbar>
+    </div>
+  </div>
   <div class="action-bar">
-    <ion-button fill="outline" class="action-button" (click)="onSort()">
+    <ion-button fill="outline" class="action-button sort-button" (click)="onSort()">
       <ion-icon name="arrow-down-outline" slot="start"></ion-icon>
       Sort
       <ion-icon name="chevron-down-outline" slot="end" class="chevron-icon"></ion-icon>
     </ion-button>
-    <ion-button fill="clear" class="refresh-button" (click)="onRefresh()">
-      <ion-icon name="refresh-outline"></ion-icon>
-    </ion-button>
-    <ion-button fill="outline" class="action-button" (click)="onFilter()">
+    <ion-button fill="outline" class="action-button filter-button" (click)="onFilter()">
       <ion-icon name="filter-outline" slot="start"></ion-icon>
       Filter
       <ion-badge color="primary" class="filter-badge">{{ filterCount }}</ion-badge>

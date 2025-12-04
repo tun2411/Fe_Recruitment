@@ -1,18 +1,24 @@
-<ion-header class="custom-header">
-  <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-button (click)="onBack()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title class="header-title">QUẢN LÝ MAIL TỰ ĐỘNG</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true" class="email-management-content">
-  <br>
-  <br>
-  <br><br>
+  <!-- Profile Card with Notification -->
+  <div class="profile-card">
+    <div class="profile-info">
+      <ion-button fill="clear" class="back-button" (click)="onBack()">
+        <div class="profile-avatar">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+        </div>
+      </ion-button>
+      <div class="profile-text">
+        <h2>Quản lý mail tự động</h2>
+        <p></p>
+      </div>
+    </div>
+    <div class="notification-bell" (click)="onNotificationClick()">
+      <ion-icon name="notifications-outline"></ion-icon>
+      <ion-badge *ngIf="notificationCount > 0" color="danger" class="notification-badge">
+        {{ notificationCount }}
+      </ion-badge>
+    </div>
+  </div>
   <div class="email-container">
     <!-- Category Cards -->
     <div class="categories-list">

@@ -1,26 +1,82 @@
-.custom-header {
-  ion-toolbar {
-    --background: linear-gradient(135deg, #3880ff 0%, #2c6dd5 50%, #1e5bb8 100%);
-    --color: white;
-    border-radius: 0 0 16px 16px;
-    padding: 0;
-    min-height: 60px;
-    box-shadow: 0 4px 12px rgba(56, 128, 255, 0.3);
+// Profile Card
+.profile-card {
+  background: linear-gradient(135deg, #3880ff 0%, #2c5aa0 100%);
+  margin: 0;
+  padding: 20px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  height: 90px;
+  box-sizing: border-box;
+
+  .profile-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .back-button {
+      --color: transparent;
+      margin: 0;
+      padding: 0;
+      width: auto;
+      height: auto;
+    }
+
+    .profile-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      ion-icon {
+        font-size: 40px;
+        color: white;
+      }
+    }
+
+    .profile-text {
+      h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        text-transform: none;
+      }
+
+      p {
+        margin: 4px 0 0 0;
+        font-size: 14px;
+        opacity: 0.9;
+        min-height: 20px;
+      }
+    }
   }
 
-  .header-title {
-    text-align: center;
-    font-weight: 700;
-    font-size: 18px;
-    color: white;
-    margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
+  .notification-bell {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 
-  ion-button {
-    --color: white;
+    ion-icon {
+      font-size: 28px;
+      color: white;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      font-size: 10px;
+      min-width: 18px;
+      height: 18px;
+    }
   }
 }
 
@@ -28,6 +84,7 @@
   --background: #f5f5f5;
   --padding-top: 0;
   --padding-bottom: 0;
+  padding-bottom: 80px;
 }
 
 .email-container {

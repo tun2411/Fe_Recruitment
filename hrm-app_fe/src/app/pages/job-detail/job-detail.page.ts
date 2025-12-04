@@ -199,3 +199,4 @@ export class JobDetailPage implements OnInit {
 
 
 
+

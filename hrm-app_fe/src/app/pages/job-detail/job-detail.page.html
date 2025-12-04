@@ -1,11 +1,12 @@
 <ion-header class="custom-header">
   <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-button (click)="onBack()">
+    <div class="header-content">
+      <ion-button fill="clear" (click)="onBack()" class="back-button">
         <ion-icon name="arrow-back-outline"></ion-icon>
       </ion-button>
-    </ion-buttons>
-    <ion-title class="header-title">TUYỂN DỤNG</ion-title>
+      <ion-title class="header-title">TUYỂN DỤNG</ion-title>
+      <div style="width: 48px;"></div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
@@ -139,6 +140,7 @@
     <p>Đang tải dữ liệu...</p>
   </div>
 </ion-content>
+
 
 
 

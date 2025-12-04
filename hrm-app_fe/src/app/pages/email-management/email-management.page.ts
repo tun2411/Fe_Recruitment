@@ -14,6 +14,7 @@ import {
   IonLabel,
   IonList,
   IonItem,
+  IonBadge,
   LoadingController,
   ToastController,
 } from '@ionic/angular/standalone';
@@ -27,6 +28,8 @@ import {
   closeCircleOutline,
   chevronForwardOutline,
   addOutline,
+  notificationsOutline,
+  personCircleOutline,
 } from 'ionicons/icons';
 import { TemplateService, TemplateResponse } from '../../services/template.service';
 import { firstValueFrom } from 'rxjs';
@@ -60,11 +63,13 @@ export interface EmailTemplateItem {
     IonLabel,
     IonList,
     IonItem,
+    IonBadge,
   ],
 })
 export class EmailManagementPage implements OnInit {
   emailTemplates: EmailTemplateItem[] = [];
   selectedCategory: 'pass' | 'fail' | 'apply_confirm' | null = null;
+  notificationCount: number = 0;
   templatesByCategory: { [key: string]: EmailTemplateItem[] } = {
     pass: [],
     fail: [],
@@ -110,6 +115,8 @@ export class EmailManagementPage implements OnInit {
       closeCircleOutline,
       chevronForwardOutline,
       addOutline,
+      notificationsOutline,
+      personCircleOutline,
     });
   }
 
@@ -318,6 +325,11 @@ export class EmailManagementPage implements OnInit {
     if (!categoryType) return '';
     const category = this.categories.find((c) => c.type === categoryType);
     return category?.label || '';
+  }
+
+  onNotificationClick() {
+    // Navigate to notifications page if needed
+    console.log('Notification clicked');
   }
 }
 
