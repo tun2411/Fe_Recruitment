@@ -1,6 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import {
   IonHeader,
@@ -15,10 +21,7 @@ import {
   LoadingController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import {
-  personOutline,
-  arrowBackOutline,
-} from 'ionicons/icons';
+import { personOutline, arrowBackOutline } from 'ionicons/icons';
 import { BusinessService } from '../../services/business.service';
 
 @Component({
@@ -57,7 +60,10 @@ export class PersonalInfoPage implements OnInit {
 
     this.personalInfoForm = this.formBuilder.group({
       companyName: ['', [Validators.required]],
-      phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{10,11}$/)]],
+      phoneNumber: [
+        '',
+        [Validators.required, Validators.pattern(/^[0-9]{10,11}$/)],
+      ],
       email: ['', [Validators.required, Validators.email]],
     });
   }
@@ -133,8 +139,10 @@ export class PersonalInfoPage implements OnInit {
         });
         await toast.present();
 
-        // Navigate back
-        this.router.navigate(['/dashboard']);
+        // Quay về home và mở lại menu sidebar
+        this.router.navigate(['/home'], {
+          queryParams: { openMenu: 'true' },
+        });
       },
       error: async (error) => {
         await loading.dismiss();
@@ -151,7 +159,10 @@ export class PersonalInfoPage implements OnInit {
   }
 
   onBack() {
-    this.router.navigate(['/dashboard']);
+    // Quay về home và mở lại menu sidebar
+    this.router.navigate(['/home'], {
+      queryParams: { openMenu: 'true' },
+    });
   }
 
   isFieldInvalid(fieldName: string): boolean {
@@ -166,4 +177,3 @@ export class PersonalInfoPage implements OnInit {
     });
   }
 }
-

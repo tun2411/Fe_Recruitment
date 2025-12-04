@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import {
   FormsModule,
   FormBuilder,
@@ -81,6 +81,7 @@ export class ConfigureRoundsPage implements OnInit {
     private formBuilder: FormBuilder,
     private router: Router,
     private route: ActivatedRoute,
+    private location: Location,
     private jobCreationState: JobCreationStateService,
     private jobPostService: JobPostService,
     private templateService: TemplateService,
@@ -809,23 +810,23 @@ export class ConfigureRoundsPage implements OnInit {
     // Kiểm tra job status - chỉ xóa nếu là draft (inactive)
     // Nếu job đã được publish (active/closed), không xóa
     if (this.jobStatus && this.jobStatus !== 'inactive') {
-      // Job đã được publish, chỉ quay về home (KHÔNG xóa)
-      this.router.navigate(['/home']);
+      // Job đã được publish, quay về trang trước đó
+      this.location.back();
       return;
     }
 
-    // Không có draft job nữa, chỉ cần clear state và quay về
-    // Clear state để xóa dữ liệu tạm
-    this.jobCreationState.clear();
-
-    // Quay về create-post hoặc home
-    if (this.jobId) {
-      // Nếu có jobId (từ edit-post), quay về home
-      this.router.navigate(['/home']);
-    } else {
-      // Nếu không có jobId (đang tạo mới), quay về create-post
-      this.router.navigate(['/create-post']);
+    // Nếu đang tạo job mới (không có jobId), clear state và quay về trang trước
+    if (!this.jobId) {
+      // Clear state để xóa dữ liệu tạm
+      this.jobCreationState.clear();
+      // Quay về trang trước đó (thường là create-post)
+      this.location.back();
+      return;
     }
+
+    // Trường hợp còn lại: có jobId nhưng không phải từ edit-post
+    // Quay về trang trước đó
+    this.location.back();
   }
 
   async onSubmit() {

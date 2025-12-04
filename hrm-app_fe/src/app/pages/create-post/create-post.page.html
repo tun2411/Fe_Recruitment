@@ -107,11 +107,26 @@
         </mat-form-field>
       </div>
 
-      <!-- Nội dung -->
+      <!-- Nội dung JD -->
       <div class="form-field">
-        <ion-label class="field-label">Nội dung</ion-label>
-        <ion-textarea formControlName="content" placeholder="" rows="6" class="custom-textarea"
-          [class.invalid]="isFieldInvalid('content')"></ion-textarea>
+        <ion-label class="field-label">Nội dung JD</ion-label>
+        <ion-textarea
+          formControlName="content"
+          placeholder="Dán toàn bộ JD từ TopCV, VietnamWorks, ITviec, JD OCR từ ảnh..."
+          rows="20"
+          autoGrow="true"
+          class="custom-textarea"
+          [class.invalid]="isFieldInvalid('content')"
+        ></ion-textarea>
+      </div>
+
+      <!-- PREVIEW JD -->
+      <div class="jd-preview-container" *ngIf="createPostForm.get('content')?.value">
+        <h3 class="jd-preview-title">Xem trước (giống hệt candidate sẽ thấy)</h3>
+        <div
+          class="jd-preview"
+          [innerHTML]="createPostForm.get('content')?.value | jdFormat"
+        ></div>
       </div>
 
       <!-- Action Buttons -->

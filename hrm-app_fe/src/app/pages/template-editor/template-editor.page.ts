@@ -15,6 +15,7 @@ import {
   IonButton,
   IonButtons,
   IonBackButton,
+  IonIcon,
   ToastController,
   LoadingController,
 } from '@ionic/angular/standalone';
@@ -50,6 +51,7 @@ import {
     IonButton,
     IonButtons,
     IonBackButton,
+    IonIcon,
   ],
 })
 export class TemplateEditorPage implements OnInit {

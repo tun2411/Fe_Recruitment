@@ -34,4 +34,75 @@
 
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import '@ionic/angular/css/palettes/dark.system.css';
+@import "@ionic/angular/css/palettes/dark.system.css";
+
+.jd-section-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e88e5;
+  margin: 32px 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #1e88e5;
+}
+
+.jd-preview,
+.job-description {
+  line-height: 1.8;
+  font-size: 16px;
+}
+
+.jd-preview p,
+.job-description p {
+  margin-bottom: 16px;
+}
+
+.jd-preview ul,
+.job-description ul,
+.jd-preview ol,
+.job-description ol {
+  margin: 16px 0;
+  padding-left: 32px;
+}
+
+.jd-preview li,
+.job-description li {
+  margin-bottom: 8px;
+}
+
+.jd-sub-list {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  padding-left: 24px;
+}
+
+.jd-preview strong,
+.job-description strong {
+  color: #d32f2f;
+}
+
+/* Safe Area Support - Để không che status bar và home indicator */
+/* Áp dụng cho toàn bộ app */
+html {
+  /* Đảm bảo safe area insets hoạt động */
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+    env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+
+body {
+  /* Reset padding để các component tự quản lý safe area */
+  padding: 0 !important;
+}
+
+// /* Ion-header safe area support */
+// ion-header {
+//   /* Header sẽ tự động có padding-top từ safe-area-inset-top */
+//   padding-top: env(safe-area-inset-top, 0px);
+// }
+
+/* Ion-content safe area support */
+ion-content {
+  /* Thêm padding bottom cho safe area (home indicator) */
+  --padding-bottom: calc(
+    var(--ion-safe-area-bottom, 0px) + var(--padding-bottom, 0px)
+  );
+}

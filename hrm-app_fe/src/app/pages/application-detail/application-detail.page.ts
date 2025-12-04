@@ -42,6 +42,7 @@ import {
   briefcaseOutline,
   timeOutline,
   informationCircleOutline,
+  gridOutline,
 } from 'ionicons/icons';
 import {
   ApplicationService,
@@ -118,6 +119,7 @@ export class ApplicationDetailPage implements OnInit {
       briefcaseOutline,
       timeOutline,
       informationCircleOutline,
+      gridOutline,
     });
   }
 
@@ -435,24 +437,16 @@ export class ApplicationDetailPage implements OnInit {
   }
 
   /**
-   * Fix URL: Thay localhost bằng IP thực tế trên mobile
+   * Fix URL: Đồng bộ host CV với IP trong environment, dùng cho cả web và mobile
    */
   private fixUrlForMobile(url: string): string {
-    if (!Capacitor.isNativePlatform()) {
-      return url; // Web: giữ nguyên
-    }
-
-    // Mobile: Thay localhost bằng IP từ environment
-    // Extract IP từ apiUrl: http://192.168.1.10:8080/api -> 192.168.1.10
     const apiUrl = environment.apiUrl;
-    const ipMatch = apiUrl.match(/http:\/\/([^:]+):/);
-    if (ipMatch && ipMatch[1]) {
-      const ip = ipMatch[1];
-      return url.replace(/http:\/\/localhost:8080/g, `http://${ip}:8080`);
-    }
+    // Lấy phần host:port từ apiUrl, ví dụ http://192.168.1.22:8080/api -> http://192.168.1.22:8080
+    const hostMatch = apiUrl.match(/^(http:\/\/[^/]+:\d+)/);
+    const targetBase = hostMatch ? hostMatch[1] : 'http://192.168.1.22:8080';
 
-    // Fallback: dùng IP mặc định
-    return url.replace(/http:\/\/localhost:8080/g, 'http://192.168.1.10:8080');
+    // Thay mọi host :8080 (localhost hoặc IP cũ) bằng host mới
+    return url.replace(/http:\/\/[^/]+:8080/g, targetBase);
   }
 
   async onViewCV() {
@@ -700,5 +694,13 @@ export class ApplicationDetailPage implements OnInit {
       position: 'top',
     });
     await toast.present();
+  }
+
+  navigateToDashboard() {
+    this.router.navigate(['/dashboard']);
+  }
+
+  onEmailManagement() {
+    this.router.navigate(['/email-management']);
   }
 }

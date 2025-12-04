@@ -60,6 +60,8 @@
 
 .create-post-content {
   --background: #f5f5f5;
+  // Chừa khoảng dưới giống configure-rounds / edit-post (không có bottom nav)
+  --padding-bottom: 24px;
 }
 
 .form-container {
@@ -204,7 +206,7 @@
   // Angular Material Datepicker styles
   .datepicker-field {
     width: 100%;
-    
+
     ::ng-deep {
       .mat-mdc-form-field {
         width: 100%;
@@ -289,6 +291,21 @@
   }
 }
 
+.jd-preview-container {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+
+  .jd-preview-title {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+  }
+}
+
 // Angular Material Datepicker Popup Styles
 ::ng-deep {
   // Backdrop để làm tối nền phía sau
@@ -303,7 +320,7 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
     overflow: hidden;
     z-index: 1000 !important;
-    
+
     .mat-calendar {
       background: white !important;
     }
@@ -311,7 +328,7 @@
 
   .cdk-overlay-pane {
     z-index: 1000 !important;
-    
+
     .mat-datepicker-popup {
       background: white !important;
       border-radius: 8px !important;
@@ -322,7 +339,7 @@
   .mat-calendar {
     background: white !important;
     border-radius: 8px;
-    
+
     .mat-calendar-header {
       background: white !important;
       padding: 16px;
@@ -369,7 +386,7 @@
     .mat-datepicker-popup {
       background: #1e1e1e !important;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
-      
+
       .mat-calendar {
         background: #1e1e1e !important;
       }
@@ -384,7 +401,7 @@
 
     .mat-calendar {
       background: #1e1e1e !important;
-      
+
       .mat-calendar-header {
         background: #1e1e1e !important;
         color: #ffffff !important;
@@ -436,7 +453,7 @@
     .mat-datepicker-popup {
       background: #1e1e1e !important;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
-      
+
       .mat-calendar {
         background: #1e1e1e !important;
       }
@@ -444,7 +461,7 @@
 
     .mat-calendar {
       background: #1e1e1e !important;
-      
+
       .mat-calendar-header {
         background: #1e1e1e !important;
         color: #ffffff !important;
@@ -504,36 +521,36 @@ ion-modal {
   --color: #1f2937;
   display: block;
   min-height: 400px;
-  
+
   // Style cho selected day
   --calendar-day-selected-background: #3880ff;
   --calendar-day-selected-color: #ffffff;
-  
+
   // Style cho today
   --calendar-day-today-background: transparent;
   --calendar-day-today-color: #3880ff;
   --calendar-day-today-border-color: #3880ff;
   --calendar-day-today-border-width: 2px;
   --calendar-day-today-border-style: solid;
-  
+
   // Style cho disabled days
   --calendar-day-disabled-color: #d1d5db;
   --calendar-day-disabled-opacity: 0.5;
-  
+
   // Style cho days outside current month
   --calendar-day-prev-month-color: #d1d5db;
   --calendar-day-next-month-color: #d1d5db;
-  
+
   // Style cho week header
   --calendar-weekday-color: #6b7280;
   --calendar-weekday-font-weight: 600;
   --calendar-weekday-font-size: 12px;
-  
+
   // Style cho month/year header
   --datetime-month-year-color: #1f2937;
   --datetime-month-year-font-weight: 600;
   --datetime-month-year-font-size: 16px;
-  
+
   // Style cho navigation buttons
   --datetime-navigation-button-color: #3880ff;
 }
@@ -547,37 +564,37 @@ ion-modal {
   .date-picker-modal {
     --background: #1e1e1e;
     --color: #ffffff;
-    
+
     // Style cho selected day (giữ nguyên màu primary)
     --calendar-day-selected-background: #3880ff;
     --calendar-day-selected-color: #ffffff;
-    
+
     // Style cho today
     --calendar-day-today-background: transparent;
     --calendar-day-today-color: #3880ff;
     --calendar-day-today-border-color: #3880ff;
-    
+
     // Style cho disabled days
     --calendar-day-disabled-color: #4b5563;
     --calendar-day-disabled-opacity: 0.5;
-    
+
     // Style cho days outside current month
     --calendar-day-prev-month-color: #4b5563;
     --calendar-day-next-month-color: #4b5563;
-    
+
     // Style cho week header
     --calendar-weekday-color: #9ca3af;
-    
+
     // Style cho month/year header
     --datetime-month-year-color: #ffffff;
-    
+
     // Style cho navigation buttons
     --datetime-navigation-button-color: #3880ff;
   }
 
   ion-modal {
     --background: #1e1e1e;
-    
+
     ion-header {
       ion-toolbar {
         --background: #2d2d2d;
@@ -615,17 +632,17 @@ ion-datetime ion-buttons {
   justify-content: flex-end;
   gap: 8px;
   margin-top: auto;
-  
+
   ion-button {
     font-weight: 500;
     text-transform: none;
     margin: 0;
     height: 40px;
-    
+
     &[fill="clear"] {
       --color: #6b7280;
     }
-    
+
     &[fill="solid"] {
       --background: #3880ff;
       --color: #ffffff;
@@ -637,7 +654,7 @@ ion-datetime ion-buttons {
 @media (prefers-color-scheme: dark) {
   ion-datetime ion-buttons {
     border-top: 1px solid #404040;
-    
+
     ion-button {
       &[fill="clear"] {
         --color: #9ca3af;
@@ -650,7 +667,7 @@ ion-datetime ion-buttons {
 :host-context([data-theme="dark"]) {
   ion-datetime ion-buttons {
     border-top: 1px solid #404040;
-    
+
     ion-button {
       &[fill="clear"] {
         --color: #9ca3af;
@@ -677,4 +694,3 @@ ion-datetime ion-buttons {
     text-transform: none;
   }
 }
-

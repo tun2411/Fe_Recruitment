@@ -1,29 +1,64 @@
 .main-label {
-  display: none; // Ẩn label "Main" để giao diện gọn hơn
+  display: none;
 }
 
-.custom-header {
+// ============================================
+// HEADER WRAPPER - Scroll cùng content
+// ============================================
+.header-wrapper {
+  // Không còn fixed, scroll cùng với content
+  width: 100%;
+  // Xóa padding-top để không có khoảng trắng ở trên
+  padding-top: 0;
+}
+
+// ============================================
+// MAIN HEADER SECTION (Dark Blue)
+// Gồm: Header title + Search bar tích hợp
+// ============================================
+.main-header-section {
+  background: linear-gradient(135deg, #3880ff 0%, #2c6dd5 50%, #1e5bb8 100%);
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+  box-shadow: 0 4px 12px rgba(56, 128, 255, 0.3);
+  overflow: hidden;
+}
+
+.main-header {
+  margin: 0;
+  // Đảm bảo ion-header không có height mặc định
+  height: auto;
+  // Xóa padding-top từ global.scss để không có khoảng trắng
+  padding-top: 0 !important;
+
   ion-toolbar {
-    --background: linear-gradient(135deg, #3880ff 0%, #2c6dd5 50%, #1e5bb8 100%);
+    --background: transparent;
     --color: white;
-    border-radius: 0 0 24px 24px;
+    border-radius: 0;
     padding: 0;
     min-height: 64px;
-    box-shadow: 0 4px 12px rgba(56, 128, 255, 0.3);
+    height: 64px;
+    box-shadow: none;
     position: relative;
-    overflow: hidden;
 
-    // Thêm pattern overlay nhẹ
+    // Pattern overlay
     &::before {
-      content: '';
+      content: "";
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background: 
-        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+      background: radial-gradient(
+          circle at 20% 50%,
+          rgba(255, 255, 255, 0.1) 0%,
+          transparent 50%
+        ),
+        radial-gradient(
+          circle at 80% 80%,
+          rgba(255, 255, 255, 0.1) 0%,
+          transparent 50%
+        );
       pointer-events: none;
     }
   }
@@ -59,11 +94,6 @@
     transition: all 0.3s ease;
     cursor: pointer;
 
-    &:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-    }
-
     &:active {
       transform: scale(0.95);
     }
@@ -98,13 +128,9 @@
     border-radius: 50%;
     transition: all 0.3s ease;
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.1);
-      transform: scale(1.1);
-    }
-
     &:active {
       transform: scale(0.95);
+      background: rgba(255, 255, 255, 0.1);
     }
   }
 
@@ -132,31 +158,30 @@
   }
 }
 
+// ============================================
+// SEARCH CONTAINER - Tích hợp vào header section
+// ============================================
 .search-container {
-  padding: 12px 16px;
-  background: linear-gradient(to bottom, #f8f9fa 0%, #f5f5f5 100%);
-  border-bottom: 1px solid #e9ecef;
-}
-
-.home-content {
-  --background: #f5f5f5;
-  padding-bottom: 80px; // Space cho bottom nav
-  --padding-top: 0;
-  --padding-start: 0;
-  --padding-end: 0;
+  padding: 12px 16px 16px 16px; // Thêm padding bottom để có khoảng cách với sort/filter bar
+  background: transparent; // Dùng background từ main-header-section
+  display: flex;
+  align-items: center;
+  // Chiều cao: 12px top + ~48px searchbar + 16px bottom = ~76px
+  min-height: 76px;
 }
 
 .custom-searchbar {
   --background: #ffffff;
   --color: #333;
   --placeholder-color: #999;
-  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   --border-radius: 14px;
   padding: 0;
   transition: box-shadow 0.3s ease;
+  width: 100%;
 
   &:focus-within {
-    --box-shadow: 0 4px 12px rgba(56, 128, 255, 0.15);
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   }
 
   .searchbar-input {
@@ -165,31 +190,40 @@
   }
 }
 
-.action-bar {
+// ============================================
+// SORT & FILTER BAR (Light Blue) - Dưới header
+// ============================================
+.sort-filter-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
   gap: 10px;
-  background: white;
-  border-bottom: 1px solid #f0f0f0;
-  margin: 0;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-bottom: 1px solid rgba(56, 128, 255, 0.2);
+  min-height: 60px;
+  height: 60px;
+  position: relative;
+  z-index: 1;
 
-  .action-button {
+  .action-btn {
     flex: 1;
     --border-radius: 12px;
     --background: white;
-    --color: #333;
+    --color: #3880ff;
+    --border-color: #3880ff;
+    --border-width: 1.5px;
     font-size: 14px;
-    font-weight: 500;
-    height: 42px;
+    font-weight: 600;
+    height: 40px;
     margin: 0;
     position: relative;
-    --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --box-shadow: 0 2px 4px rgba(56, 128, 255, 0.1);
     transition: all 0.2s ease;
 
-    &:hover {
-      --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    &:active {
+      --box-shadow: 0 1px 2px rgba(56, 128, 255, 0.2);
+      transform: scale(0.98);
     }
 
     ion-icon {
@@ -202,37 +236,44 @@
     }
   }
 
-  .refresh-button {
-    --color: #3880ff;
-    width: 42px;
-    height: 42px;
-    margin: 0;
-    transition: transform 0.3s ease;
-
-    &:active {
-      transform: rotate(180deg);
-    }
-
-    ion-icon {
-      font-size: 24px;
-    }
-  }
-
   .filter-badge {
     position: absolute;
-    top: -4px;
-    right: -4px;
+    top: -6px;
+    right: -6px;
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 700;
     min-width: 18px;
     height: 18px;
     border-radius: 9px;
-    box-shadow: 0 2px 4px rgba(56, 128, 255, 0.3);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.4);
+    border: 2px solid white;
   }
 }
 
+// ============================================
+// CONTENT AREA
+// ============================================
+.home-content {
+  --background: #f5f5f5;
+  // Xóa padding-top để không có khoảng trắng ở trên
+  --padding-top: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+  // Padding bottom dành cho bottom nav (chiều cao ~88px), safe-area đã được global xử lý
+  --padding-bottom: 88px;
+}
+
+// ============================================
+// POSTS CONTAINER
+// ============================================
 .posts-container {
   padding: 12px 16px 100px;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0; // Sử dụng margin-bottom của card thay vì gap
+  position: relative;
+  z-index: 1;
 
   .empty-state {
     text-align: center;
@@ -242,6 +283,7 @@
     background: white;
     border-radius: 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-top: 20px;
 
     ion-button {
       margin-top: 20px;
@@ -258,22 +300,38 @@
   border: none;
   transition: all 0.3s ease;
   overflow: hidden;
+  position: relative;
+  display: block;
+  width: 100%;
+  isolation: isolate; // Tạo stacking context riêng cho mỗi card
 
-  &:hover {
+  &:active {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
     transform: translateY(-2px);
   }
 
+  &:last-child {
+    margin-bottom: 0;
+  }
+
   ion-card-content {
     padding: 20px;
+    position: relative;
+    z-index: 1;
   }
 
   .post-content {
+    position: relative;
+    width: 100%;
+
     .post-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 12px;
+      position: relative;
+      width: 100%;
+      z-index: 1;
     }
 
     .post-info {
@@ -281,6 +339,9 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      min-width: 0; // Tránh overflow
+      position: relative;
+      z-index: 1;
     }
 
     .post-field {
@@ -313,7 +374,7 @@
 
       &.title-field {
         margin-bottom: 4px;
-        
+
         .field-value {
           font-size: 18px;
           font-weight: 700;
@@ -373,6 +434,8 @@
       flex-shrink: 0;
       box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
       margin-left: 8px;
+      position: relative;
+      z-index: 2;
     }
 
     .post-footer {
@@ -418,20 +481,10 @@
             --border-color: #e0e0e0;
             --border-width: 1.5px;
             --color: #666;
-            
-            &:hover {
-              --border-color: #3880ff;
-              --color: #3880ff;
-              --background: #f5f8ff;
-            }
           }
 
           &[fill="solid"] {
             --box-shadow: 0 2px 8px rgba(56, 128, 255, 0.3);
-            
-            &:hover {
-              --box-shadow: 0 4px 12px rgba(56, 128, 255, 0.4);
-            }
           }
         }
       }
@@ -459,8 +512,11 @@
   }
 }
 
+// ============================================
+// FLOATING ACTION BUTTON
+// ============================================
 .create-fab {
-  margin-bottom: 90px; // Space cho bottom nav
+  margin-bottom: 90px;
   margin-right: 16px;
 
   ion-fab-button {
@@ -468,11 +524,6 @@
     width: 60px;
     height: 60px;
     transition: all 0.3s ease;
-
-    &:hover {
-      --box-shadow: 0 8px 20px rgba(56, 128, 255, 0.5);
-      transform: scale(1.05);
-    }
 
     &:active {
       transform: scale(0.95);
@@ -484,6 +535,9 @@
   }
 }
 
+// ============================================
+// BOTTOM NAVIGATION
+// ============================================
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -494,7 +548,9 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 8px 0;
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+  // Nâng thanh nav lên một chút để tránh dính sát mép dưới
+  margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
   z-index: 100;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 
@@ -502,8 +558,10 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    flex: 1; // mỗi item chiếm 1/3 chiều rộng, giúp nav cân đối
     gap: 4px;
-    padding: 8px 16px;
+    padding: 8px 0;
     cursor: pointer;
     transition: color 0.3s;
 
@@ -530,14 +588,21 @@
   }
 }
 
-// Menu Sidebar Styles
+// ============================================
+// MENU SIDEBAR STYLES
+// ============================================
 ion-menu {
   --width: 300px;
   --max-width: 85vw;
 
   .menu-header {
     ion-toolbar {
-      --background: linear-gradient(135deg, #3880ff 0%, #2c6dd5 50%, #1e5bb8 100%);
+      --background: linear-gradient(
+        135deg,
+        #3880ff 0%,
+        #2c6dd5 50%,
+        #1e5bb8 100%
+      );
       --color: white;
       padding: 0;
       box-shadow: 0 4px 12px rgba(56, 128, 255, 0.3);
@@ -545,15 +610,22 @@ ion-menu {
       overflow: hidden;
 
       &::before {
-        content: '';
+        content: "";
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: 
-          radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-          radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+        background: radial-gradient(
+            circle at 20% 50%,
+            rgba(255, 255, 255, 0.15) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 80%,
+            rgba(255, 255, 255, 0.1) 0%,
+            transparent 50%
+          );
         pointer-events: none;
       }
     }
@@ -590,7 +662,7 @@ ion-menu {
     position: relative;
 
     &::after {
-      content: '';
+      content: "";
       position: absolute;
       bottom: 0;
       left: 20%;
@@ -616,8 +688,8 @@ ion-menu {
         z-index: 2;
         transition: transform 0.3s ease;
 
-        &:hover {
-          transform: scale(1.05);
+        &:active {
+          transform: scale(0.95);
         }
 
         ion-icon {
@@ -683,7 +755,7 @@ ion-menu {
       overflow: hidden;
 
       &::before {
-        content: '';
+        content: "";
         position: absolute;
         left: 0;
         top: 0;
@@ -694,10 +766,10 @@ ion-menu {
         transition: transform 0.3s ease;
       }
 
-      &:hover {
+      &:active {
         --background: linear-gradient(90deg, #f5f8ff 0%, #ffffff 100%);
         border-color: #e3f2fd;
-        transform: translateX(4px);
+        transform: translateX(2px) scale(0.98);
         box-shadow: 0 4px 12px rgba(56, 128, 255, 0.15);
 
         &::before {
@@ -706,22 +778,13 @@ ion-menu {
 
         .menu-icon {
           color: #3880ff;
-          transform: scale(1.1);
+          transform: scale(1.05);
         }
 
         .menu-label {
           color: #3880ff;
           font-weight: 600;
         }
-
-        .menu-arrow {
-          opacity: 1;
-          transform: translateX(4px);
-        }
-      }
-
-      &:active {
-        transform: translateX(2px) scale(0.98);
       }
 
       .menu-icon {
@@ -737,13 +800,6 @@ ion-menu {
         color: #333;
         transition: all 0.3s ease;
         flex: 1;
-      }
-
-      .menu-arrow {
-        font-size: 18px;
-        color: #999;
-        opacity: 0.5;
-        transition: all 0.3s ease;
       }
     }
   }
@@ -781,15 +837,11 @@ ion-menu {
         font-size: 15px;
       }
 
-      &:hover {
+      &:active {
         --color: #ffffff;
         --background: linear-gradient(135deg, #eb445a 0%, #d32f2f 100%);
         border-color: #eb445a;
         box-shadow: 0 4px 12px rgba(235, 68, 90, 0.3);
-        transform: translateY(-2px);
-      }
-
-      &:active {
         transform: translateY(0) scale(0.98);
       }
     }
@@ -801,10 +853,12 @@ ion-menu {
     transform: scale(1);
     opacity: 0.3;
   }
+
   50% {
     transform: scale(1.1);
     opacity: 0.2;
   }
+
   100% {
     transform: scale(1);
     opacity: 0.3;

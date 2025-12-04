@@ -5,8 +5,10 @@
 .login-wrapper {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  padding: 1rem;
+  // Đặt toàn bộ nội dung (logo + thẻ info) cao hơn, tránh nằm giữa màn hình
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2.5rem 1rem 1rem;
 }
 
 .login-grid {
@@ -293,7 +295,7 @@
 
   &::before,
   &::after {
-    content: '';
+    content: "";
     flex: 1;
     border-bottom: 1px solid #e5e7eb;
   }
@@ -430,7 +432,7 @@
       background: #f3f4f6;
       padding: 0.25rem 0.5rem;
       border-radius: 6px;
-      font-family: 'Courier New', monospace;
+      font-family: "Courier New", monospace;
       font-size: 0.75rem;
       font-weight: 600;
       color: #3b82f6;

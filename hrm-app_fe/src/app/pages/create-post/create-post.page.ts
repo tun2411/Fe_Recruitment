@@ -55,6 +55,11 @@ import {
   JobCreationStateService,
   RoundConfiguration,
 } from '../../services/job-creation-state.service';
+import {
+  NotificationService,
+  Notification,
+} from '../../services/notification.service';
+import { JdFormatPipe } from '../../pipes/jd-format.pipe';
 
 @Component({
   selector: 'app-create-post',
@@ -83,6 +88,7 @@ import {
     MatInputModule,
     MatDatepickerModule,
     MatIconModule,
+    JdFormatPipe,
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter },
@@ -92,7 +98,7 @@ import {
 })
 export class CreatePostPage implements OnInit {
   createPostForm: FormGroup;
-  notificationCount: number = 2;
+  notificationCount: number = 0;
   minDate: string = '';
   minDateValue: Date = new Date();
 
@@ -121,7 +127,8 @@ export class CreatePostPage implements OnInit {
     private jobPostService: JobPostService,
     private toastController: ToastController,
     private loadingController: LoadingController,
-    private jobCreationState: JobCreationStateService
+    private jobCreationState: JobCreationStateService,
+    private notificationService: NotificationService
   ) {
     addIcons({
       notificationsOutline,
@@ -160,6 +167,8 @@ export class CreatePostPage implements OnInit {
 
     // Clear state khi vào create-post (không cần xóa draft job vì không tạo draft nữa)
     this.jobCreationState.clear();
+
+    this.loadNotificationCount();
   }
 
   formatDate(dateString: string): string {
@@ -252,7 +261,7 @@ export class CreatePostPage implements OnInit {
   }
 
   onNotificationClick() {
-    console.log('Notification clicked');
+    this.router.navigate(['/notifications']);
   }
 
   async onSubmit() {
@@ -412,6 +421,21 @@ export class CreatePostPage implements OnInit {
     Object.keys(this.createPostForm.controls).forEach((key) => {
       const control = this.createPostForm.get(key);
       control?.markAsTouched();
+    });
+  }
+
+  private loadNotificationCount() {
+    this.notificationService.getNotifications().subscribe({
+      next: (notifications: Notification[]) => {
+        this.notificationCount = notifications.filter((n) => !n.isRead).length;
+      },
+      error: (error) => {
+        console.error(
+          '[CreatePostPage] Error loading notification count:',
+          error
+        );
+        this.notificationCount = 0;
+      },
     });
   }
 }

@@ -1,6 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormsModule,
+  FormBuilder,
+  FormGroup,
+  FormArray,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import {
   IonHeader,
@@ -38,15 +45,34 @@ import {
   addOutline,
   trashOutline,
 } from 'ionicons/icons';
-import {MatFormFieldModule} from "@angular/material/form-field";
-import {MatInputModule} from "@angular/material/input";
-import {MatDatepickerModule} from "@angular/material/datepicker";
-import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from "@angular/material/core";
-import {MatIconModule} from "@angular/material/icon";
-import {CustomDateAdapter, CUSTOM_DATE_FORMATS} from "../create-post/custom-date-adapter";
-import { JobPostService, UpdateJobRequest, JobResponse, JobRoundDTO } from '../../services/job-post.service';
-import { JobCreationStateService, RoundConfiguration } from '../../services/job-creation-state.service';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import {
+  DateAdapter,
+  MAT_DATE_FORMATS,
+  MAT_DATE_LOCALE,
+} from '@angular/material/core';
+import { MatIconModule } from '@angular/material/icon';
+import {
+  CustomDateAdapter,
+  CUSTOM_DATE_FORMATS,
+} from '../create-post/custom-date-adapter';
+import {
+  JobPostService,
+  UpdateJobRequest,
+  JobResponse,
+  JobRoundDTO,
+} from '../../services/job-post.service';
+import {
+  JobCreationStateService,
+  RoundConfiguration,
+} from '../../services/job-creation-state.service';
 import { TemplateService } from '../../services/template.service';
+import {
+  NotificationService,
+  Notification,
+} from '../../services/notification.service';
 import { forkJoin, of, firstValueFrom } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
@@ -86,12 +112,12 @@ import { map, catchError } from 'rxjs/operators';
 })
 export class EditPostPage implements OnInit {
   editPostForm: FormGroup;
-  notificationCount: number = 2;
+  notificationCount: number = 0;
   minDate: string = '';
   minDateValue: Date = new Date();
   jobId: number | null = null;
   jobData: JobResponse | null = null;
-  
+
   // Lưu mapping formId -> roundIndex trước khi update để map lại roundId sau
   private formIdToRoundIndexMap: { [formId: number]: number } = {};
 
@@ -123,7 +149,8 @@ export class EditPostPage implements OnInit {
     private loadingController: LoadingController,
     private jobCreationState: JobCreationStateService,
     private templateService: TemplateService,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private notificationService: NotificationService
   ) {
     addIcons({
       notificationsOutline,
@@ -160,6 +187,9 @@ export class EditPostPage implements OnInit {
     this.minDate = today.toISOString();
     this.minDateValue = today;
 
+    // Load notification count
+    this.loadNotificationCount();
+
     // Lấy jobId từ route params
     this.route.params.subscribe((params) => {
       this.jobId = params['id'] ? parseInt(params['id']) : null;
@@ -189,7 +219,10 @@ export class EditPostPage implements OnInit {
       },
       error: async (error) => {
         loading.dismiss();
-        this.showToast(error.message || 'Không thể tải dữ liệu bài đăng', 'danger');
+        this.showToast(
+          error.message || 'Không thể tải dữ liệu bài đăng',
+          'danger'
+        );
         this.router.navigate(['/home']);
       },
     });
@@ -275,8 +308,31 @@ export class EditPostPage implements OnInit {
     if (dateValue) {
       const date = new Date(dateValue);
       date.setHours(0, 0, 0, 0);
-      const isoString = date.toISOString();
-      this.editPostForm.patchValue({ deadline: isoString });
+
+      // Validation: Không cho chọn ngày nhỏ hơn hoặc bằng hôm nay
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (date <= today) {
+        this.editPostForm.get('deadline')?.setErrors({ invalidDate: true });
+        this.editPostForm.get('deadline')?.markAsTouched();
+
+        // Clear giá trị không hợp lệ
+        this.editPostForm.patchValue({ deadline: null });
+
+        this.toastController
+          .create({
+            message: 'Hạn bài đăng phải lớn hơn ngày hiện tại',
+            duration: 2000,
+            color: 'warning',
+            position: 'top',
+          })
+          .then((toast) => toast.present());
+        return;
+      }
+
+      this.editPostForm.patchValue({ deadline: date });
+      this.editPostForm.get('deadline')?.setErrors(null);
       this.editPostForm.get('deadline')?.markAsTouched();
     }
   }
@@ -285,7 +341,29 @@ export class EditPostPage implements OnInit {
     if (event.value) {
       const date = new Date(event.value);
       date.setHours(0, 0, 0, 0);
+
+      // Validation: Không cho chọn ngày nhỏ hơn hoặc bằng hôm nay
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (date <= today) {
+        this.editPostForm.get('deadline')?.setErrors({ invalidDate: true });
+        this.editPostForm.get('deadline')?.markAsTouched();
+        this.editPostForm.patchValue({ deadline: null });
+
+        this.toastController
+          .create({
+            message: 'Hạn bài đăng phải lớn hơn ngày hiện tại',
+            duration: 2000,
+            color: 'warning',
+            position: 'top',
+          })
+          .then((toast) => toast.present());
+        return;
+      }
+
       this.editPostForm.patchValue({ deadline: date });
+      this.editPostForm.get('deadline')?.setErrors(null);
       this.editPostForm.get('deadline')?.markAsTouched();
     }
   }
@@ -295,11 +373,19 @@ export class EditPostPage implements OnInit {
   }
 
   onBack() {
-    this.router.navigate(['/home']);
+    // Nếu có lịch sử, quay lại đúng trang trước đó (job-detail, home,...)
+    if (window.history.length > 1) {
+      window.history.back();
+    } else if (this.jobId) {
+      // Fallback: quay lại trang chi tiết bài đăng
+      this.router.navigate(['/job-detail', this.jobId]);
+    } else {
+      this.router.navigate(['/home']);
+    }
   }
 
   onNotificationClick() {
-    console.log('Notification clicked');
+    this.router.navigate(['/notifications']);
   }
 
   async onSubmit() {
@@ -323,7 +409,7 @@ export class EditPostPage implements OnInit {
     await loading.present();
 
     const formValue = this.editPostForm.value;
-    
+
     // Parse salaryFrom và salaryTo từ form (backend yêu cầu number)
     let salaryFrom: number | undefined = undefined;
     let salaryTo: number | undefined = undefined;
@@ -354,7 +440,7 @@ export class EditPostPage implements OnInit {
       } else {
         date = new Date(formValue.deadline);
       }
-      
+
       // Lấy local date components (không bị ảnh hưởng timezone)
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -370,17 +456,17 @@ export class EditPostPage implements OnInit {
     const roundCount = formValue.recruitmentRound || 1;
     const currentRounds = this.jobData?.rounds || [];
     const oldRoundCount = this.jobData?.roundCount || 0;
-    
+
     let rounds: JobRoundDTO[] | undefined = undefined;
-    
+
     // Chỉ build rounds nếu roundCount thay đổi
     if (roundCount !== oldRoundCount) {
       // Trước khi update, lưu mapping formId -> roundIndex từ rounds cũ
       // để có thể map lại roundId mới sau khi rounds được tạo lại
       this.saveFormToRoundIndexMapping(currentRounds);
-      
+
       rounds = [];
-      
+
       if (roundCount > oldRoundCount) {
         // Trường hợp TĂNG số vòng: Giữ hết vòng cũ + thêm vòng mới ở cuối
         // 1. Giữ lại tất cả rounds cũ
@@ -392,7 +478,7 @@ export class EditPostPage implements OnInit {
             isConfirmed: existingRound?.isConfirmed || false,
           });
         }
-        
+
         // 2. Thêm rounds mới ở cuối
         for (let i = oldRoundCount; i < roundCount; i++) {
           rounds.push({
@@ -412,10 +498,12 @@ export class EditPostPage implements OnInit {
           });
         }
       }
-      
+
       // Validation: Đảm bảo số lượng rounds = roundCount mới (backend yêu cầu)
       if (rounds.length !== roundCount) {
-        console.error(`Round count mismatch: expected ${roundCount}, got ${rounds.length}`);
+        console.error(
+          `Round count mismatch: expected ${roundCount}, got ${rounds.length}`
+        );
         // Fallback: Tạo lại rounds từ đầu nếu có lỗi
         rounds = [];
         for (let i = 0; i < roundCount; i++) {
@@ -461,8 +549,10 @@ export class EditPostPage implements OnInit {
 
               // Cập nhật state với job data và rounds mới
               this.jobCreationState.setJobId(updatedJob.id!);
-              this.jobCreationState.setRoundCount(updatedJob.roundCount || roundCount);
-              
+              this.jobCreationState.setRoundCount(
+                updatedJob.roundCount || roundCount
+              );
+
               // Convert JobResponse sang CreateJobRequest format để lưu vào state
               const jobDataForState = {
                 title: updatedJob.title,
@@ -478,16 +568,18 @@ export class EditPostPage implements OnInit {
                 deadline: updatedJob.deadline,
               };
               this.jobCreationState.setJobData(jobDataForState);
-              
+
               // Convert JobRoundDTO[] sang RoundConfiguration[]
               // QUAN TRỌNG: Giữ lại template data từ state cũ để không mất cấu hình
               const existingRounds = this.jobCreationState.getRounds();
-              const roundsConfig: RoundConfiguration[] = (updatedJob.rounds || []).map((round) => {
+              const roundsConfig: RoundConfiguration[] = (
+                updatedJob.rounds || []
+              ).map((round) => {
                 // Tìm round tương ứng trong existingRounds để giữ template data
                 const existingRound = existingRounds?.find(
                   (r) => r.roundIndex === round.roundIndex
                 );
-                
+
                 const newRound: RoundConfiguration = {
                   roundIndex: round.roundIndex,
                   roundName: round.roundName,
@@ -497,16 +589,20 @@ export class EditPostPage implements OnInit {
                   passEmailTemplate: existingRound?.passEmailTemplate,
                   failEmailTemplate: existingRound?.failEmailTemplate,
                 };
-                
+
                 // Giữ lại templateId nếu có
                 if (existingRound) {
-                  (newRound as any).passTemplateId = (existingRound as any).passTemplateId;
-                  (newRound as any).failTemplateId = (existingRound as any).failTemplateId;
+                  (newRound as any).passTemplateId = (
+                    existingRound as any
+                  ).passTemplateId;
+                  (newRound as any).failTemplateId = (
+                    existingRound as any
+                  ).failTemplateId;
                 }
-                
+
                 return newRound;
               });
-              
+
               // Merge với existingRounds để giữ template của rounds không có trong updatedJob.rounds
               // (trường hợp hiếm, nhưng đảm bảo không mất data)
               if (existingRounds && existingRounds.length > 0) {
@@ -520,7 +616,7 @@ export class EditPostPage implements OnInit {
                   }
                 });
               }
-              
+
               this.jobCreationState.setRounds(roundsConfig);
 
               // Lưu roundIds vào state
@@ -534,10 +630,12 @@ export class EditPostPage implements OnInit {
 
               // Map lại roundId cho các forms dựa trên roundIndex
               // Tạo map: roundIndex -> roundId mới
-              const roundIndexToNewRoundId: { [roundIndex: number]: number } = {};
+              const roundIndexToNewRoundId: { [roundIndex: number]: number } =
+                {};
               updatedJob.rounds.forEach((newRound) => {
                 if (newRound.roundId) {
-                  roundIndexToNewRoundId[newRound.roundIndex] = newRound.roundId;
+                  roundIndexToNewRoundId[newRound.roundIndex] =
+                    newRound.roundId;
                 }
               });
 
@@ -545,7 +643,8 @@ export class EditPostPage implements OnInit {
               await this.updateFormsRoundId(roundIndexToNewRoundId);
 
               const toast = await this.toastController.create({
-                message: 'Cập nhật số vòng thành công! Tiếp tục cấu hình các vòng...',
+                message:
+                  'Cập nhật số vòng thành công! Tiếp tục cấu hình các vòng...',
                 duration: 3000,
                 color: 'success',
                 position: 'top',
@@ -554,16 +653,17 @@ export class EditPostPage implements OnInit {
 
               // Chuyển sang trang cấu hình rounds
               this.router.navigate(['/configure-rounds'], {
-                queryParams: { 
+                queryParams: {
                   jobId: this.jobId,
-                  fromEdit: 'true'
+                  fromEdit: 'true',
                 },
               });
             },
             error: async (error) => {
               await loading.dismiss();
               const toast = await this.toastController.create({
-                message: 'Cập nhật thành công nhưng không thể tải dữ liệu rounds mới',
+                message:
+                  'Cập nhật thành công nhưng không thể tải dữ liệu rounds mới',
                 duration: 3000,
                 color: 'warning',
                 position: 'top',
@@ -592,7 +692,8 @@ export class EditPostPage implements OnInit {
         await loading.dismiss();
 
         const toast = await this.toastController.create({
-          message: error.message || 'Cập nhật bài đăng thất bại. Vui lòng thử lại.',
+          message:
+            error.message || 'Cập nhật bài đăng thất bại. Vui lòng thử lại.',
           duration: 3000,
           color: 'danger',
           position: 'top',
@@ -603,6 +704,7 @@ export class EditPostPage implements OnInit {
   }
 
   onCancel() {
+    // Luôn quay về trang home khi ấn cancel
     this.router.navigate(['/home']);
   }
 
@@ -615,6 +717,21 @@ export class EditPostPage implements OnInit {
     Object.keys(this.editPostForm.controls).forEach((key) => {
       const control = this.editPostForm.get(key);
       control?.markAsTouched();
+    });
+  }
+
+  private loadNotificationCount() {
+    this.notificationService.getNotifications().subscribe({
+      next: (notifications: Notification[]) => {
+        this.notificationCount = notifications.filter((n) => !n.isRead).length;
+      },
+      error: (error) => {
+        console.error(
+          '[EditPostPage] Error loading notification count:',
+          error
+        );
+        this.notificationCount = 0;
+      },
     });
   }
 
@@ -652,7 +769,9 @@ export class EditPostPage implements OnInit {
 
     try {
       // Load job data mới nhất từ backend
-      const job = await firstValueFrom(this.jobPostService.getJobPostById(this.jobId));
+      const job = await firstValueFrom(
+        this.jobPostService.getJobPostById(this.jobId)
+      );
       this.jobData = job;
 
       // Cập nhật state với job data hiện tại
@@ -674,11 +793,13 @@ export class EditPostPage implements OnInit {
       this.jobCreationState.setRoundCount(job.roundCount || 1);
 
       // Convert JobRoundDTO[] sang RoundConfiguration[]
-      const roundsConfig: RoundConfiguration[] = (job.rounds || []).map((round) => ({
-        roundIndex: round.roundIndex,
-        roundName: round.roundName,
-        isConfirmed: round.isConfirmed || false,
-      }));
+      const roundsConfig: RoundConfiguration[] = (job.rounds || []).map(
+        (round) => ({
+          roundIndex: round.roundIndex,
+          roundName: round.roundName,
+          isConfirmed: round.isConfirmed || false,
+        })
+      );
       this.jobCreationState.setRounds(roundsConfig);
 
       // Lưu roundIds
@@ -696,7 +817,7 @@ export class EditPostPage implements OnInit {
       this.router.navigate(['/configure-rounds'], {
         queryParams: {
           jobId: this.jobId,
-          fromEdit: 'true'
+          fromEdit: 'true',
         },
       });
     } catch (error) {
@@ -718,18 +839,18 @@ export class EditPostPage implements OnInit {
    */
   private async saveFormToRoundIndexMapping(currentRounds: JobRoundDTO[]) {
     this.formIdToRoundIndexMap = {};
-    
+
     // Với mỗi round, lấy tất cả forms có roundId tương ứng
     // Lưu mapping: formId -> roundIndex
     const roundPromises = currentRounds.map(async (round) => {
       if (!round.roundId) return;
-      
+
       try {
         // Lấy templates (forms) theo roundId
         const response = await firstValueFrom(
           this.templateService.getTemplates(undefined, round.roundId!)
         );
-        
+
         // Lưu mapping formId -> roundIndex
         response.templates.forEach((template) => {
           if (template.formId) {
@@ -737,21 +858,27 @@ export class EditPostPage implements OnInit {
           }
         });
       } catch (error) {
-        console.error(`[EditPost] Error loading forms for round ${round.roundId}:`, error);
+        console.error(
+          `[EditPost] Error loading forms for round ${round.roundId}:`,
+          error
+        );
       }
     });
-    
+
     await Promise.all(roundPromises);
-    console.log('[EditPost] Saved formId -> roundIndex mapping:', this.formIdToRoundIndexMap);
+    console.log(
+      '[EditPost] Saved formId -> roundIndex mapping:',
+      this.formIdToRoundIndexMap
+    );
   }
 
   /**
    * Cập nhật roundId cho các forms sau khi rounds được tạo lại
    * Map lại roundId mới dựa trên roundIndex đã lưu
    */
-  private async updateFormsRoundId(
-    roundIndexToNewRoundIdMap: { [roundIndex: number]: number }
-  ) {
+  private async updateFormsRoundId(roundIndexToNewRoundIdMap: {
+    [roundIndex: number]: number;
+  }) {
     if (Object.keys(this.formIdToRoundIndexMap).length === 0) {
       console.log('[EditPost] No forms to update');
       return;
@@ -759,23 +886,28 @@ export class EditPostPage implements OnInit {
 
     // Tạo danh sách các update requests
     const updatePromises: Promise<any>[] = [];
-    
+
     Object.keys(this.formIdToRoundIndexMap).forEach((formIdStr) => {
       const formId = parseInt(formIdStr);
       const roundIndex = this.formIdToRoundIndexMap[formId];
       const newRoundId = roundIndexToNewRoundIdMap[roundIndex];
-      
+
       // Chỉ update nếu có roundId mới tương ứng với roundIndex
       if (newRoundId) {
         updatePromises.push(
           firstValueFrom(
-            this.templateService.updateForm(formId, { roundId: newRoundId }).pipe(
-              map(() => ({ formId, roundIndex, newRoundId })),
-              catchError((error) => {
-                console.error(`[EditPost] Error updating form ${formId}:`, error);
-                return of(null);
-              })
-            )
+            this.templateService
+              .updateForm(formId, { roundId: newRoundId })
+              .pipe(
+                map(() => ({ formId, roundIndex, newRoundId })),
+                catchError((error) => {
+                  console.error(
+                    `[EditPost] Error updating form ${formId}:`,
+                    error
+                  );
+                  return of(null);
+                })
+              )
           )
         );
       }
@@ -785,11 +917,11 @@ export class EditPostPage implements OnInit {
     try {
       const results = await Promise.all(updatePromises);
       const successCount = results.filter((r) => r !== null).length;
-      console.log(`[EditPost] Updated ${successCount}/${updatePromises.length} forms with new roundId`);
+      console.log(
+        `[EditPost] Updated ${successCount}/${updatePromises.length} forms with new roundId`
+      );
     } catch (error) {
       console.error('[EditPost] Error updating forms roundId:', error);
     }
   }
 }
-
-

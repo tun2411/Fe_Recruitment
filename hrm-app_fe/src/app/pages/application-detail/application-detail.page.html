@@ -1,4 +1,4 @@
-<ion-header [translucent]="true">
+<ion-header [translucent]="true" class="page-header">
     <ion-toolbar color="primary">
         <ion-buttons slot="start">
             <ion-back-button defaultHref="/candidates"></ion-back-button>
@@ -47,7 +47,8 @@
                 </ion-item>
 
                 <ion-item lines="none">
-                    <ion-icon name="checkmark-circle-outline" slot="start" [color]="getStatusColor(application.status)"></ion-icon>
+                    <ion-icon name="checkmark-circle-outline" slot="start"
+                        [color]="getStatusColor(application.status)"></ion-icon>
                     <ion-label>
                         <h2>Trạng thái</h2>
                         <p>
@@ -131,19 +132,11 @@
 
         <!-- Action Buttons -->
         <div class="action-buttons" *ngIf="canUpdateStatus()">
-            <ion-button 
-                color="danger" 
-                expand="block" 
-                (click)="onFail()" 
-                [disabled]="processing || !canUpdateStatus()">
+            <ion-button color="danger" expand="block" (click)="onFail()" [disabled]="processing || !canUpdateStatus()">
                 <ion-icon name="close-circle-outline" slot="start"></ion-icon>
                 Không đạt
             </ion-button>
-            <ion-button 
-                color="success" 
-                expand="block" 
-                (click)="onPass()" 
-                [disabled]="processing || !canUpdateStatus()">
+            <ion-button color="success" expand="block" (click)="onPass()" [disabled]="processing || !canUpdateStatus()">
                 <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
                 Đạt
             </ion-button>
@@ -156,11 +149,7 @@
             </ion-card-header>
             <ion-card-content>
                 <ion-item>
-                    <ion-textarea 
-                        [(ngModel)]="note" 
-                        placeholder="Nhập ghi chú về ứng viên..." 
-                        rows="4"
-                        autoGrow="true">
+                    <ion-textarea [(ngModel)]="note" placeholder="Nhập ghi chú về ứng viên..." rows="4" autoGrow="true">
                     </ion-textarea>
                 </ion-item>
             </ion-card-content>
@@ -171,10 +160,26 @@
             <ion-card-content>
                 <p class="status-message">
                     <ion-icon name="information-circle-outline" color="medium"></ion-icon>
-                    Đơn ứng tuyển đã được xử lý. Trạng thái: 
+                    Đơn ứng tuyển đã được xử lý. Trạng thái:
                     <strong>{{ getStatusText(application.status) }}</strong>
                 </p>
             </ion-card-content>
         </ion-card>
     </div>
 </ion-content>
+
+<!-- Bottom Navigation Bar -->
+<div class="bottom-nav">
+    <div class="nav-item" (click)="navigateToDashboard()">
+        <ion-icon name="grid-outline"></ion-icon>
+        <span>Dashboard</span>
+    </div>
+    <div class="nav-item active">
+        <ion-icon name="briefcase-outline"></ion-icon>
+        <span>Jobs</span>
+    </div>
+    <div class="nav-item" (click)="onEmailManagement()">
+        <ion-icon name="mail-outline"></ion-icon>
+        <span>Mail</span>
+    </div>
+</div>

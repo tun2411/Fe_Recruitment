@@ -56,53 +56,61 @@
   </ion-content>
 </ion-menu>
 
-<ion-header class="custom-header" id="main-content">
-  <ion-toolbar color="primary">
-    <div class="header-content">
-      <ion-menu-button menu="main-menu" class="menu-button">
-      <div class="header-icon-circle">
-        <ion-icon name="person-outline"></ion-icon>
-      </div>
-      </ion-menu-button>
-      <ion-title class="header-title">BÀI ĐĂNG</ion-title>
-      <div class="notification-wrapper" (click)="onNotificationClick()">
-        <ion-icon name="notifications-outline" class="notification-icon"></ion-icon>
-        <ion-badge color="danger" class="notification-badge">{{ notificationCount }}</ion-badge>
+<!-- Main Content -->
+<ion-content [fullscreen]="true" class="home-content" id="main-content">
+  <!-- Header + Search + Sort/Filter (scroll cùng content, không fixed) -->
+  <div class="header-wrapper">
+    <!-- Main Header Section (Dark Blue) - Gồm header title và search bar tích hợp -->
+    <div class="main-header-section">
+      <!-- Header Title Bar -->
+      <ion-header class="main-header">
+        <ion-toolbar color="primary">
+          <div class="header-content">
+            <ion-menu-button menu="main-menu" class="menu-button">
+              <div class="header-icon-circle">
+                <ion-icon name="person-outline"></ion-icon>
+              </div>
+            </ion-menu-button>
+            <ion-title class="header-title">BÀI ĐĂNG</ion-title>
+            <div class="notification-wrapper" (click)="onNotificationClick()">
+              <ion-icon name="notifications-outline" class="notification-icon"></ion-icon>
+              <ion-badge color="danger" class="notification-badge">{{ notificationCount }}</ion-badge>
+            </div>
+          </div>
+        </ion-toolbar>
+      </ion-header>
+
+      <!-- Search Bar - Tích hợp vào header, cùng background blue -->
+      <div class="search-container">
+        <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="onSearch($event)" placeholder="Tìm kiếm..."
+          class="custom-searchbar" show-clear-button="focus">
+        </ion-searchbar>
       </div>
     </div>
-  </ion-toolbar>
-</ion-header>
 
-<div class="search-container">
-  <ion-searchbar
-    [(ngModel)]="searchTerm"
-    (ionInput)="onSearch($event)"
-    placeholder="Tìm kiếm..."
-    class="custom-searchbar"
-    show-clear-button="focus"
-  ></ion-searchbar>
-</div>
-
-<ion-content [fullscreen]="true" class="home-content">
-  <div class="action-bar">
-    <ion-button fill="outline" class="action-button" (click)="onSort()">
-      <ion-icon name="arrow-down-outline" slot="start"></ion-icon>
-      Sort
-      <ion-icon name="chevron-down-outline" slot="end" class="chevron-icon"></ion-icon>
-    </ion-button>
-    <ion-button fill="clear" class="refresh-button" (click)="onRefresh()">
-      <ion-icon name="refresh-outline"></ion-icon>
-    </ion-button>
-    <ion-button fill="outline" class="action-button" (click)="onFilter()">
-      <ion-icon name="filter-outline" slot="start"></ion-icon>
-      Filter
-      <ion-badge color="primary" class="filter-badge">{{ filterCount }}</ion-badge>
-    </ion-button>
+    <!-- Sort & Filter Bar (Light Blue) - Dưới header section -->
+    <div class="sort-filter-bar">
+      <ion-button fill="outline" class="action-btn sort-btn" (click)="onSort()">
+        <ion-icon name="arrow-down-outline" slot="start"></ion-icon>
+        Sort
+        <ion-icon name="chevron-down-outline" slot="end" class="chevron-icon"></ion-icon>
+      </ion-button>
+      <ion-button fill="outline" class="action-btn filter-btn" (click)="onFilter()">
+        <ion-icon name="filter-outline" slot="start"></ion-icon>
+        Filter
+        <ion-badge color="danger" class="filter-badge">{{ filterCount }}</ion-badge>
+      </ion-button>
+    </div>
   </div>
 
+  <!-- Pull to Refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
+  <!-- Posts Container -->
   <div class="posts-container">
-    <!-- Hiển thị thông báo khi không có posts -->
+    <!-- Empty State -->
     <div *ngIf="filteredPosts.length === 0" class="empty-state">
       <p>Chưa có bài đăng nào. Hãy tạo bài đăng mới!</p>
       <ion-button fill="outline" (click)="onCreatePost()">
@@ -110,8 +118,8 @@
       </ion-button>
     </div>
 
-    <!-- Danh sách posts -->
-    <ion-card *ngFor="let post of filteredPosts; trackBy: trackByPostId" class="post-card">
+    <!-- Job Posts List -->
+    <ion-card *ngFor="let post of filteredPosts; trackBy: trackByPostId" class="post-card" (click)="onViewDetail(post)">
       <ion-card-content>
         <div class="post-content">
           <div class="post-header">
@@ -140,7 +148,9 @@
                 <span class="field-value">{{ post.address || 'Chưa có địa chỉ' }}</span>
               </div>
             </div>
-            <ion-badge color="danger" class="post-badge" *ngIf="post.roundCount">{{ post.roundCount }}</ion-badge>
+            <ion-badge color="danger" class="post-badge" *ngIf="post.candidateCount !== undefined">
+              {{ post.candidateCount }}
+            </ion-badge>
           </div>
           <div class="post-footer">
             <span class="post-date">
@@ -148,10 +158,11 @@
               {{ post.updatedAt }}
             </span>
             <div class="post-actions">
-              <ion-button fill="outline" size="small" (click)="onViewList(post)">
+              <ion-button fill="outline" size="small" (click)="onViewList(post); $event.stopPropagation()">
                 List
               </ion-button>
-              <ion-button fill="solid" color="primary" size="small" (click)="onViewDetail(post)">
+              <ion-button fill="solid" color="primary" size="small"
+                (click)="onViewDetail(post); $event.stopPropagation()">
                 Detail
               </ion-button>
             </div>
@@ -168,6 +179,7 @@
     </div>
   </div>
 
+  <!-- Floating Action Button -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="create-fab">
     <ion-fab-button color="primary" (click)="onCreatePost()">
       <ion-icon name="add-outline"></ion-icon>

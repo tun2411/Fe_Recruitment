@@ -10,15 +10,14 @@ import {
   IonButtons,
   IonIcon,
   IonInput,
-  IonTextarea,
   IonItem,
-  IonLabel,
   LoadingController,
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { arrowBackOutline } from 'ionicons/icons';
+import { arrowBackOutline, copyOutline } from 'ionicons/icons';
 import { JobPostService, JobResponse } from '../../services/job-post.service';
+import { JdFormatPipe } from '../../pipes/jd-format.pipe';
 
 @Component({
   selector: 'app-job-detail',
@@ -35,8 +34,7 @@ import { JobPostService, JobResponse } from '../../services/job-post.service';
     IonButtons,
     IonIcon,
     IonInput,
-    IonTextarea,
-    IonLabel,
+    JdFormatPipe,
   ],
 })
 export class JobDetailPage implements OnInit {
@@ -52,6 +50,7 @@ export class JobDetailPage implements OnInit {
   ) {
     addIcons({
       arrowBackOutline,
+      copyOutline,
     });
   }
 
@@ -173,6 +172,20 @@ export class JobDetailPage implements OnInit {
 
   onCancel() {
     this.router.navigate(['/home']);
+  }
+
+  async copyApplyUrl() {
+    if (!this.jobData?.applyUrl) {
+      await this.showToast('Không có URL để copy', 'danger');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(this.jobData.applyUrl);
+      await this.showToast('Đã copy URL vào clipboard', 'success');
+    } catch (e) {
+      await this.showToast('Không thể copy URL', 'danger');
+    }
   }
 
   private async showToast(message: string, color: string) {

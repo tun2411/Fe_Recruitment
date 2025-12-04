@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Platform, MenuController } from '@ionic/angular';
+import { App } from '@capacitor/app';
 import {
   IonHeader,
   IonToolbar,
@@ -20,8 +22,11 @@ import {
   IonItem,
   IonLabel,
   IonMenuButton,
+  IonRefresher,
+  IonRefresherContent,
   LoadingController,
   ToastController,
+  RefresherCustomEvent,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -42,7 +47,19 @@ import {
   personCircleOutline,
   chevronForwardOutline,
 } from 'ionicons/icons';
-import { JobPostService, JobPost, JobResponse } from '../services/job-post.service';
+import {
+  JobPostService,
+  JobPost,
+  JobResponse,
+} from '../services/job-post.service';
+import {
+  ApplicationService,
+  Application,
+} from '../services/application.service';
+import {
+  NotificationService,
+  Notification,
+} from '../services/notification.service';
 import { AuthService } from '../services/auth.service';
 import { forkJoin, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
@@ -56,6 +73,7 @@ export interface Post {
   address?: string;
   workTime?: string;
   roundCount?: number;
+  candidateCount?: number;
 }
 
 @Component({
@@ -83,22 +101,29 @@ export interface Post {
     IonItem,
     IonLabel,
     IonMenuButton,
+    IonRefresher,
+    IonRefresherContent,
   ],
 })
 export class HomePage implements OnInit {
   posts: Post[] = [];
   filteredPosts: Post[] = [];
   searchTerm: string = '';
-  notificationCount: number = 2;
+  notificationCount: number = 0;
   filterCount: number = 2;
   userInfo: any = null;
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private jobPostService: JobPostService,
+    private applicationService: ApplicationService,
     private loadingController: LoadingController,
     private toastController: ToastController,
-    private authService: AuthService
+    private authService: AuthService,
+    private notificationService: NotificationService,
+    private menuController: MenuController,
+    private platform: Platform
   ) {
     addIcons({
       notificationsOutline,
@@ -123,6 +148,19 @@ export class HomePage implements OnInit {
   ngOnInit() {
     this.loadPosts();
     this.loadUserInfo();
+    this.loadNotificationCount();
+
+    // Xử lý nút back cứng trên mobile: ở màn Home chỉ thoát app, không xóa localStorage
+    if (this.platform.is('android') || this.platform.is('ios')) {
+      this.platform.backButton.subscribeWithPriority(10, () => {
+        // Nếu đang ở /home thì thoát app, không đụng tới localStorage
+        if (this.router.url === '/home') {
+          App.exitApp();
+        } else {
+          window.history.back();
+        }
+      });
+    }
   }
 
   loadUserInfo() {
@@ -138,26 +176,36 @@ export class HomePage implements OnInit {
   ionViewWillEnter() {
     console.log('[HomePage] ionViewWillEnter - reloading posts...');
     this.loadPosts();
+    this.loadNotificationCount();
+
+    // Nếu được yêu cầu, tự động mở lại menu sidebar
+    const openMenu = this.route.snapshot.queryParamMap.get('openMenu');
+    if (openMenu === 'true') {
+      this.menuController.open('main-menu');
+    }
   }
 
   /**
    * Chuyển đổi JobResponse từ API thành Post để hiển thị
    */
-  private mapJobResponseToPost(job: JobResponse): Post {
+  private mapJobResponseToPost(job: JobResponse, candidateCount: number): Post {
     // Format date từ ISO string sang định dạng dễ đọc
     let formattedDate = 'Chưa cập nhật';
     if (job.updatedAt && job.updatedAt.trim() !== '') {
       try {
         const date = new Date(job.updatedAt);
         if (!isNaN(date.getTime())) {
-          formattedDate = date.toLocaleDateString('vi-VN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-          }) + ' ' + date.toLocaleTimeString('vi-VN', {
-            hour: '2-digit',
-            minute: '2-digit',
-          });
+          formattedDate =
+            date.toLocaleDateString('vi-VN', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            }) +
+            ' ' +
+            date.toLocaleTimeString('vi-VN', {
+              hour: '2-digit',
+              minute: '2-digit',
+            });
         }
       } catch (e) {
         console.warn('Error formatting date:', e);
@@ -169,7 +217,9 @@ export class HomePage implements OnInit {
     if (job.salaryFrom !== undefined && job.salaryFrom !== null) {
       if (job.salaryTo !== undefined && job.salaryTo !== null) {
         // Format: "10.000.000 - 20.000.000 VNĐ"
-        salary = `${this.formatCurrency(job.salaryFrom)} - ${this.formatCurrency(job.salaryTo)} VNĐ`;
+        salary = `${this.formatCurrency(
+          job.salaryFrom
+        )} - ${this.formatCurrency(job.salaryTo)} VNĐ`;
       } else {
         // Chỉ có salaryFrom
         salary = `Từ ${this.formatCurrency(job.salaryFrom)} VNĐ`;
@@ -183,13 +233,15 @@ export class HomePage implements OnInit {
 
     // Format workTime
     const workTimeMap: { [key: string]: string } = {
-      'fulltime': 'Fulltime',
-      'parttime': 'Parttime',
-      'internship': 'Internship',
-      'contract': 'Contract',
-      'freelance': 'Freelance',
+      fulltime: 'Fulltime',
+      parttime: 'Parttime',
+      internship: 'Internship',
+      contract: 'Contract',
+      freelance: 'Freelance',
     };
-    const workTime = job.workTime ? (workTimeMap[job.workTime.toLowerCase()] || job.workTime) : '';
+    const workTime = job.workTime
+      ? workTimeMap[job.workTime.toLowerCase()] || job.workTime
+      : '';
 
     return {
       id: job.id,
@@ -200,6 +252,7 @@ export class HomePage implements OnInit {
       address: job.location || '',
       workTime: workTime,
       roundCount: job.roundCount,
+      candidateCount,
     };
   }
 
@@ -237,7 +290,10 @@ export class HomePage implements OnInit {
         const detailRequests = jobPosts.map((jobPost) =>
           this.jobPostService.getJobPostById(jobPost.id).pipe(
             catchError((error) => {
-              console.warn(`[HomePage] Failed to load details for job ${jobPost.id}:`, error);
+              console.warn(
+                `[HomePage] Failed to load details for job ${jobPost.id}:`,
+                error
+              );
               // Trả về null nếu lỗi, sẽ được filter sau
               return of(null);
             })
@@ -247,19 +303,79 @@ export class HomePage implements OnInit {
         // Load tất cả chi tiết song song
         forkJoin(detailRequests).subscribe({
           next: (jobDetails: (JobResponse | null)[]) => {
-            // Filter bỏ các job null và map sang Post
-            this.posts = jobDetails
-              .filter((job): job is JobResponse => job !== null)
-              .map((job) => this.mapJobResponseToPost(job));
-            
-            this.filteredPosts = [...this.posts];
-            console.log('[HomePage] Mapped posts with details:', this.posts);
-            loading.dismiss();
+            // Filter bỏ các job null
+            const validJobs = jobDetails.filter(
+              (job): job is JobResponse => job !== null
+            );
+
+            if (validJobs.length === 0) {
+              this.posts = [];
+              this.filteredPosts = [];
+              loading.dismiss();
+              return;
+            }
+
+            // Với mỗi job, gọi API lấy danh sách ứng viên để đếm số lượng
+            const candidateCountRequests = validJobs.map((job) =>
+              this.applicationService.getApplicationsByJobId(job.id).pipe(
+                map((apps: Application[]) => ({
+                  jobId: job.id,
+                  count: apps.length,
+                })),
+                catchError((error) => {
+                  console.warn(
+                    `[HomePage] Failed to load candidate count for job ${job.id}:`,
+                    error
+                  );
+                  return of({ jobId: job.id, count: 0 });
+                })
+              )
+            );
+
+            forkJoin(candidateCountRequests).subscribe({
+              next: (counts) => {
+                const countMap = new Map<number, number>();
+                counts.forEach((c) => countMap.set(c.jobId, c.count));
+
+                this.posts = validJobs.map((job) =>
+                  this.mapJobResponseToPost(job, countMap.get(job.id) || 0)
+                );
+
+                this.filteredPosts = [...this.posts];
+                console.log(
+                  '[HomePage] Mapped posts with details and candidate counts:',
+                  this.posts
+                );
+                loading.dismiss();
+              },
+              error: async (error) => {
+                loading.dismiss();
+                console.error(
+                  '[HomePage] Error loading candidate counts:',
+                  error
+                );
+
+                // Fallback: không có candidate count, chỉ map job details
+                this.posts = validJobs.map((job) =>
+                  this.mapJobResponseToPost(job, 0)
+                );
+                this.filteredPosts = [...this.posts];
+
+                const toast = await this.toastController.create({
+                  message:
+                    'Đã tải danh sách nhưng số lượng ứng viên chưa đầy đủ',
+                  duration: 2000,
+                  color: 'warning',
+                  position: 'top',
+                });
+                await toast.present();
+              },
+            });
           },
           error: async (error) => {
             loading.dismiss();
             console.error('[HomePage] Error loading job details:', error);
-            
+
             // Fallback: sử dụng dữ liệu cơ bản nếu không load được chi tiết
             this.posts = jobPosts.map((jobPost) => ({
               id: jobPost.id,
@@ -270,11 +386,13 @@ export class HomePage implements OnInit {
               address: jobPost.location || '',
               workTime: '',
               roundCount: jobPost.roundCount,
+              candidateCount: 0,
             }));
             this.filteredPosts = [...this.posts];
-            
+
             const toast = await this.toastController.create({
-              message: 'Đã tải danh sách nhưng một số thông tin chi tiết chưa có',
+              message:
+                'Đã tải danh sách nhưng một số thông tin chi tiết chưa có',
               duration: 2000,
               color: 'warning',
               position: 'top',
@@ -303,6 +421,18 @@ export class HomePage implements OnInit {
     });
   }
 
+  private loadNotificationCount() {
+    this.notificationService.getNotifications().subscribe({
+      next: (notifications: Notification[]) => {
+        this.notificationCount = notifications.filter((n) => !n.isRead).length;
+      },
+      error: (error) => {
+        console.error('[HomePage] Error loading notification count:', error);
+        this.notificationCount = 0;
+      },
+    });
+  }
+
   onSearch(event: any) {
     this.searchTerm = event.detail.value || '';
     this.filterPosts();
@@ -326,11 +456,9 @@ export class HomePage implements OnInit {
     this.filteredPosts.reverse();
   }
 
-  onRefresh(event?: any) {
+  handleRefresh(event: RefresherCustomEvent) {
     this.loadPosts().then(() => {
-      if (event?.target) {
-        event.target.complete();
-      }
+      event.target.complete();
     });
   }
 

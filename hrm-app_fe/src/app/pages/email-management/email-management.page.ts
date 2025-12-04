@@ -28,7 +28,10 @@ import {
   chevronForwardOutline,
   addOutline,
 } from 'ionicons/icons';
-import { TemplateService, TemplateResponse } from '../../services/template.service';
+import {
+  TemplateService,
+  TemplateResponse,
+} from '../../services/template.service';
 import { firstValueFrom } from 'rxjs';
 
 export interface EmailTemplateItem {
@@ -125,8 +128,10 @@ export class EmailManagementPage implements OnInit {
 
     try {
       // Load tất cả templates (không filter)
-      const response = await firstValueFrom(this.templateService.getTemplates());
-      
+      const response = await firstValueFrom(
+        this.templateService.getTemplates()
+      );
+
       // Convert TemplateResponse sang EmailTemplateItem và group theo type
       this.emailTemplates = (response.templates || []).map((template) => ({
         id: template.formId,
@@ -154,7 +159,7 @@ export class EmailManagementPage implements OnInit {
     } catch (error: any) {
       await loading.dismiss();
       console.error('Error loading email templates:', error);
-      
+
       // Fallback: khởi tạo empty arrays
       this.templatesByCategory = {
         pass: [],
@@ -177,7 +182,9 @@ export class EmailManagementPage implements OnInit {
     }
   }
 
-  async loadTemplatesForCategory(categoryType: 'pass' | 'fail' | 'apply_confirm') {
+  async loadTemplatesForCategory(
+    categoryType: 'pass' | 'fail' | 'apply_confirm'
+  ) {
     try {
       const response = await firstValueFrom(
         this.templateService.getTemplates(categoryType)
@@ -189,7 +196,9 @@ export class EmailManagementPage implements OnInit {
           name: template.formName || 'Unnamed Template',
           type: template.type,
           subject: template.subject || '',
-          lastModified: this.formatDate(template.updatedAt || template.createdAt),
+          lastModified: this.formatDate(
+            template.updatedAt || template.createdAt
+          ),
           isActive: true,
         })
       );
@@ -198,7 +207,9 @@ export class EmailManagementPage implements OnInit {
     }
   }
 
-  getTemplatesForCategory(categoryType: 'pass' | 'fail' | 'apply_confirm'): EmailTemplateItem[] {
+  getTemplatesForCategory(
+    categoryType: 'pass' | 'fail' | 'apply_confirm'
+  ): EmailTemplateItem[] {
     return this.templatesByCategory[categoryType] || [];
   }
 
@@ -207,7 +218,7 @@ export class EmailManagementPage implements OnInit {
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return 'Chưa có';
-      
+
       const now = new Date();
       const diffMs = now.getTime() - date.getTime();
       const diffMins = Math.floor(diffMs / 60000);
@@ -218,7 +229,7 @@ export class EmailManagementPage implements OnInit {
       if (diffMins < 60) return `${diffMins} phút trước`;
       if (diffHours < 24) return `${diffHours} giờ trước`;
       if (diffDays < 7) return `${diffDays} ngày trước`;
-      
+
       return date.toLocaleDateString('vi-VN', {
         day: '2-digit',
         month: '2-digit',
@@ -310,10 +321,20 @@ export class EmailManagementPage implements OnInit {
     return this.selectedCategory === categoryType;
   }
 
-  getCategoryLabel(categoryType: 'pass' | 'fail' | 'apply_confirm' | null): string {
+  getCategoryLabel(
+    categoryType: 'pass' | 'fail' | 'apply_confirm' | null
+  ): string {
     if (!categoryType) return '';
     const category = this.categories.find((c) => c.type === categoryType);
     return category?.label || '';
   }
-}
 
+  // Bottom navigation handlers (đồng bộ với Home & Dashboard)
+  onNavigateDashboard() {
+    this.router.navigate(['/dashboard']);
+  }
+
+  onNavigateJobs() {
+    this.router.navigate(['/home']);
+  }
+}

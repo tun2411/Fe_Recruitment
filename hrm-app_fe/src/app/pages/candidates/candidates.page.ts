@@ -39,6 +39,10 @@ import {
   ApplicationService,
   Application,
 } from '../../services/application.service';
+import {
+  NotificationService,
+  Notification,
+} from '../../services/notification.service';
 import { JobPostService } from '../../services/job-post.service';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
@@ -83,7 +87,7 @@ export class CandidatesPage implements OnInit {
   candidates: Candidate[] = [];
   filteredCandidates: Candidate[] = [];
   searchTerm: string = '';
-  notificationCount: number = 2;
+  notificationCount: number = 0;
   filterCount: number = 2;
   postId: number | null = null;
   jobTitle: string = '';
@@ -96,7 +100,8 @@ export class CandidatesPage implements OnInit {
     private applicationService: ApplicationService,
     private jobPostService: JobPostService,
     private loadingController: LoadingController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private notificationService: NotificationService
   ) {
     addIcons({
       notificationsOutline,
@@ -127,6 +132,9 @@ export class CandidatesPage implements OnInit {
       return;
     }
 
+    // Load notification count
+    this.loadNotificationCount();
+
     // Lấy postId từ query params nếu có
     this.route.queryParams.subscribe((params) => {
       this.postId = params['postId'] ? parseInt(params['postId']) : null;
@@ -134,10 +142,11 @@ export class CandidatesPage implements OnInit {
         this.loadJobTitle();
         this.loadCandidates();
       } else {
-        // Nếu không có postId, hiển thị thông báo
-        this.showToast('Không tìm thấy bài đăng', 'warning');
+        // Nếu không có postId, không cho truy cập trang này vì không gắn với job nào
+        this.showToast('Không tìm thấy bài đăng. Đang quay về danh sách bài đăng.', 'warning');
         this.candidates = [];
         this.filteredCandidates = [];
+        this.router.navigate(['/home']);
       }
     });
   }
@@ -297,6 +306,7 @@ export class CandidatesPage implements OnInit {
 
   onRefresh() {
     this.loadCandidates();
+    this.loadNotificationCount();
   }
 
   onFilter() {
@@ -355,24 +365,16 @@ export class CandidatesPage implements OnInit {
   }
 
   /**
-   * Fix URL: Thay localhost bằng IP thực tế trên mobile
+   * Fix URL: Đồng bộ host CV với IP trong environment, dùng cho cả web và mobile
    */
   private fixUrlForMobile(url: string): string {
-    if (!Capacitor.isNativePlatform()) {
-      return url; // Web: giữ nguyên
-    }
-
-    // Mobile: Thay localhost bằng IP từ environment
-    // Extract IP từ apiUrl: http://192.168.1.10:8080/api -> 192.168.1.10
     const apiUrl = environment.apiUrl;
-    const ipMatch = apiUrl.match(/http:\/\/([^:]+):/);
-    if (ipMatch && ipMatch[1]) {
-      const ip = ipMatch[1];
-      return url.replace(/http:\/\/localhost:8080/g, `http://${ip}:8080`);
-    }
+    // Lấy phần host:port từ apiUrl, ví dụ http://192.168.1.22:8080/api -> http://192.168.1.22:8080
+    const hostMatch = apiUrl.match(/^(http:\/\/[^/]+:\d+)/);
+    const targetBase = hostMatch ? hostMatch[1] : 'http://192.168.1.22:8080';
 
-    // Fallback: dùng IP mặc định
-    return url.replace(/http:\/\/localhost:8080/g, 'http://192.168.1.10:8080');
+    // Thay mọi host :8080 (localhost hoặc IP cũ) bằng host mới
+    return url.replace(/http:\/\/[^/]+:8080/g, targetBase);
   }
 
   async onDownload(candidate: Candidate) {
@@ -484,7 +486,7 @@ export class CandidatesPage implements OnInit {
   // getFullCVUrl() đã bị xóa - Backend trả về full URL sẵn, không cần xử lý
 
   onNotificationClick() {
-    console.log('Notification clicked');
+    this.router.navigate(['/notifications']);
   }
 
   onAddCandidate() {
@@ -528,5 +530,20 @@ export class CandidatesPage implements OnInit {
       default:
         return 'card-new';
     }
+  }
+
+  private loadNotificationCount() {
+    this.notificationService.getNotifications().subscribe({
+      next: (notifications: Notification[]) => {
+        this.notificationCount = notifications.filter((n) => !n.isRead).length;
+      },
+      error: (error) => {
+        console.error(
+          '[CandidatesPage] Error loading notification count:',
+          error
+        );
+        this.notificationCount = 0;
+      },
+    });
   }
 }

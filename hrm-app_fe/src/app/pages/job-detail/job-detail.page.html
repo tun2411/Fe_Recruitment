@@ -10,105 +10,92 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="job-detail-content">
-  <div class="form-container" *ngIf="jobData">
-    <!-- Tiêu đề -->
-    <div class="form-field">
-      <ion-label class="field-label">Tiêu đề</ion-label>
-      <ion-input
-        [value]="jobData.title || ''"
-        placeholder="Tiêu đề"
-        readonly
-        class="custom-input readonly"
-      ></ion-input>
+  <div class="job-detail-wrapper" *ngIf="jobData">
+    <!-- Card: Nội dung bài tuyển dụng -->
+    <div class="job-card job-description-card">
+      <div class="job-card-header">Nội dung bài tuyển dụng</div>
+      <div class="job-card-body">
+        <div
+          class="job-description"
+          [innerHTML]="jobData.description || '' | jdFormat"
+        ></div>
+      </div>
     </div>
 
-    <!-- Nội dung bài tuyển dụng -->
-    <div class="form-field">
-      <ion-label class="field-label">Nội dung bài tuyển dụng</ion-label>
-      <ion-textarea
-        [value]="jobData.description || ''"
-        placeholder="Nội dung bài tuyển dụng"
-        readonly
-        rows="6"
-        class="custom-textarea readonly"
-      ></ion-textarea>
-    </div>
+    <!-- Card: Thông tin việc làm -->
+    <div class="job-card job-meta-card">
+      <div class="job-card-header">Thông tin việc làm</div>
+      <div class="job-card-body">
+        <div class="job-meta-row">
+          <div class="meta-label">Tiêu đề</div>
+          <div class="meta-value highlight-value">
+            {{ jobData.title || '' }}
+          </div>
+        </div>
 
-    <!-- Mức lương -->
-    <div class="form-field">
-      <ion-label class="field-label">Mức lương</ion-label>
-      <ion-input
-        [value]="formatSalary()"
-        placeholder="Mức lương"
-        readonly
-        class="custom-input readonly"
-      ></ion-input>
-    </div>
+        <div class="job-meta-row">
+          <div class="meta-label">Mức lương</div>
+          <div class="meta-value highlight-value">
+            {{ formatSalary() }}
+          </div>
+        </div>
 
-    <!-- Địa chỉ -->
-    <div class="form-field">
-      <ion-label class="field-label">Địa chỉ</ion-label>
-      <ion-input
-        [value]="jobData.location || ''"
-        placeholder="Địa chỉ"
-        readonly
-        class="custom-input readonly"
-      ></ion-input>
-    </div>
+        <div class="job-meta-row">
+          <div class="meta-label">Địa chỉ</div>
+          <div class="meta-value highlight-value">
+            {{ jobData.location || 'Không có thông tin' }}
+          </div>
+        </div>
 
-    <!-- Vòng tuyển dụng -->
-    <div class="form-field">
-      <ion-label class="field-label">Vòng tuyển dụng</ion-label>
-      <ion-input
-        [value]="(jobData ? jobData.roundCount : 0).toString()"
-        placeholder="Vòng tuyển dụng"
-        readonly
-        class="custom-input readonly"
-      ></ion-input>
-    </div>
+        <div class="job-meta-row">
+          <div class="meta-label">Vòng tuyển dụng</div>
+          <div class="meta-value">
+            {{ (jobData ? jobData.roundCount : 0).toString() }}
+          </div>
+        </div>
 
-    <!-- Hạn bài đăng -->
-    <div class="form-field">
-      <ion-label class="field-label">Hạn bài đăng</ion-label>
-      <ion-input
-        [value]="formatDate(jobData.deadline)"
-        placeholder="Hạn bài đăng"
-        readonly
-        class="custom-input readonly"
-      ></ion-input>
-    </div>
+        <div class="job-meta-row">
+          <div class="meta-label">Hạn bài đăng</div>
+          <div class="meta-value highlight-value">
+            {{ formatDate(jobData.deadline) }}
+          </div>
+        </div>
 
-    <!-- Thời gian làm việc -->
-    <div class="form-field" *ngIf="jobData.workTime">
-      <ion-label class="field-label">Thời gian làm việc</ion-label>
-      <ion-input
-        [value]="formatWorkTime()"
-        placeholder="Thời gian làm việc"
-        readonly
-        class="custom-input readonly"
-      ></ion-input>
-    </div>
+        <div class="job-meta-row" *ngIf="jobData.workTime">
+          <div class="meta-label">Thời gian làm việc</div>
+          <div class="meta-value">
+            {{ formatWorkTime() }}
+          </div>
+        </div>
 
-    <!-- Kinh nghiệm -->
-    <div class="form-field" *ngIf="jobData.yoe">
-      <ion-label class="field-label">Kinh nghiệm</ion-label>
-      <ion-input
-        [value]="jobData.yoe + ' ' + (jobData.unit || 'năm')"
-        placeholder="Kinh nghiệm"
-        readonly
-        class="custom-input readonly"
-      ></ion-input>
-    </div>
+        <div class="job-meta-row" *ngIf="jobData.yoe">
+          <div class="meta-label">Kinh nghiệm</div>
+          <div class="meta-value">
+            {{ jobData.yoe + ' ' + (jobData.unit || 'năm') }}
+          </div>
+        </div>
 
-    <!-- Link URL của bài đăng -->
-    <div class="form-field" *ngIf="jobData.applyUrl">
-      <ion-label class="field-label">Link URL của bài đăng</ion-label>
-      <ion-input
-        [value]="jobData.applyUrl || ''"
-        placeholder="Link url của bài đăng"
-        readonly
-        class="custom-input readonly"
-      ></ion-input>
+        <div class="job-meta-row" *ngIf="jobData.applyUrl">
+          <div class="meta-label">Link URL bài đăng</div>
+          <div class="meta-value url-row">
+            <ion-input
+              [value]="jobData.applyUrl || ''"
+              placeholder="Link url của bài đăng"
+              readonly
+              class="custom-input readonly"
+            ></ion-input>
+            <ion-button
+              fill="clear"
+              size="small"
+              class="copy-button"
+              type="button"
+              (click)="copyApplyUrl()"
+            >
+              <ion-icon name="copy-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Action Buttons -->
