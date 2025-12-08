@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -31,6 +31,8 @@ import {
   NotificationService,
   Notification,
 } from '../../services/notification.service';
+import { AuthService } from '../../services/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-notifications',
@@ -50,9 +52,13 @@ import {
     IonCardContent,
   ],
 })
-export class NotificationsPage implements OnInit {
+export class NotificationsPage implements OnInit, OnDestroy {
   notifications: Notification[] = [];
   isLoading = false;
+  isSSEConnected = false;
+  private authService = inject(AuthService);
+  private sseSubscription?: Subscription;
+  private connectionStatusSubscription?: Subscription;
 
   constructor(
     private router: Router,
@@ -76,6 +82,12 @@ export class NotificationsPage implements OnInit {
 
   ngOnInit() {
     this.loadNotifications();
+    this.connectSSE();
+  }
+
+  ngOnDestroy() {
+    // Cleanup SSE connection
+    this.disconnectSSE();
   }
 
   async loadNotifications() {
@@ -108,6 +120,101 @@ export class NotificationsPage implements OnInit {
         await toast.present();
       },
     });
+  }
+
+  /**
+   * Kết nối đến SSE stream để nhận notifications real-time
+   */
+  connectSSE(): void {
+    const token = this.authService.getToken();
+    if (!token) {
+      console.warn('[NotificationsPage] No token available for SSE');
+      return;
+    }
+
+    // Kết nối SSE
+    this.notificationService.connectSSE(token);
+
+    // Lắng nghe notifications mới từ SSE
+    this.sseSubscription = this.notificationService
+      .getSSENotifications()
+      .subscribe({
+        next: (notification: Notification) => {
+          console.log('[NotificationsPage] New notification received:', notification);
+          // Thêm notification mới vào đầu danh sách
+          // Kiểm tra xem notification đã tồn tại chưa (tránh duplicate)
+          const existingIndex = this.notifications.findIndex(
+            (n) => n.id === notification.id
+          );
+          if (existingIndex === -1) {
+            this.notifications.unshift(notification);
+            // Sort lại để đảm bảo thứ tự đúng
+            this.notifications.sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime()
+            );
+            // Hiển thị toast notification
+            this.showNewNotificationToast(notification);
+          }
+        },
+        error: (error) => {
+          console.error('[NotificationsPage] SSE notification error:', error);
+        },
+      });
+
+    // Lắng nghe trạng thái kết nối
+    this.connectionStatusSubscription = this.notificationService
+      .getSSEConnectionStatus()
+      .subscribe({
+        next: (isConnected) => {
+          this.isSSEConnected = isConnected;
+          console.log(
+            '[NotificationsPage] SSE connection status:',
+            isConnected ? 'Connected' : 'Disconnected'
+          );
+        },
+      });
+  }
+
+  /**
+   * Đóng kết nối SSE
+   */
+  disconnectSSE(): void {
+    if (this.sseSubscription) {
+      this.sseSubscription.unsubscribe();
+      this.sseSubscription = undefined;
+    }
+    if (this.connectionStatusSubscription) {
+      this.connectionStatusSubscription.unsubscribe();
+      this.connectionStatusSubscription = undefined;
+    }
+    this.notificationService.disconnectSSE();
+  }
+
+  /**
+   * Hiển thị toast notification khi có notification mới
+   */
+  private async showNewNotificationToast(notification: Notification): Promise<void> {
+    const toast = await this.toastController.create({
+      message: notification.title,
+      duration: 3000,
+      color: 'primary',
+      position: 'top',
+      buttons: [
+        {
+          text: 'Xem',
+          handler: () => {
+            this.onNotificationClick(notification);
+          },
+        },
+        {
+          text: 'Đóng',
+          role: 'cancel',
+        },
+      ],
+    });
+    await toast.present();
   }
 
   getNotificationIcon(type: string): string {
