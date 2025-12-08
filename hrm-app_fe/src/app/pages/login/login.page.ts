@@ -57,7 +57,6 @@ import { environment } from '../../../environments/environment';
 export class LoginPage implements OnInit {
   isLoading = false;
   errorMessage = '';
-  isAlreadyLoggedIn = false;
   loginProvider: 'google' | 'facebook' | null = null;
 
   private activeGoogleService: GoogleSignInService | GoogleSignInHybridService;
@@ -85,30 +84,20 @@ export class LoginPage implements OnInit {
   }
 
   ngOnInit() {
-    // Kiểm tra nếu đã đăng nhập
-    this.isAlreadyLoggedIn = this.authService.isAuthenticated();
-
-    if (this.isAlreadyLoggedIn) {
-      // Hiển thị thông báo và tự động redirect sau 1 giây
+    // Nếu đã đăng nhập → thông báo + chuyển thẳng về home, thay entry history
+    if (this.authService.isAuthenticated()) {
       this.showRedirectMessage();
-
-      // Sử dụng setTimeout để đảm bảo component đã render xong
-      setTimeout(() => {
-        this.router.navigate(['/home']).catch((error) => {
-          console.error('Navigation error:', error);
-          // Nếu không thể navigate, có thể token không hợp lệ, clear nó
-          this.authService.clearToken();
-          this.isAlreadyLoggedIn = false;
-        });
-      }, 1500);
-    } else {
-      // Khởi tạo Google Sign-In khi component load
-      // Retry nếu lần đầu fail (đặc biệt cho Android)
-      this.initializeGoogleSignInWithRetry();
-
-      // Khởi tạo Facebook Sign-In khi component load
-      this.initializeFacebookSignInWithRetry();
+      this.router.navigate(['/home'], { replaceUrl: true }).catch((error) => {
+        console.error('Navigation error:', error);
+        // Nếu không thể navigate, có thể token không hợp lệ, clear nó để user login lại
+        this.authService.clearToken();
+      });
+      return;
     }
+
+    // Chưa đăng nhập → khởi tạo Google/Facebook Sign-In
+    this.initializeGoogleSignInWithRetry();
+    this.initializeFacebookSignInWithRetry();
   }
 
   /**
@@ -233,9 +222,11 @@ export class LoginPage implements OnInit {
               });
               await toast.present();
 
-              this.router.navigate(['/home']).catch((error) => {
-                console.error('Navigation error after login:', error);
-              });
+              this.router
+                .navigate(['/home'], { replaceUrl: true })
+                .catch((error) => {
+                  console.error('Navigation error after login:', error);
+                });
             },
             error: async (error: any) => {
               await loading.dismiss();
@@ -326,9 +317,11 @@ export class LoginPage implements OnInit {
               });
               await toast.present();
 
-              this.router.navigate(['/home']).catch((error) => {
-                console.error('Navigation error after login:', error);
-              });
+              this.router
+                .navigate(['/home'], { replaceUrl: true })
+                .catch((error) => {
+                  console.error('Navigation error after login:', error);
+                });
             },
             error: async (error: any) => {
               await loading.dismiss();
@@ -382,20 +375,5 @@ export class LoginPage implements OnInit {
       });
       await toast.present();
     }
-  }
-
-  async clearSession() {
-    const alert = await this.toastController.create({
-      message: 'Đã xóa phiên đăng nhập',
-      duration: 2000,
-      color: 'success',
-      position: 'top',
-    });
-
-    this.authService.clearToken();
-    await alert.present();
-
-    // Reload page để reset form
-    window.location.reload();
   }
 }

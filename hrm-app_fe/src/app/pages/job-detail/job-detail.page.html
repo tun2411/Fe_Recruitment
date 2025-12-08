@@ -1,15 +1,11 @@
-<ion-header class="custom-header">
-  <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-button (click)="onBack()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title class="header-title">TUYỂN DỤNG</ion-title>
-  </ion-toolbar>
-</ion-header>
+<app-header
+  type="simple"
+  title="TUYỂN DỤNG"
+  [showBackButton]="true"
+  (backClick)="onBack()"
+></app-header>
 
-<ion-content [fullscreen]="true" class="job-detail-content">
+<ion-content [fullscreen]="true" class="job-detail-content no-bottom-nav">
   <div class="job-detail-wrapper" *ngIf="jobData">
     <!-- Card: Nội dung bài tuyển dụng -->
     <div class="job-card job-description-card">

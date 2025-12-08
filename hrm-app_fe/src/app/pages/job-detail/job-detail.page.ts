@@ -18,6 +18,7 @@ import { addIcons } from 'ionicons';
 import { arrowBackOutline, copyOutline } from 'ionicons/icons';
 import { JobPostService, JobResponse } from '../../services/job-post.service';
 import { JdFormatPipe } from '../../pipes/jd-format.pipe';
+import { AppHeaderComponent } from '../../components/app-header/app-header.component';
 
 @Component({
   selector: 'app-job-detail',
@@ -26,15 +27,12 @@ import { JdFormatPipe } from '../../pipes/jd-format.pipe';
   standalone: true,
   imports: [
     CommonModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonButton,
-    IonButtons,
     IonIcon,
     IonInput,
     JdFormatPipe,
+    AppHeaderComponent,
   ],
 })
 export class JobDetailPage implements OnInit {
@@ -106,7 +104,7 @@ export class JobDetailPage implements OnInit {
       } else {
         date = new Date(dateString);
       }
-      
+
       if (isNaN(date.getTime())) return 'Chưa có';
       return date.toLocaleDateString('vi-VN', {
         year: 'numeric',
@@ -128,7 +126,9 @@ export class JobDetailPage implements OnInit {
         this.jobData.salaryTo !== undefined &&
         this.jobData.salaryTo !== null
       ) {
-        return `${this.formatCurrency(this.jobData.salaryFrom)} - ${this.formatCurrency(this.jobData.salaryTo)} VNĐ`;
+        return `${this.formatCurrency(
+          this.jobData.salaryFrom
+        )} - ${this.formatCurrency(this.jobData.salaryTo)} VNĐ`;
       } else {
         return `Từ ${this.formatCurrency(this.jobData.salaryFrom)} VNĐ`;
       }
@@ -155,8 +155,7 @@ export class JobDetailPage implements OnInit {
       freelance: 'Freelance',
     };
     return (
-      workTimeMap[this.jobData.workTime.toLowerCase()] ||
-      this.jobData.workTime
+      workTimeMap[this.jobData.workTime.toLowerCase()] || this.jobData.workTime
     );
   }
 
@@ -198,17 +197,3 @@ export class JobDetailPage implements OnInit {
     await toast.present();
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,12 +1,15 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef,
+  ViewChild,
+  AfterViewInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonIcon,
   IonCard,
@@ -16,6 +19,7 @@ import {
   IonSelect,
   IonSelectOption,
 } from '@ionic/angular/standalone';
+import { MenuController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   personCircleOutline,
@@ -34,8 +38,13 @@ import {
   arrowUpOutline,
   trophyOutline,
   chevronDownOutline,
+  logOutOutline,
 } from 'ionicons/icons';
 import { JobPostService } from '../../services/job-post.service';
+import { BottomNavComponent } from '../../components/bottom-nav/bottom-nav.component';
+import { AppHeaderComponent } from '../../components/app-header/app-header.component';
+import { BusinessService } from '../../services/business.service';
+import { AuthService } from '../../services/auth.service';
 // TODO: Uncomment when backend is ready
 // import { NotificationService, Notification } from '../../services/notification.service';
 // import { ApplicationService } from '../../services/application.service';
@@ -72,24 +81,23 @@ interface InsightItem {
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonIcon,
     IonCard,
     IonCardContent,
     IonButton,
-    IonBadge,
     IonSelect,
     IonSelectOption,
+    BottomNavComponent,
+    AppHeaderComponent,
   ],
 })
 export class DashboardPage implements OnInit {
-  // User info - TODO: Get from authentication service
-  userName: string = 'Alex Johnson';
+  // User info - Lấy từ database
+  userName: string = '';
   currentDate: string = '';
   notificationCount: number = 2;
+  userInfo: any = null;
 
   // Filter state
   selectedFilter: 'all' | 'week' = 'all';
@@ -129,8 +137,12 @@ export class DashboardPage implements OnInit {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private jobPostService: JobPostService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private businessService: BusinessService,
+    private authService: AuthService,
+    private menuController: MenuController
   ) {
     addIcons({
       personCircleOutline,
@@ -149,13 +161,48 @@ export class DashboardPage implements OnInit {
       arrowUpOutline,
       trophyOutline,
       chevronDownOutline,
+      logOutOutline,
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.updateCurrentDate();
+    this.loadUserInfo();
     this.loadJobsList(); // Load danh sách jobs trước
     this.loadAllJobs(); // Load thống kê
+  }
+
+  ionViewWillEnter() {
+    // Nếu được yêu cầu, tự động mở lại menu sidebar
+    const openMenu = this.route.snapshot.queryParamMap.get('openMenu');
+    if (openMenu === 'true') {
+      this.menuController
+        .open('main-menu')
+        .catch((err) =>
+          console.error('[DashboardPage] Error auto opening main-menu:', err)
+        );
+    }
+  }
+
+  loadUserInfo() {
+    // Load userInfo từ AuthService
+    this.authService.currentUser$.subscribe((user) => {
+      this.userInfo = user;
+    });
+
+    // Option 1: Lấy từ BusinessService (companyName)
+    this.businessService.getCurrentBusiness().subscribe({
+      next: (business) => {
+        this.userName = business.companyName || business.email || 'User';
+      },
+      error: (error) => {
+        console.error('Error loading business info:', error);
+        // Fallback: Lấy từ AuthService
+        this.authService.currentUser$.subscribe((user) => {
+          this.userName = user?.fullName || user?.username || 'User';
+        });
+      },
+    });
   }
 
   updateCurrentDate() {
@@ -175,7 +222,9 @@ export class DashboardPage implements OnInit {
       'Nov',
       'Dec',
     ];
-    this.currentDate = `${days[today.getDay()]}, ${today.getDate()} ${months[today.getMonth()]}`;
+    this.currentDate = `${days[today.getDay()]}, ${today.getDate()} ${
+      months[today.getMonth()]
+    }`;
   }
 
   /**
@@ -205,14 +254,20 @@ export class DashboardPage implements OnInit {
    */
   async loadAllJobs() {
     try {
-      console.log('[Dashboard] Loading statistics for jobId:', this.selectedJobId);
+      console.log(
+        '[Dashboard] Loading statistics for jobId:',
+        this.selectedJobId
+      );
 
       const response = await firstValueFrom(
         this.jobPostService.getDetailJob(this.selectedJobId)
       );
 
       console.log('[Dashboard] API Response:', response);
-      console.log('[Dashboard] Response passFailRatio:', response.passFailRatio);
+      console.log(
+        '[Dashboard] Response passFailRatio:',
+        response.passFailRatio
+      );
 
       this.metrics = {
         activeJobs: response.activeJobs || 0,
@@ -244,8 +299,13 @@ export class DashboardPage implements OnInit {
         );
         this.passFailRatio = newPassFailRatio;
       } else {
-        console.warn('[Dashboard] No passFailRatio in response, resetting to 0');
-        console.warn('[Dashboard] Full response:', JSON.stringify(response, null, 2));
+        console.warn(
+          '[Dashboard] No passFailRatio in response, resetting to 0'
+        );
+        console.warn(
+          '[Dashboard] Full response:',
+          JSON.stringify(response, null, 2)
+        );
         this.passFailRatio = {
           passAll: 0,
           fail: 0,
@@ -271,7 +331,8 @@ export class DashboardPage implements OnInit {
 
       // 2) Vòng có nhiều ứng viên fail nhất + tên job của vòng đó (gộp thành một mục)
       if (apiInsights.topFailRoundName || apiInsights.topFailRoundJobName) {
-        const roundName = apiInsights.topFailRoundName || 'Vòng có nhiều ứng viên fail nhất';
+        const roundName =
+          apiInsights.topFailRoundName || 'Vòng có nhiều ứng viên fail nhất';
         const jobName = apiInsights.topFailRoundJobName
           ? `Job: ${apiInsights.topFailRoundJobName}`
           : '';
@@ -346,10 +407,6 @@ export class DashboardPage implements OnInit {
 
   onNotificationClick() {
     this.router.navigate(['/notifications']);
-  }
-
-  onProfileClick() {
-    this.router.navigate(['/personal-info']);
   }
 
   onSettingsClick() {

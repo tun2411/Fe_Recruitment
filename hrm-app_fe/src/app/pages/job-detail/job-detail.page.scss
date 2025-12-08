@@ -1,26 +1,9 @@
-.custom-header {
-  ion-toolbar {
-    --background: #3880ff;
-    --color: white;
-    border-radius: 0 0 16px 16px;
-    padding: 0;
-    min-height: 60px;
-  }
-
-  .header-title {
-    text-align: center;
-    font-weight: 600;
-    font-size: 18px;
-    color: white;
-    margin: 0;
-    text-transform: uppercase;
-  }
-}
+// Header styles đã được di chuyển vào AppHeaderComponent
 
 .job-detail-content {
   --background: #f5f5f5;
-  // Chừa khoảng dưới giống configure-rounds / edit-post (không có bottom nav)
-  --padding-bottom: 24px;
+  // Padding-bottom được quản lý bởi class .no-bottom-nav trong global.scss
+  // Không cần set --padding-bottom ở đây nữa
 }
 
 .job-detail-wrapper {
@@ -121,6 +104,7 @@
   display: flex;
   gap: 12px;
   margin-top: 24px;
+  margin-bottom: 24px; // Thêm margin-bottom để có khoảng cách với bottom
   padding: 0;
 
   .cancel-button,

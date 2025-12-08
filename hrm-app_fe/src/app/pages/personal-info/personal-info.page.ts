@@ -7,7 +7,7 @@ import {
   Validators,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonHeader,
   IonToolbar,
@@ -49,6 +49,7 @@ export class PersonalInfoPage implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
+    private route: ActivatedRoute,
     private toastController: ToastController,
     private loadingController: LoadingController,
     private businessService: BusinessService
@@ -139,10 +140,9 @@ export class PersonalInfoPage implements OnInit {
         });
         await toast.present();
 
-        // Quay về home và mở lại menu sidebar
-        this.router.navigate(['/home'], {
-          queryParams: { openMenu: 'true' },
-        });
+        // Nếu đi từ menu: quay về Home và yêu cầu mở lại menu
+        // Nếu không: quay về Home bình thường
+        this.navigateBackToMenu();
       },
       error: async (error) => {
         await loading.dismiss();
@@ -159,10 +159,7 @@ export class PersonalInfoPage implements OnInit {
   }
 
   onBack() {
-    // Quay về home và mở lại menu sidebar
-    this.router.navigate(['/home'], {
-      queryParams: { openMenu: 'true' },
-    });
+    this.navigateBackToMenu();
   }
 
   isFieldInvalid(fieldName: string): boolean {
@@ -174,6 +171,17 @@ export class PersonalInfoPage implements OnInit {
     Object.keys(this.personalInfoForm.controls).forEach((key) => {
       const control = this.personalInfoForm.get(key);
       control?.markAsTouched();
+    });
+  }
+
+  /**
+   * Khi ấn Back hoặc Update xong:
+   * - Luôn quay về màn Home
+   * - Gửi queryParam yêu cầu Home tự mở lại Menu sidebar
+   */
+  private navigateBackToMenu() {
+    this.router.navigate(['/home'], {
+      queryParams: { openMenu: 'true' },
     });
   }
 }

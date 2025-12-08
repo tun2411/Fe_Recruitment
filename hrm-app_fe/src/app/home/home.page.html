@@ -1,106 +1,34 @@
 <div class="main-label">Main</div>
 
-<!-- Sidebar Menu -->
-<ion-menu side="start" menuId="main-menu" contentId="main-content">
-  <ion-header class="menu-header">
-    <ion-toolbar class="menu-toolbar">
-      <ion-title class="menu-title">Menu</ion-title>
-    </ion-toolbar>
-  </ion-header>
-  <ion-content class="menu-content">
-    <!-- Profile Section -->
-    <div class="menu-profile">
-      <div class="avatar-container">
-        <div class="avatar-placeholder">
-          <ion-icon name="person-outline"></ion-icon>
-        </div>
-        <div class="avatar-ring"></div>
-      </div>
-      <div class="user-info" *ngIf="userInfo">
-        <h3 class="user-name">{{ userInfo.fullName || userInfo.username || 'Người dùng' }}</h3>
-        <p class="user-email">{{ userInfo.email || '' }}</p>
-      </div>
-      <div class="user-info" *ngIf="!userInfo">
-        <h3 class="user-name">Người dùng</h3>
-        <p class="user-email">Chưa có thông tin</p>
-      </div>
-    </div>
-
-    <!-- Menu Items -->
-    <ion-list class="menu-list">
-      <ion-item button (click)="onPersonalInfo()" class="menu-item">
-        <ion-icon name="person-circle-outline" slot="start" class="menu-icon"></ion-icon>
-        <ion-label class="menu-label">Thông tin cá nhân</ion-label>
-      </ion-item>
-      <ion-item button (click)="onRecruitmentManagement()" class="menu-item">
-        <ion-icon name="briefcase-outline" slot="start" class="menu-icon"></ion-icon>
-        <ion-label class="menu-label">Quản lý tuyển dụng</ion-label>
-      </ion-item>
-      <ion-item button (click)="onEmailManagement()" class="menu-item">
-        <ion-icon name="mail-outline" slot="start" class="menu-icon"></ion-icon>
-        <ion-label class="menu-label">Quản lý mail tự động</ion-label>
-      </ion-item>
-      <ion-item button (click)="onDashboard()" class="menu-item">
-        <ion-icon name="grid-outline" slot="start" class="menu-icon"></ion-icon>
-        <ion-label class="menu-label">Dashboard</ion-label>
-      </ion-item>
-    </ion-list>
-
-    <!-- Logout Section -->
-    <div class="menu-footer">
-      <ion-button fill="clear" (click)="onLogout()" class="logout-button">
-        <ion-icon name="log-out-outline" slot="start"></ion-icon>
-        <ion-label>Đăng xuất</ion-label>
-      </ion-button>
-    </div>
-  </ion-content>
-</ion-menu>
+<!-- Header Component (Fixed) -->
+<app-header
+  type="dashboard"
+  [userName]="userName"
+  [currentDate]="currentDate"
+  [showNotification]="true"
+  [notificationCount]="notificationCount"
+  (notificationClick)="onNotificationClick()"
+></app-header>
 
 <!-- Main Content -->
-<ion-content [fullscreen]="true" class="home-content" id="main-content">
-  <!-- Header + Search + Sort/Filter (scroll cùng content, không fixed) -->
-  <div class="header-wrapper">
-    <!-- Main Header Section (Dark Blue) - Gồm header title và search bar tích hợp -->
-    <div class="main-header-section">
-      <!-- Header Title Bar -->
-      <ion-header class="main-header">
-        <ion-toolbar color="primary">
-          <div class="header-content">
-            <ion-menu-button menu="main-menu" class="menu-button">
-              <div class="header-icon-circle">
-                <ion-icon name="person-outline"></ion-icon>
-              </div>
-            </ion-menu-button>
-            <ion-title class="header-title">BÀI ĐĂNG</ion-title>
-            <div class="notification-wrapper" (click)="onNotificationClick()">
-              <ion-icon name="notifications-outline" class="notification-icon"></ion-icon>
-              <ion-badge color="danger" class="notification-badge">{{ notificationCount }}</ion-badge>
-            </div>
-          </div>
-        </ion-toolbar>
-      </ion-header>
+<ion-content [fullscreen]="true" class="home-content has-bottom-nav" id="main-content">
 
-      <!-- Search Bar - Tích hợp vào header, cùng background blue -->
-      <div class="search-container">
-        <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="onSearch($event)" placeholder="Tìm kiếm..."
-          class="custom-searchbar" show-clear-button="focus">
-        </ion-searchbar>
-      </div>
-    </div>
+  <!-- Search Bar - Di chuyển xuống content (giống candidates page) -->
+  <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="onSearch($event)" placeholder="Tìm kiếm..."
+    class="custom-searchbar" show-clear-button="focus"></ion-searchbar>
 
-    <!-- Sort & Filter Bar (Light Blue) - Dưới header section -->
-    <div class="sort-filter-bar">
-      <ion-button fill="outline" class="action-btn sort-btn" (click)="onSort()">
-        <ion-icon name="arrow-down-outline" slot="start"></ion-icon>
-        Sort
-        <ion-icon name="chevron-down-outline" slot="end" class="chevron-icon"></ion-icon>
-      </ion-button>
-      <ion-button fill="outline" class="action-btn filter-btn" (click)="onFilter()">
-        <ion-icon name="filter-outline" slot="start"></ion-icon>
-        Filter
-        <ion-badge color="danger" class="filter-badge">{{ filterCount }}</ion-badge>
-      </ion-button>
-    </div>
+  <!-- Sort & Filter Bar -->
+  <div class="sort-filter-bar">
+    <ion-button fill="outline" class="action-btn sort-btn" (click)="onSort()">
+      <ion-icon name="arrow-down-outline" slot="start"></ion-icon>
+      Sort
+      <ion-icon name="chevron-down-outline" slot="end" class="chevron-icon"></ion-icon>
+    </ion-button>
+    <ion-button fill="outline" class="action-btn filter-btn" (click)="onFilter()">
+      <ion-icon name="filter-outline" slot="start"></ion-icon>
+      Filter
+      <ion-badge color="danger" class="filter-badge">{{ filterCount }}</ion-badge>
+    </ion-button>
   </div>
 
   <!-- Pull to Refresh -->
@@ -119,7 +47,7 @@
     </div>
 
     <!-- Danh sách posts (phân trang, tối đa 5 item mỗi trang) -->
-    <ion-card *ngFor="let post of displayedPosts; trackBy: trackByPostId" class="post-card">
+    <ion-card *ngFor="let post of displayedPosts; trackBy: trackByPostId" class="post-card"> </ion-card>
     <!-- Job Posts List -->
     <ion-card *ngFor="let post of filteredPosts; trackBy: trackByPostId" class="post-card" (click)="onViewDetail(post)">
       <ion-card-content>
@@ -179,12 +107,8 @@
         Trước
       </ion-button>
 
-      <span
-        class="dot"
-        *ngFor="let page of pages"
-        [class.active]="page === currentPage"
-        (click)="goToPage(page)"
-      ></span>
+      <span class="dot" *ngFor="let page of pages" [class.active]="page === currentPage"
+        (click)="goToPage(page)"></span>
 
       <ion-button fill="clear" size="small" (click)="nextPage()" [disabled]="currentPage === totalPages">
         Sau
@@ -201,17 +125,4 @@
 </ion-content>
 
 <!-- Bottom Navigation Bar -->
-<div class="bottom-nav">
-  <div class="nav-item" (click)="navigateToDashboard()">
-    <ion-icon name="grid-outline"></ion-icon>
-    <span>Dashboard</span>
-  </div>
-  <div class="nav-item active">
-    <ion-icon name="briefcase-outline"></ion-icon>
-    <span>Jobs</span>
-  </div>
-  <div class="nav-item" (click)="onEmailManagement()">
-    <ion-icon name="mail-outline"></ion-icon>
-    <span>Mail</span>
-  </div>
-</div>
+<app-bottom-nav activeTab="jobs"></app-bottom-nav>

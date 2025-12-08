@@ -19,24 +19,8 @@
               <h2 class="login-title">Log in</h2>
             </ion-text>
 
-            <!-- Already Logged In Message -->
-            <ion-card *ngIf="isAlreadyLoggedIn" class="info-card">
-              <ion-card-content>
-                <ion-item lines="none">
-                  <ion-icon name="information-circle-outline" slot="start" color="primary"></ion-icon>
-                  <ion-label>
-                    <h3>Bạn đã đăng nhập</h3>
-                    <p>Đang chuyển hướng đến trang chủ...</p>
-                  </ion-label>
-                  <ion-button fill="clear" size="small" (click)="clearSession()" slot="end">
-                    Xóa phiên
-                  </ion-button>
-                </ion-item>
-              </ion-card-content>
-            </ion-card>
-
             <!-- Social Login Card -->
-            <ion-card class="login-card" *ngIf="!isAlreadyLoggedIn">
+            <ion-card class="login-card">
               <ion-card-content>
                 <div class="social-login-container">
                   <!-- Error Message -->
@@ -49,11 +33,12 @@
 
                   <!-- Google Login Button -->
                   <div class="google-button-wrapper">
-                    <ion-button expand="block" class="social-login-button google-button" 
-                      (click)="onGoogleLogin()" [disabled]="isLoading">
-                      <ion-spinner *ngIf="isLoading && loginProvider === 'google'" 
-                        name="crescent" class="ion-margin-end"></ion-spinner>
-                      <ion-icon name="logo-google" slot="start" *ngIf="!(isLoading && loginProvider === 'google')"></ion-icon>
+                    <ion-button expand="block" class="social-login-button google-button" (click)="onGoogleLogin()"
+                      [disabled]="isLoading">
+                      <ion-spinner *ngIf="isLoading && loginProvider === 'google'" name="crescent"
+                        class="ion-margin-end"></ion-spinner>
+                      <ion-icon name="logo-google" slot="start"
+                        *ngIf="!(isLoading && loginProvider === 'google')"></ion-icon>
                       <span *ngIf="!(isLoading && loginProvider === 'google')">Đăng nhập bằng Google</span>
                       <span *ngIf="isLoading && loginProvider === 'google'">Đang đăng nhập...</span>
                     </ion-button>
@@ -65,11 +50,12 @@
                   </div>
 
                   <!-- Facebook Login Button -->
-                  <ion-button expand="block" class="social-login-button facebook-button" 
-                    (click)="onFacebookLogin()" [disabled]="isLoading">
-                    <ion-spinner *ngIf="isLoading && loginProvider === 'facebook'" 
-                      name="crescent" class="ion-margin-end"></ion-spinner>
-                    <ion-icon name="logo-facebook" slot="start" *ngIf="!(isLoading && loginProvider === 'facebook')"></ion-icon>
+                  <ion-button expand="block" class="social-login-button facebook-button" (click)="onFacebookLogin()"
+                    [disabled]="isLoading">
+                    <ion-spinner *ngIf="isLoading && loginProvider === 'facebook'" name="crescent"
+                      class="ion-margin-end"></ion-spinner>
+                    <ion-icon name="logo-facebook" slot="start"
+                      *ngIf="!(isLoading && loginProvider === 'facebook')"></ion-icon>
                     <span *ngIf="!(isLoading && loginProvider === 'facebook')">Đăng nhập bằng Facebook</span>
                     <span *ngIf="isLoading && loginProvider === 'facebook'">Đang đăng nhập...</span>
                   </ion-button>

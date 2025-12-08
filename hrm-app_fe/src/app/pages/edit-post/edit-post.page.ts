@@ -21,15 +21,11 @@ import {
   IonTextarea,
   IonSelect,
   IonSelectOption,
-  IonItem,
   IonLabel,
   IonModal,
   IonDatetime,
   ToastController,
   LoadingController,
-  IonList,
-  IonListHeader,
-  IonToggle,
   AlertController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -75,6 +71,7 @@ import {
 } from '../../services/notification.service';
 import { forkJoin, of, firstValueFrom } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
+import { AppHeaderComponent } from '../../components/app-header/app-header.component';
 
 @Component({
   selector: 'app-edit-post',
@@ -103,6 +100,7 @@ import { map, catchError } from 'rxjs/operators';
     MatInputModule,
     MatDatepickerModule,
     MatIconModule,
+    AppHeaderComponent,
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter },

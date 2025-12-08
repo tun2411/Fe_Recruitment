@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 // Use hybrid service (plugin-based)
 import { GoogleSignInHybridService } from './services/google-signin-hybrid.service';
@@ -6,7 +7,7 @@ import { GoogleSignInHybridService } from './services/google-signin-hybrid.servi
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
-  imports: [IonApp, IonRouterOutlet],
+  imports: [RouterModule, IonApp, IonRouterOutlet],
 })
 export class AppComponent implements OnInit {
   constructor(private googleSignInService: GoogleSignInHybridService) {}

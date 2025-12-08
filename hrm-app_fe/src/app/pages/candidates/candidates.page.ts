@@ -6,9 +6,6 @@ import { HttpClient } from '@angular/common/http';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonSearchbar,
   IonButton,
@@ -16,9 +13,6 @@ import {
   IonCard,
   IonCardContent,
   IonBadge,
-  IonAvatar,
-  IonFab,
-  IonFabButton,
   LoadingController,
   ToastController,
 } from '@ionic/angular/standalone';
@@ -46,6 +40,7 @@ import {
 import { JobPostService } from '../../services/job-post.service';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
+import { AppHeaderComponent } from '../../components/app-header/app-header.component';
 
 export interface Candidate {
   id: number;
@@ -70,9 +65,6 @@ export interface Candidate {
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonSearchbar,
     IonButton,
@@ -80,7 +72,7 @@ export interface Candidate {
     IonCard,
     IonCardContent,
     IonBadge,
-    IonAvatar,
+    AppHeaderComponent,
   ],
 })
 export class CandidatesPage implements OnInit {
@@ -147,7 +139,10 @@ export class CandidatesPage implements OnInit {
         this.loadCandidates();
       } else {
         // Nếu không có postId, không cho truy cập trang này vì không gắn với job nào
-        this.showToast('Không tìm thấy bài đăng. Đang quay về danh sách bài đăng.', 'warning');
+        this.showToast(
+          'Không tìm thấy bài đăng. Đang quay về danh sách bài đăng.',
+          'warning'
+        );
         this.candidates = [];
         this.filteredCandidates = [];
         this.router.navigate(['/home']);
@@ -161,7 +156,10 @@ export class CandidatesPage implements OnInit {
    */
   get displayedCandidates(): Candidate[] {
     const startIndex = (this.currentPage - 1) * this.pageSize;
-    return this.filteredCandidates.slice(startIndex, startIndex + this.pageSize);
+    return this.filteredCandidates.slice(
+      startIndex,
+      startIndex + this.pageSize
+    );
   }
 
   /**
@@ -176,7 +174,7 @@ export class CandidatesPage implements OnInit {
         this.jobTitle = jobPost.title;
         // Cập nhật position cho tất cả candidates nếu đã load
         if (this.candidates.length > 0) {
-          this.candidates.forEach(candidate => {
+          this.candidates.forEach((candidate) => {
             candidate.position = this.jobTitle;
           });
           this.filteredCandidates = [...this.candidates];
@@ -451,10 +449,7 @@ export class CandidatesPage implements OnInit {
                     'success'
                   );
                 } catch (error) {
-                  console.error(
-                    '[Candidates] Error saving file:',
-                    error
-                  );
+                  console.error('[Candidates] Error saving file:', error);
                   this.showToast(
                     'Không thể lưu CV. Vui lòng thử lại.',
                     'danger'
@@ -467,10 +462,7 @@ export class CandidatesPage implements OnInit {
               // Đọc blob dưới dạng data URL (base64)
               reader.readAsDataURL(blob);
             } catch (error) {
-              console.error(
-                '[Candidates] Error processing blob:',
-                error
-              );
+              console.error('[Candidates] Error processing blob:', error);
               this.showToast('Không thể xử lý file CV.', 'danger');
             }
           } else {
@@ -571,7 +563,10 @@ export class CandidatesPage implements OnInit {
    * Cập nhật thông tin phân trang
    */
   private updatePagination() {
-    this.totalPages = Math.max(1, Math.ceil(this.filteredCandidates.length / this.pageSize));
+    this.totalPages = Math.max(
+      1,
+      Math.ceil(this.filteredCandidates.length / this.pageSize)
+    );
     this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
     if (this.currentPage > this.totalPages) {
       this.currentPage = this.totalPages;

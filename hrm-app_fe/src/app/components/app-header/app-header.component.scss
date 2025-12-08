@@ -1,0 +1,234 @@
+// Dashboard Type Styles (Fixed Header)
+.header-dashboard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000; // Thấp hơn menu (menu có z-index: 2000)
+  width: 100%;
+
+  ion-toolbar {
+    --background: transparent;
+    --color: white;
+    padding: 0;
+    margin: 0;
+  }
+
+  .profile-card {
+    background: linear-gradient(135deg, #3880ff 0%, #2c5aa0 100%);
+    margin: 0;
+    padding: 15px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+
+    .profile-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+
+      &:active {
+        opacity: 0.7;
+      }
+
+      .profile-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        pointer-events: none; // Cho phép click event truyền lên parent
+
+        ion-icon {
+          font-size: 40px;
+          color: white;
+          pointer-events: none; // Cho phép click event truyền lên parent
+        }
+      }
+
+      .profile-text {
+        h2 {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        p {
+          margin: 4px 0 0 0;
+          font-size: 14px;
+          opacity: 0.9;
+        }
+      }
+    }
+
+    .notification-bell {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+
+      ion-icon {
+        font-size: 28px;
+        color: white;
+      }
+
+      .notification-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        font-size: 10px;
+        min-width: 18px;
+        height: 18px;
+      }
+    }
+  }
+}
+
+// Standard Type Styles
+.header-standard {
+  ion-toolbar {
+    // Dùng cùng gradient như dashboard để đồng bộ màu
+    --background: linear-gradient(135deg, #3880ff 0%, #2c5aa0 100%);
+    --color: white;
+    padding: 0;
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      width: 100%;
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        min-width: 44px;
+
+        .menu-button {
+          --color: transparent;
+          margin: 0;
+          padding: 0;
+          width: auto;
+          height: auto;
+        }
+
+        .header-icon-circle {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          cursor: pointer;
+
+          ion-icon {
+            font-size: 22px;
+            color: #3880ff;
+          }
+        }
+
+        .header-avatar {
+          width: 40px;
+          height: 40px;
+          background: rgba(255, 255, 255, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          ion-icon {
+            font-size: 24px;
+            color: white;
+          }
+        }
+
+        ion-back-button {
+          --color: white;
+        }
+
+        ion-button {
+          --color: white;
+          margin: 0;
+        }
+      }
+
+      .header-title {
+        flex: 1;
+        text-align: center;
+        font-weight: 600;
+        font-size: 18px;
+        color: white;
+        margin: 0;
+        text-transform: uppercase;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        min-width: 44px;
+        justify-content: flex-end;
+
+        .notification-wrapper {
+          position: relative;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+
+          .notification-icon {
+            font-size: 24px;
+            color: white;
+          }
+
+          .notification-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 10px;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Simple Type Styles
+.header-simple {
+  ion-toolbar {
+    // Dùng cùng gradient như dashboard để đồng bộ màu
+    --background: linear-gradient(135deg, #3880ff 0%, #2c5aa0 100%);
+    --color: white;
+    padding: 0;
+
+    .header-title {
+      text-align: center;
+      font-weight: 600;
+      font-size: 18px;
+      color: white;
+      margin: 0;
+      text-transform: uppercase;
+    }
+
+    ion-buttons {
+      ion-button {
+        --color: white;
+      }
+    }
+  }
+}

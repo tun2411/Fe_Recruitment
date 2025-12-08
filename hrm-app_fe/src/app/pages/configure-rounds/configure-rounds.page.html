@@ -1,14 +1,4 @@
-<ion-header class="custom-header">
-  <ion-toolbar color="primary">
-    <div class="header-content">
-      <ion-button fill="clear" (click)="onBack()" class="back-button">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </ion-button>
-      <ion-title class="header-title">VÒNG TUYỂN DỤNG</ion-title>
-      <div style="width: 48px;"></div>
-    </div>
-  </ion-toolbar>
-</ion-header>
+<app-header type="simple" title="VÒNG TUYỂN DỤNG" (backClick)="onBack()"></app-header>
 
 <ion-content [fullscreen]="true" class="configure-rounds-content">
   <div class="form-container">
@@ -20,14 +10,8 @@
               <div class="round-badge">{{ i + 1 }}</div>
               <h3 class="round-title">Vòng {{ i + 1 }}</h3>
             </div>
-            <ion-button
-              fill="clear"
-              color="danger"
-              size="small"
-              (click)="onDeleteRound(i)"
-              [disabled]="roundsArray.length <= 1"
-              class="delete-round-button"
-            >
+            <ion-button fill="clear" color="danger" size="small" (click)="onDeleteRound(i)"
+              [disabled]="roundsArray.length <= 1" class="delete-round-button">
               <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
             </ion-button>
           </div>
@@ -97,14 +81,8 @@
 
       <!-- Button thêm vòng -->
       <div class="add-round-section">
-        <ion-button
-          fill="outline"
-          color="primary"
-          expand="block"
-          (click)="onAddRound()"
-          type="button"
-          class="add-round-button"
-        >
+        <ion-button fill="outline" color="primary" expand="block" (click)="onAddRound()" type="button"
+          class="add-round-button">
           <ion-icon name="add-outline" slot="start"></ion-icon>
           Thêm vòng
         </ion-button>
@@ -122,5 +100,3 @@
     </form>
   </div>
 </ion-content>
-
-

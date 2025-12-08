@@ -1,0 +1,76 @@
+<!-- Dashboard Type: Profile Card Style (fixed header) -->
+<ion-header *ngIf="type === 'dashboard'" class="header-dashboard" [translucent]="false">
+    <ion-toolbar>
+        <div class="profile-card">
+            <ion-menu-toggle menu="main-menu" auto-hide="false">
+                <div class="profile-info">
+                    <div class="profile-avatar">
+                        <ion-icon name="person-circle-outline"></ion-icon>
+                    </div>
+                    <div class="profile-text">
+                        <h2>Hello, {{ userName }}</h2>
+                        <p>{{ currentDate }}</p>
+                    </div>
+                </div>
+            </ion-menu-toggle>
+            <div class="notification-bell" (click)="onNotificationClick()" *ngIf="showNotification">
+                <ion-icon name="notifications-outline"></ion-icon>
+                <ion-badge *ngIf="notificationCount > 0" color="danger" class="notification-badge">
+                    {{ notificationCount }}
+                </ion-badge>
+            </div>
+        </div>
+    </ion-toolbar>
+</ion-header>
+
+<!-- Standard Type: Standard Header với title, left action, notification -->
+<ion-header *ngIf="type === 'standard'" class="header-standard" [translucent]="false">
+    <ion-toolbar color="primary">
+        <div class="header-content">
+            <!-- Left Action: Menu Button hoặc Back Button -->
+            <div class="header-left">
+                <ion-menu-button *ngIf="showMenuButton" menu="main-menu" class="menu-button">
+                    <div class="header-icon-circle" *ngIf="!showAvatar">
+                        <ion-icon name="person-outline"></ion-icon>
+                    </div>
+                </ion-menu-button>
+                <ion-menu-toggle *ngIf="showAvatar" menu="main-menu" auto-hide="false">
+                    <ion-avatar class="header-avatar">
+                        <ion-icon name="person-outline"></ion-icon>
+                    </ion-avatar>
+                </ion-menu-toggle>
+                <ion-back-button *ngIf="showBackButton" [defaultHref]="backButtonDefaultHref"></ion-back-button>
+                <ion-button *ngIf="!showMenuButton && !showBackButton && !showAvatar" fill="clear"
+                    (click)="onBackClick()">
+                    <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+            </div>
+
+            <!-- Title -->
+            <ion-title class="header-title">{{ title }}</ion-title>
+
+            <!-- Right Action: Notification -->
+            <div class="header-right">
+                <div class="notification-wrapper" (click)="onNotificationClick()" *ngIf="showNotification">
+                    <ion-icon name="notifications-outline" class="notification-icon"></ion-icon>
+                    <ion-badge *ngIf="notificationCount > 0" color="danger" class="notification-badge">
+                        {{ notificationCount }}
+                    </ion-badge>
+                </div>
+            </div>
+        </div>
+    </ion-toolbar>
+</ion-header>
+
+<!-- Simple Type: Simple Header chỉ có title và back button (không có notification) -->
+<ion-header *ngIf="type === 'simple'" class="header-simple" [translucent]="false">
+    <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+            <ion-back-button *ngIf="backButtonDefaultHref" [defaultHref]="backButtonDefaultHref"></ion-back-button>
+            <ion-button *ngIf="!backButtonDefaultHref" (click)="onBackClick()">
+                <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-title class="header-title">{{ title }}</ion-title>
+    </ion-toolbar>
+</ion-header>

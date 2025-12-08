@@ -54,6 +54,7 @@ import { JobPostService } from '../../services/job-post.service';
 import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
+import { AppHeaderComponent } from '../../components/app-header/app-header.component';
 
 @Component({
   selector: 'app-application-detail',
@@ -63,9 +64,6 @@ import { environment } from '../../../environments/environment';
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonButton,
     IonIcon,
@@ -78,8 +76,7 @@ import { environment } from '../../../environments/environment';
     IonCardHeader,
     IonCardTitle,
     IonBadge,
-    IonButtons,
-    IonBackButton,
+    AppHeaderComponent,
   ],
 })
 export class ApplicationDetailPage implements OnInit {
@@ -91,6 +88,7 @@ export class ApplicationDetailPage implements OnInit {
   note: string = '';
   currentRoundIndex: number = 0;
   statusHistory: ApplicationStatusResponse[] = [];
+  statusHistoryLoaded: boolean = false; // Flag để biết statusHistory đã load xong chưa
   unreadCount: number = 0;
   showNoteInput: boolean = false;
   private authService = inject(AuthService);
@@ -283,14 +281,18 @@ export class ApplicationDetailPage implements OnInit {
   async loadStatusHistory() {
     if (!this.applicationId) return;
 
+    this.statusHistoryLoaded = false; // Reset flag khi bắt đầu load
     this.applicationService
       .getApplicationStatusHistory(this.applicationId)
       .subscribe({
         next: (history) => {
-          this.statusHistory = history;
+          this.statusHistory = history || [];
+          this.statusHistoryLoaded = true; // Đánh dấu đã load xong
         },
         error: (error) => {
           console.error('Error loading status history:', error);
+          this.statusHistory = []; // Set empty array nếu có lỗi
+          this.statusHistoryLoaded = true; // Vẫn đánh dấu đã load xong để không bị stuck
         },
       });
   }
@@ -310,21 +312,49 @@ export class ApplicationDetailPage implements OnInit {
   }
 
   canUpdateStatus(): boolean {
-    if (!this.application || !this.statusHistory.length) return false;
-
-    // Chỉ cho phép update nếu application chưa kết thúc (chưa PASS hoặc FAIL)
-    if (
-      this.application.status === 'PASS' ||
-      this.application.status === 'FAIL'
-    ) {
+    // Không có application → không thể update
+    if (!this.application) {
       return false;
     }
 
-    // Tìm round hiện tại
+    // Application đã kết thúc (PASS hoặc FAIL) → không thể update
+    const status = this.application.status?.toUpperCase();
+    if (status === 'PASS' || status === 'FAIL') {
+      return false;
+    }
+
+    // Nếu statusHistory chưa load xong → không hiển thị nút tạm thời
+    // Điều này tránh flickering và đảm bảo logic chính xác
+    if (!this.statusHistoryLoaded) {
+      return false;
+    }
+
+    // Nếu không có statusHistory (empty array sau khi load xong)
+    // → có thể là ứng viên mới chưa có rounds, hoặc có lỗi
+    // Trong trường hợp này, nếu status là NEW → vẫn cho phép update
+    if (!this.statusHistory || this.statusHistory.length === 0) {
+      // Ứng viên mới (NEW) chưa có rounds → vẫn cho phép update
+      return status === 'NEW';
+    }
+
+    // Tìm round hiện tại (round đang được xử lý)
     const currentRound = this.statusHistory.find((r) => r.isCurrentRound);
 
-    // Cho phép update nếu round hiện tại chưa có status (chưa được đánh giá)
-    return currentRound ? !currentRound.status : false;
+    // Nếu không tìm thấy currentRound
+    // → có thể là ứng viên mới chưa bắt đầu vòng nào, hoặc đã hết vòng
+    if (!currentRound) {
+      // Nếu status là NEW → vẫn cho phép update (ứng viên mới)
+      // Nếu status là IN_PROCESS nhưng không có currentRound → không cho phép
+      return status === 'NEW';
+    }
+
+    // Cho phép update nếu:
+    // 1. Round hiện tại chưa có status (chưa được đánh giá pass/fail)
+    // 2. Application status là NEW hoặc IN_PROCESS
+    const canUpdate =
+      !currentRound.status && (status === 'NEW' || status === 'IN_PROCESS');
+
+    return canUpdate;
   }
 
   async onPass() {
@@ -696,11 +726,7 @@ export class ApplicationDetailPage implements OnInit {
     await toast.present();
   }
 
-  navigateToDashboard() {
-    this.router.navigate(['/dashboard']);
-  }
-
-  onEmailManagement() {
-    this.router.navigate(['/email-management']);
+  onNotificationClick() {
+    this.router.navigate(['/notifications']);
   }
 }

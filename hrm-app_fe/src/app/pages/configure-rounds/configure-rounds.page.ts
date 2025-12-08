@@ -10,9 +10,6 @@ import {
 } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonButton,
   IonIcon,
@@ -51,6 +48,7 @@ import {
 } from '../../services/job-post.service';
 import { TemplateService } from '../../services/template.service';
 import { firstValueFrom } from 'rxjs';
+import { AppHeaderComponent } from '../../components/app-header/app-header.component';
 
 @Component({
   selector: 'app-configure-rounds',
@@ -61,9 +59,6 @@ import { firstValueFrom } from 'rxjs';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonButton,
     IonIcon,
@@ -71,6 +66,7 @@ import { firstValueFrom } from 'rxjs';
     IonToggle,
     IonItem,
     IonLabel,
+    AppHeaderComponent,
   ],
 })
 export class ConfigureRoundsPage implements OnInit {
@@ -585,7 +581,9 @@ export class ConfigureRoundsPage implements OnInit {
       // Chỉ sử dụng dữ liệu từ state (đã được load từ GET /api/jobs/{jobId})
       if (this.fromEdit) {
         // Chỉ sử dụng data từ state, không gọi API
-        console.log('[ConfigureRounds] From edit-post, using state data only, skipping API calls');
+        console.log(
+          '[ConfigureRounds] From edit-post, using state data only, skipping API calls'
+        );
         if (roundsFromState && roundsArray) {
           roundsFromState.forEach((round, index) => {
             if (roundsArray.at(index)) {

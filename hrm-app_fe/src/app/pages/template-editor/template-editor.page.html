@@ -1,13 +1,11 @@
-<ion-header class="custom-header">
-  <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-back-button></ion-back-button>
-    </ion-buttons>
-    <ion-title>{{ isEditMode ? 'CHỈNH SỬA MAIL' : 'TẠO MAIL' }}</ion-title>
-  </ion-toolbar>
-</ion-header>
+<app-header
+  type="simple"
+  [title]="isEditMode ? 'CHỈNH SỬA MAIL' : 'TẠO MAIL'"
+  [showBackButton]="true"
+  backButtonDefaultHref="/email-management"
+></app-header>
 
-<ion-content class="ion-padding">
+<ion-content [fullscreen]="true" class="template-editor-content no-bottom-nav has-bottom-actions">
   <!-- List mẫu email (nếu có) -->
   <ion-list *ngIf="samples && samples.length > 0">
     <ion-item button *ngFor="let sample of samples" (click)="selectSample(sample)">
@@ -18,27 +16,27 @@
   <!-- Form editor -->
   <form [formGroup]="templateForm">
     <!-- Tên form -->
-    <ion-item>
+    <ion-item class="form-item">
       <ion-label position="stacked">Tên form</ion-label>
       <ion-input formControlName="formName" placeholder="Tên"></ion-input>
     </ion-item>
 
     <!-- Tiêu đề -->
-    <ion-item>
+    <ion-item class="form-item">
       <ion-label position="stacked">Tiêu đề</ion-label>
       <ion-input formControlName="subject" placeholder="Tiêu đề mail"></ion-input>
     </ion-item>
 
     <!-- Nội dung -->
-    <ion-item>
+    <ion-item class="form-item">
       <ion-label position="stacked">Nội dung</ion-label>
       <ion-textarea formControlName="content" rows="10" placeholder="Nhập nội dung email..."></ion-textarea>
     </ion-item>
 
     <!-- Placeholders helper -->
-    <ion-item>
-      <ion-label>Placeholders:</ion-label>
-      <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;">
+    <ion-item class="form-item placeholders-section">
+      <ion-label class="placeholders-label">Placeholders:</ion-label>
+      <div class="placeholders-buttons">
         <ion-button
           size="small"
           fill="outline"
@@ -47,18 +45,22 @@
           {{placeholder}}
         </ion-button>
       </div>
-  </ion-item>
-      <!-- Action buttons -->
-      <div class="action-buttons">
-        <ion-button expand="block" fill="outline" (click)="onCancel()" class="cancel-button">
-          Cancel
-        </ion-button>
-        <ion-button expand="block" color="primary" (click)="onConfirm()" class="confirm-button">
-          Confirm
-        </ion-button>
-      </div>
+    </ion-item>
     </form>
 </ion-content>
+
+<ion-footer class="template-editor-footer">
+  <ion-toolbar>
+    <div class="action-buttons">
+      <ion-button expand="block" fill="outline" (click)="onCancel()" class="cancel-button">
+        Cancel
+      </ion-button>
+      <ion-button expand="block" color="primary" (click)="onConfirm()" class="confirm-button">
+        Confirm
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>
 
 
 

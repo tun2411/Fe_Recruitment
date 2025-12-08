@@ -1,26 +1,20 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonItem,
   IonLabel,
   IonList,
   IonButton,
-  IonButtons,
-  IonToggle,
   AlertController,
   ToastController,
   LoadingController,
   ModalController,
 } from '@ionic/angular/standalone';
-import { firstValueFrom } from 'rxjs';
 import { JobPostService, JobRoundDTO } from '../../services/job-post.service';
 import {
   JobCreationStateService,
@@ -33,6 +27,7 @@ import {
 } from '../../services/template.service';
 import { EmailTemplatePreviewComponent } from '../../components/email-template-preview/email-template-preview.component';
 import { JobConfirmationComponent } from '../../components/job-confirmation/job-confirmation.component';
+import { AppHeaderComponent } from '../../components/app-header/app-header.component';
 
 @Component({
   selector: 'app-email-templates',
@@ -42,16 +37,12 @@ import { JobConfirmationComponent } from '../../components/job-confirmation/job-
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonItem,
     IonLabel,
     IonList,
     IonButton,
-    IonButtons,
-    IonToggle,
+    AppHeaderComponent,
   ],
 })
 export class EmailTemplatesPage implements OnInit, OnDestroy {

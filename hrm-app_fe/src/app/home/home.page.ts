@@ -1,13 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
-import { Platform, MenuController } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MenuController, Platform } from '@ionic/angular';
 import { App } from '@capacitor/app';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonSearchbar,
   IonButton,
@@ -17,10 +14,6 @@ import {
   IonFab,
   IonFabButton,
   IonBadge,
-  IonMenu,
-  IonList,
-  IonItem,
-  IonLabel,
   IonMenuButton,
   IonRefresher,
   IonRefresherContent,
@@ -47,6 +40,8 @@ import {
   personCircleOutline,
   chevronForwardOutline,
 } from 'ionicons/icons';
+import { BottomNavComponent } from '../components/bottom-nav/bottom-nav.component';
+import { AppHeaderComponent } from '../components/app-header/app-header.component';
 import {
   JobPostService,
   JobPost,
@@ -84,9 +79,6 @@ export interface Post {
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonSearchbar,
     IonButton,
@@ -96,13 +88,10 @@ export interface Post {
     IonFab,
     IonFabButton,
     IonBadge,
-    IonMenu,
-    IonList,
-    IonItem,
-    IonLabel,
-    IonMenuButton,
     IonRefresher,
     IonRefresherContent,
+    BottomNavComponent,
+    AppHeaderComponent,
   ],
 })
 export class HomePage implements OnInit {
@@ -112,6 +101,8 @@ export class HomePage implements OnInit {
   notificationCount: number = 0;
   filterCount: number = 2;
   userInfo: any = null;
+  userName: string = '';
+  currentDate: string = '';
   pageSize: number = 5;
   currentPage: number = 1;
   totalPages: number = 1;
@@ -126,8 +117,8 @@ export class HomePage implements OnInit {
     private toastController: ToastController,
     private authService: AuthService,
     private notificationService: NotificationService,
-    private menuController: MenuController,
-    private platform: Platform
+    private platform: Platform,
+    private menuController: MenuController
   ) {
     addIcons({
       notificationsOutline,
@@ -149,7 +140,8 @@ export class HomePage implements OnInit {
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.updateCurrentDate();
     this.loadPosts();
     this.loadUserInfo();
     this.loadNotificationCount();
@@ -172,9 +164,32 @@ export class HomePage implements OnInit {
     return this.filteredPosts.slice(startIndex, startIndex + this.pageSize);
   }
 
+  updateCurrentDate() {
+    const today = new Date();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    this.currentDate = `${days[today.getDay()]}, ${today.getDate()} ${
+      months[today.getMonth()]
+    }`;
+  }
+
   loadUserInfo() {
     this.authService.currentUser$.subscribe((user) => {
       this.userInfo = user;
+      this.userName = user?.fullName || user?.username || 'User';
     });
   }
 
@@ -187,10 +202,16 @@ export class HomePage implements OnInit {
     this.loadPosts();
     this.loadNotificationCount();
 
-    // Nếu được yêu cầu, tự động mở lại menu sidebar
+    // Nếu đến từ PersonalInfo và yêu cầu mở lại menu
     const openMenu = this.route.snapshot.queryParamMap.get('openMenu');
+    console.log('[HomePage] openMenu param on enter =', openMenu);
     if (openMenu === 'true') {
-      this.menuController.open('main-menu');
+      this.menuController
+        .enable(true, 'main-menu')
+        .then(() => this.menuController.open('main-menu'))
+        .catch((err) =>
+          console.error('[HomePage] Error auto opening main-menu:', err)
+        );
     }
   }
 
@@ -291,6 +312,8 @@ export class HomePage implements OnInit {
           console.warn('[HomePage] No job posts found');
           this.posts = [];
           this.filteredPosts = [];
+          this.currentPage = 1;
+          this.updatePagination();
           loading.dismiss();
           return;
         }
@@ -320,6 +343,8 @@ export class HomePage implements OnInit {
             if (validJobs.length === 0) {
               this.posts = [];
               this.filteredPosts = [];
+              this.currentPage = 1;
+              this.updatePagination();
               loading.dismiss();
               return;
             }
@@ -351,6 +376,8 @@ export class HomePage implements OnInit {
                 );
 
                 this.filteredPosts = [...this.posts];
+                this.currentPage = 1;
+                this.updatePagination();
                 console.log(
                   '[HomePage] Mapped posts with details and candidate counts:',
                   this.posts
@@ -369,6 +396,8 @@ export class HomePage implements OnInit {
                   this.mapJobResponseToPost(job, 0)
                 );
                 this.filteredPosts = [...this.posts];
+                this.currentPage = 1;
+                this.updatePagination();
 
                 const toast = await this.toastController.create({
                   message:
@@ -380,16 +409,6 @@ export class HomePage implements OnInit {
                 await toast.present();
               },
             });
-            // Filter bỏ các job null và map sang Post
-            this.posts = jobDetails
-              .filter((job): job is JobResponse => job !== null)
-              .map((job) => this.mapJobResponseToPost(job));
-
-            this.filteredPosts = [...this.posts];
-            this.currentPage = 1;
-            this.updatePagination();
-            console.log('[HomePage] Mapped posts with details:', this.posts);
-            loading.dismiss();
           },
           error: async (error) => {
             loading.dismiss();
@@ -438,6 +457,8 @@ export class HomePage implements OnInit {
 
         this.posts = [];
         this.filteredPosts = [];
+        this.currentPage = 1;
+        this.updatePagination();
       },
     });
   }
@@ -513,33 +534,6 @@ export class HomePage implements OnInit {
     this.router.navigate(['/dashboard']);
   }
 
-  onAvatarClick() {
-    // Menu sẽ tự động mở khi click vào menu button
-  }
-
-  onPersonalInfo() {
-    this.router.navigate(['/personal-info']);
-  }
-
-  onRecruitmentManagement() {
-    // Navigate to home (quản lý tuyển dụng)
-    this.router.navigate(['/home']);
-  }
-
-  onEmailManagement() {
-    // Navigate to email management page
-    this.router.navigate(['/email-management']);
-  }
-
-  onDashboard() {
-    this.router.navigate(['/dashboard']);
-  }
-
-  async onLogout() {
-    // Logout ngay lập tức
-    this.authService.logout();
-  }
-
   /**
    * TrackBy function để optimize *ngFor
    */
@@ -548,7 +542,10 @@ export class HomePage implements OnInit {
   }
 
   private updatePagination() {
-    this.totalPages = Math.max(1, Math.ceil(this.filteredPosts.length / this.pageSize));
+    this.totalPages = Math.max(
+      1,
+      Math.ceil(this.filteredPosts.length / this.pageSize)
+    );
     this.pages = Array.from({ length: this.totalPages }, (_, i) => i + 1);
     if (this.currentPage > this.totalPages) {
       this.currentPage = this.totalPages;

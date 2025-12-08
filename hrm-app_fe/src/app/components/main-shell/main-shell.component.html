@@ -1,0 +1,70 @@
+<ion-split-pane contentId="main-shell-content" when="md">
+  <!-- Sidebar Menu -->
+  <ion-menu side="start" menuId="main-menu" contentId="main-shell-content" type="overlay">
+    <ion-header class="menu-header">
+      <ion-toolbar class="menu-toolbar">
+        <ion-title class="menu-title">Menu</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="menu-content">
+      <!-- Profile Section -->
+      <div class="menu-profile">
+        <div class="avatar-container">
+          <div class="avatar-placeholder">
+            <ion-icon name="person-outline"></ion-icon>
+          </div>
+          <div class="avatar-ring"></div>
+        </div>
+        <div class="user-info" *ngIf="userInfo">
+          <h3 class="user-name">{{ userInfo.fullName || userInfo.username || 'Người dùng' }}</h3>
+          <p class="user-email">{{ userInfo.email || '' }}</p>
+        </div>
+        <div class="user-info" *ngIf="!userInfo">
+          <h3 class="user-name">{{ userName || 'Người dùng' }}</h3>
+          <p class="user-email">Chưa có thông tin</p>
+        </div>
+      </div>
+
+      <!-- Menu Items -->
+      <ion-list class="menu-list">
+        <!-- Thông tin cá nhân: dùng menu-toggle để menu đóng như bình thường -->
+        <ion-menu-toggle auto-hide="true">
+          <ion-item button (click)="openPersonalInfoFromMenu()" class="menu-item">
+            <ion-icon name="person-circle-outline" slot="start" class="menu-icon"></ion-icon>
+            <ion-label class="menu-label">Thông tin cá nhân</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+        <ion-menu-toggle auto-hide="false">
+          <ion-item button routerLink="/home" class="menu-item">
+            <ion-icon name="briefcase-outline" slot="start" class="menu-icon"></ion-icon>
+            <ion-label class="menu-label">Quản lý tuyển dụng</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+        <ion-menu-toggle auto-hide="false">
+          <ion-item button routerLink="/email-management" class="menu-item">
+            <ion-icon name="mail-outline" slot="start" class="menu-icon"></ion-icon>
+            <ion-label class="menu-label">Quản lý mail tự động</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+        <ion-menu-toggle auto-hide="false">
+          <ion-item button routerLink="/dashboard" class="menu-item">
+            <ion-icon name="grid-outline" slot="start" class="menu-icon"></ion-icon>
+            <ion-label class="menu-label">Dashboard</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+      </ion-list>
+
+      <!-- Logout Section -->
+      <div class="menu-footer">
+        <ion-button fill="clear" (click)="onLogout()" class="logout-button">
+          <ion-icon name="log-out-outline" slot="start"></ion-icon>
+          <ion-label>Đăng xuất</ion-label>
+        </ion-button>
+      </div>
+    </ion-content>
+  </ion-menu>
+
+  <!-- Router outlet PHẢI có id khớp với contentId của menu -->
+  <ion-router-outlet id="main-shell-content"></ion-router-outlet>
+</ion-split-pane>
+

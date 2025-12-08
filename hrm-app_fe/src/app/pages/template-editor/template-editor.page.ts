@@ -4,9 +4,6 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonItem,
   IonLabel,
@@ -14,9 +11,8 @@ import {
   IonTextarea,
   IonList,
   IonButton,
-  IonButtons,
-  IonBackButton,
-  IonIcon,
+  IonFooter,
+  IonToolbar,
   ToastController,
   LoadingController,
 } from '@ionic/angular/standalone';
@@ -31,6 +27,7 @@ import {
   TemplateService,
   CreateTemplateRequest,
 } from '../../services/template.service';
+import { AppHeaderComponent } from '../../components/app-header/app-header.component';
 
 @Component({
   selector: 'app-template-editor',
@@ -40,9 +37,6 @@ import {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonItem,
     IonLabel,
@@ -50,9 +44,9 @@ import {
     IonTextarea,
     IonList,
     IonButton,
-    IonButtons,
-    IonBackButton,
-    IonIcon,
+    IonFooter,
+    IonToolbar,
+    AppHeaderComponent,
   ],
 })
 export class TemplateEditorPage implements OnInit {

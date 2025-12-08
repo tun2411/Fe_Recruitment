@@ -1,15 +1,10 @@
-<ion-header class="custom-header">
-  <ion-toolbar color="primary">
-    <ion-buttons slot="start" *ngIf="showSamplesList">
-      <ion-button (click)="backToRounds()">
-        <span style="font-size: 24px;">‹</span>
-      </ion-button>
-    </ion-buttons>
-    <ion-title>EMAIL TỰ ĐỘNG</ion-title>
-  </ion-toolbar>
-</ion-header>
+<app-header
+  type="simple"
+  title="EMAIL TỰ ĐỘNG"
+  (backClick)="backToRounds()"
+></app-header>
 
-<ion-content class="ion-padding">
+<ion-content [fullscreen]="true" class="ion-padding no-bottom-nav">
   <!-- Chỉ hiển thị nội dung khi có query params hợp lệ -->
   <div *ngIf="hasValidParams">
     <!-- Hiển thị list samples -->

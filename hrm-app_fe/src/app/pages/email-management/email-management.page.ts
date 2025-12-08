@@ -1,10 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonButton,
   IonButtons,
@@ -14,9 +11,11 @@ import {
   IonLabel,
   IonList,
   IonItem,
+  IonMenu,
   LoadingController,
   ToastController,
 } from '@ionic/angular/standalone';
+import { MenuController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   arrowBackOutline,
@@ -27,12 +26,22 @@ import {
   closeCircleOutline,
   chevronForwardOutline,
   addOutline,
+  logOutOutline,
+  personCircleOutline,
 } from 'ionicons/icons';
 import {
   TemplateService,
   TemplateResponse,
 } from '../../services/template.service';
+import { AuthService } from '../../services/auth.service';
+import { BusinessService } from '../../services/business.service';
+import {
+  NotificationService,
+  Notification,
+} from '../../services/notification.service';
 import { firstValueFrom } from 'rxjs';
+import { BottomNavComponent } from '../../components/bottom-nav/bottom-nav.component';
+import { AppHeaderComponent } from '../../components/app-header/app-header.component';
 
 export interface EmailTemplateItem {
   id: number;
@@ -51,18 +60,17 @@ export interface EmailTemplateItem {
   standalone: true,
   imports: [
     CommonModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonButton,
-    IonButtons,
     IonIcon,
     IonCard,
     IonCardContent,
     IonLabel,
     IonList,
     IonItem,
+    IonMenu,
+    BottomNavComponent,
+    AppHeaderComponent,
   ],
 })
 export class EmailManagementPage implements OnInit {
@@ -73,6 +81,10 @@ export class EmailManagementPage implements OnInit {
     fail: [],
     apply_confirm: [],
   };
+  userName: string = '';
+  currentDate: string = '';
+  notificationCount: number = 0;
+  userInfo: any = null;
 
   categories = [
     {
@@ -100,9 +112,14 @@ export class EmailManagementPage implements OnInit {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private templateService: TemplateService,
     private loadingController: LoadingController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private authService: AuthService,
+    private businessService: BusinessService,
+    private notificationService: NotificationService,
+    private menuController: MenuController
   ) {
     addIcons({
       arrowBackOutline,
@@ -113,11 +130,92 @@ export class EmailManagementPage implements OnInit {
       closeCircleOutline,
       chevronForwardOutline,
       addOutline,
+      logOutOutline,
+      personCircleOutline,
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.updateCurrentDate();
+    this.loadUserInfo();
+    this.loadNotificationCount();
     this.loadEmailTemplates();
+  }
+
+  ionViewWillEnter() {
+    const openMenu = this.route.snapshot.queryParamMap.get('openMenu');
+    if (openMenu === 'true') {
+      this.menuController
+        .open('main-menu')
+        .catch((err) =>
+          console.error(
+            '[EmailManagementPage] Error auto opening main-menu:',
+            err
+          )
+        );
+    }
+  }
+
+  updateCurrentDate() {
+    const today = new Date();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    this.currentDate = `${days[today.getDay()]}, ${today.getDate()} ${
+      months[today.getMonth()]
+    }`;
+  }
+
+  loadUserInfo() {
+    // Load userInfo từ AuthService
+    this.authService.currentUser$.subscribe((user: any) => {
+      this.userInfo = user;
+    });
+
+    // Option 1: Lấy từ BusinessService (companyName)
+    this.businessService.getCurrentBusiness().subscribe({
+      next: (business: any) => {
+        this.userName = business.companyName || business.email || 'User';
+      },
+      error: (error: any) => {
+        console.error('Error loading business info:', error);
+        // Fallback: Lấy từ AuthService
+        this.authService.currentUser$.subscribe((user: any) => {
+          this.userName = user?.fullName || user?.username || 'User';
+        });
+      },
+    });
+  }
+
+  loadNotificationCount() {
+    this.notificationService.getNotifications().subscribe({
+      next: (notifications: Notification[]) => {
+        this.notificationCount = notifications.filter((n) => !n.isRead).length;
+      },
+      error: (error: any) => {
+        console.error(
+          '[EmailManagementPage] Error loading notification count:',
+          error
+        );
+        this.notificationCount = 0;
+      },
+    });
+  }
+
+  onNotificationClick() {
+    this.router.navigate(['/notifications']);
   }
 
   async loadEmailTemplates() {
@@ -129,7 +227,9 @@ export class EmailManagementPage implements OnInit {
 
     try {
       // Load tất cả templates (không filter)
-      const response = await firstValueFrom(this.templateService.getTemplates());
+      const response = await firstValueFrom(
+        this.templateService.getTemplates()
+      );
 
       // Convert TemplateResponse sang EmailTemplateItem và group theo type
       this.emailTemplates = (response.templates || []).map((template) => ({
@@ -182,7 +282,9 @@ export class EmailManagementPage implements OnInit {
     }
   }
 
-  async loadTemplatesForCategory(categoryType: 'pass' | 'fail' | 'apply_confirm') {
+  async loadTemplatesForCategory(
+    categoryType: 'pass' | 'fail' | 'apply_confirm'
+  ) {
     try {
       const response = await firstValueFrom(
         this.templateService.getTemplates(categoryType)
@@ -195,7 +297,9 @@ export class EmailManagementPage implements OnInit {
           type: template.type,
           subject: template.subject || '',
           content: template.content || '',
-          lastModified: this.formatDate(template.updatedAt || template.createdAt),
+          lastModified: this.formatDate(
+            template.updatedAt || template.createdAt
+          ),
           isActive: true,
         })
       );
@@ -204,7 +308,9 @@ export class EmailManagementPage implements OnInit {
     }
   }
 
-  getTemplatesForCategory(categoryType: 'pass' | 'fail' | 'apply_confirm'): EmailTemplateItem[] {
+  getTemplatesForCategory(
+    categoryType: 'pass' | 'fail' | 'apply_confirm'
+  ): EmailTemplateItem[] {
     return this.templatesByCategory[categoryType] || [];
   }
 
@@ -317,7 +423,9 @@ export class EmailManagementPage implements OnInit {
     return this.selectedCategory === categoryType;
   }
 
-  getCategoryLabel(categoryType: 'pass' | 'fail' | 'apply_confirm' | null): string {
+  getCategoryLabel(
+    categoryType: 'pass' | 'fail' | 'apply_confirm' | null
+  ): string {
     if (!categoryType) return '';
     const category = this.categories.find((c) => c.type === categoryType);
     return category?.label || '';

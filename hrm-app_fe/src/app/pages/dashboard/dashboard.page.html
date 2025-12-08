@@ -1,22 +1,14 @@
-<ion-content [fullscreen]="true" class="dashboard-content">
-  <!-- Profile Card with Notification -->
-  <div class="profile-card">
-    <div class="profile-info">
-      <div class="profile-avatar">
-        <ion-icon name="person-circle-outline"></ion-icon>
-      </div>
-      <div class="profile-text">
-        <h2>Hello, {{ userName }}</h2>
-        <p>{{ currentDate }}</p>
-      </div>
-    </div>
-    <div class="notification-bell" (click)="onNotificationClick()">
-      <ion-icon name="notifications-outline"></ion-icon>
-      <ion-badge *ngIf="notificationCount > 0" color="danger" class="notification-badge">
-        {{ notificationCount }}
-      </ion-badge>
-    </div>
-  </div>
+<!-- Header Component (Fixed) -->
+<app-header
+  type="dashboard"
+  [userName]="userName"
+  [currentDate]="currentDate"
+  [showNotification]="true"
+  [notificationCount]="notificationCount"
+  (notificationClick)="onNotificationClick()"
+></app-header>
+
+<ion-content [fullscreen]="true" class="dashboard-content has-bottom-nav" id="main-content">
 
   <!-- Filter Buttons -->
   <div class="filter-buttons">
@@ -24,11 +16,7 @@
       <ion-icon name="briefcase-outline" class="select-icon"></ion-icon>
       <ion-select
         [value]="selectedFilter === 'week' ? null : (selectedJobId === null ? 'all' : selectedJobId.toString())"
-        (ionChange)="onJobChange($event)"
-        placeholder="Chọn Job"
-        class="job-select"
-        interface="popover"
-      >
+        (ionChange)="onJobChange($event)" placeholder="Chọn Job" class="job-select" interface="popover">
         <ion-select-option value="all">All Jobs</ion-select-option>
         <ion-select-option *ngFor="let job of jobs" [value]="job.id.toString()">
           {{ job.title }}
@@ -36,12 +24,8 @@
       </ion-select>
       <ion-icon name="chevron-down-outline" class="chevron-icon"></ion-icon>
     </div>
-    <ion-button
-      [class.active]="selectedFilter === 'week'"
-      fill="outline"
-      class="filter-button"
-      (click)="onFilterChange('week')"
-    >
+    <ion-button [class.active]="selectedFilter === 'week'" fill="outline" class="filter-button"
+      (click)="onFilterChange('week')">
       <ion-icon name="calendar-outline" slot="start"></ion-icon>
       This Week
     </ion-button>
@@ -113,51 +97,20 @@
     <div class="donut-chart-container">
       <div class="donut-chart-wrapper">
         <svg class="donut-chart" viewBox="0 0 200 200">
-          <circle
-            class="donut-ring"
-            cx="100"
-            cy="100"
-            r="80"
-            fill="none"
-            stroke="#e0e0e0"
-            stroke-width="40"
-          ></circle>
-          <circle
-            class="donut-segment donut-segment-pass"
-            cx="100"
-            cy="100"
-            r="80"
-            fill="none"
-            stroke="#2dd36f"
+          <circle class="donut-ring" cx="100" cy="100" r="80" fill="none" stroke="#e0e0e0" stroke-width="40"></circle>
+          <circle class="donut-segment donut-segment-pass" cx="100" cy="100" r="80" fill="none" stroke="#2dd36f"
             stroke-width="40"
             [attr.stroke-dasharray]="getDonutChartData().passAll * 5.026 + ' ' + (502.6 - getDonutChartData().passAll * 5.026)"
-            stroke-dashoffset="0"
-            transform="rotate(-90 100 100)"
-          ></circle>
-          <circle
-            class="donut-segment donut-segment-fail"
-            cx="100"
-            cy="100"
-            r="80"
-            fill="none"
-            stroke="#eb445a"
+            stroke-dashoffset="0" transform="rotate(-90 100 100)"></circle>
+          <circle class="donut-segment donut-segment-fail" cx="100" cy="100" r="80" fill="none" stroke="#eb445a"
             stroke-width="40"
             [attr.stroke-dasharray]="getDonutChartData().fail * 5.026 + ' ' + (502.6 - getDonutChartData().fail * 5.026)"
-            [attr.stroke-dashoffset]="-(getDonutChartData().passAll * 5.026)"
-            transform="rotate(-90 100 100)"
-          ></circle>
-          <circle
-            class="donut-segment donut-segment-pending"
-            cx="100"
-            cy="100"
-            r="80"
-            fill="none"
-            stroke="#999"
+            [attr.stroke-dashoffset]="-(getDonutChartData().passAll * 5.026)" transform="rotate(-90 100 100)"></circle>
+          <circle class="donut-segment donut-segment-pending" cx="100" cy="100" r="80" fill="none" stroke="#999"
             stroke-width="40"
             [attr.stroke-dasharray]="getDonutChartData().pending * 5.026 + ' ' + (502.6 - getDonutChartData().pending * 5.026)"
             [attr.stroke-dashoffset]="-(getDonutChartData().passAll * 5.026 + getDonutChartData().fail * 5.026)"
-            transform="rotate(-90 100 100)"
-          ></circle>
+            transform="rotate(-90 100 100)"></circle>
         </svg>
         <!-- Center: tổng số ứng viên ứng tuyển -->
         <div class="donut-center">
@@ -203,17 +156,4 @@
 </ion-content>
 
 <!-- Bottom Navigation Bar -->
-<div class="bottom-nav">
-  <div class="nav-item active" (click)="navigateToDashboard()">
-    <ion-icon name="grid-outline"></ion-icon>
-    <span>Dashboard</span>
-  </div>
-  <div class="nav-item" (click)="navigateToJobs()">
-    <ion-icon name="briefcase-outline"></ion-icon>
-    <span>Jobs</span>
-  </div>
-  <div class="nav-item" (click)="navigateToMessages()">
-    <ion-icon name="mail-outline"></ion-icon>
-    <span>Mail</span>
-  </div>
-</div>
+<app-bottom-nav activeTab="dashboard"></app-bottom-nav>

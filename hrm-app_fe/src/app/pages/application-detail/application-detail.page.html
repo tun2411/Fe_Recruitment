@@ -1,19 +1,11 @@
-<ion-header [translucent]="true" class="page-header">
-    <ion-toolbar color="primary">
-        <ion-buttons slot="start">
-            <ion-back-button defaultHref="/candidates"></ion-back-button>
-        </ion-buttons>
-        <ion-title>{{ application?.candidateFullName || 'Tên ứng viên' }}</ion-title>
-        <ion-buttons slot="end">
-            <ion-button>
-                <ion-icon name="notifications-outline"></ion-icon>
-                <ion-badge color="danger" *ngIf="unreadCount > 0">{{ unreadCount }}</ion-badge>
-            </ion-button>
-        </ion-buttons>
-    </ion-toolbar>
-</ion-header>
+<app-header
+  type="simple"
+  [title]="application?.candidateFullName || 'Tên ứng viên'"
+  [showBackButton]="true"
+  backButtonDefaultHref="/candidates"
+></app-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
+<ion-content [fullscreen]="true" class="ion-padding has-bottom-actions no-bottom-nav">
     <div *ngIf="loading" class="loading-container">
         <ion-spinner></ion-spinner>
     </div>
@@ -167,19 +159,3 @@
         </ion-card>
     </div>
 </ion-content>
-
-<!-- Bottom Navigation Bar -->
-<div class="bottom-nav">
-    <div class="nav-item" (click)="navigateToDashboard()">
-        <ion-icon name="grid-outline"></ion-icon>
-        <span>Dashboard</span>
-    </div>
-    <div class="nav-item active">
-        <ion-icon name="briefcase-outline"></ion-icon>
-        <span>Jobs</span>
-    </div>
-    <div class="nav-item" (click)="onEmailManagement()">
-        <ion-icon name="mail-outline"></ion-icon>
-        <span>Mail</span>
-    </div>
-</div>

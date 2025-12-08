@@ -81,12 +81,12 @@ export class AuthService {
           if (response.token) {
             // Lưu access token
             this.setToken(response.token);
-            
+
             // Lưu refresh token nếu có
             if (response.refreshToken) {
               this.setRefreshToken(response.refreshToken);
             }
-            
+
             // Lưu thông tin user
             const userInfo: UserInfo = {
               email: response.user.email,
@@ -112,12 +112,12 @@ export class AuthService {
           if (response.token) {
             // Lưu access token
             this.setToken(response.token);
-            
+
             // Lưu refresh token nếu có
             if (response.refreshToken) {
               this.setRefreshToken(response.refreshToken);
             }
-            
+
             // Lưu thông tin user
             const userInfo: UserInfo = {
               email: response.user.email,
@@ -143,12 +143,12 @@ export class AuthService {
           if (response.token) {
             // Lưu access token mới
             this.setToken(response.token);
-            
+
             // Lưu refresh token mới nếu có
             if (response.refreshToken) {
               this.setRefreshToken(response.refreshToken);
             }
-            
+
             // Cập nhật thông tin user
             const userInfo: UserInfo = {
               email: response.user.email,
@@ -170,7 +170,7 @@ export class AuthService {
           if (response.token) {
             // Lưu token
             this.setToken(response.token);
-            
+
             // Lưu thông tin user
             const userInfo: UserInfo = {
               username: response.username,
@@ -189,7 +189,8 @@ export class AuthService {
     this.clearRefreshToken();
     this.clearUserInfo();
     this.currentUserSubject.next(null);
-    this.router.navigate(['/login']);
+    // replaceUrl để không quay lại được trang bảo vệ sau khi logout
+    this.router.navigate(['/login'], { replaceUrl: true });
   }
 
   getToken(): string | null {
@@ -197,12 +198,21 @@ export class AuthService {
       const token = localStorage.getItem(this.tokenKey);
       // Debug logging
       if (!token) {
-        console.warn('[AuthService] getToken() returned null. tokenKey:', this.tokenKey);
-        console.warn('[AuthService] localStorage keys:', Object.keys(localStorage));
+        console.warn(
+          '[AuthService] getToken() returned null. tokenKey:',
+          this.tokenKey
+        );
+        console.warn(
+          '[AuthService] localStorage keys:',
+          Object.keys(localStorage)
+        );
       }
       return token;
     } catch (error) {
-      console.error('[AuthService] Error getting token from localStorage:', error);
+      console.error(
+        '[AuthService] Error getting token from localStorage:',
+        error
+      );
       return null;
     }
   }
@@ -264,7 +274,12 @@ export class AuthService {
       const exp = payload.exp * 1000; // Convert to milliseconds
       const now = Date.now();
       if (exp < now) {
-        console.warn('[AuthService] Token has expired. Exp:', new Date(exp), 'Now:', new Date(now));
+        console.warn(
+          '[AuthService] Token has expired. Exp:',
+          new Date(exp),
+          'Now:',
+          new Date(now)
+        );
         return false;
       }
       return true;

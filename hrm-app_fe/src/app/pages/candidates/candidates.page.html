@@ -1,29 +1,9 @@
-<ion-header class="custom-header">
-  <ion-toolbar color="primary">
-    <div class="header-content">
-      <ion-avatar class="header-avatar">
-        <ion-icon name="person-outline"></ion-icon>
-      </ion-avatar>
-      <ion-title class="header-title">ỨNG VIÊN</ion-title>
-      <div class="notification-wrapper" (click)="onNotificationClick()">
-        <ion-icon name="notifications-outline" class="notification-icon"></ion-icon>
-        <ion-badge color="danger" class="notification-badge" *ngIf="notificationCount > 0">
-          {{ notificationCount }}
-        </ion-badge>
-      </div>
-    </div>
-  </ion-toolbar>
-</ion-header>
+<app-header type="simple" title="ỨNG VIÊN" [showBackButton]="true" backButtonDefaultHref="/home"></app-header>
 
 <ion-content [fullscreen]="true" class="candidates-content">
   <!-- Search Bar -->
-  <ion-searchbar
-    [(ngModel)]="searchTerm"
-    (ionInput)="onSearch($event)"
-    placeholder="Tìm kiếm..."
-    class="custom-searchbar"
-    show-clear-button="focus"
-  ></ion-searchbar>
+  <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="onSearch($event)" placeholder="Tìm kiếm..."
+    class="custom-searchbar" show-clear-button="focus"></ion-searchbar>
 
   <!-- Action Bar -->
   <div class="action-bar">
@@ -50,11 +30,8 @@
     </div>
 
     <!-- Candidates Cards (phân trang, tối đa 5 item mỗi trang) -->
-    <ion-card
-      *ngFor="let candidate of displayedCandidates"
-      [class]="getCardColorClass(candidate.status)"
-      class="candidate-card"
-    >
+    <ion-card *ngFor="let candidate of displayedCandidates" [class]="getCardColorClass(candidate.status)"
+      class="candidate-card">
       <ion-card-content>
         <div class="candidate-header">
           <div class="candidate-info">
@@ -62,15 +39,9 @@
             <p class="candidate-position">{{ candidate.position }}</p>
             <p class="candidate-contact">{{ candidate.email }} / {{ candidate.phone }}</p>
           </div>
-          <ion-button
-            fill="clear"
-            class="favorite-button"
-            (click)="toggleFavorite(candidate)"
-          >
-            <ion-icon
-              [name]="candidate.isFavorite ? 'star' : 'star-outline'"
-              [class.filled]="candidate.isFavorite"
-            ></ion-icon>
+          <ion-button fill="clear" class="favorite-button" (click)="toggleFavorite(candidate)">
+            <ion-icon [name]="candidate.isFavorite ? 'star' : 'star-outline'"
+              [class.filled]="candidate.isFavorite"></ion-icon>
           </ion-button>
         </div>
 
@@ -99,12 +70,8 @@
         Trước
       </ion-button>
 
-      <span
-        class="dot"
-        *ngFor="let page of pages"
-        [class.active]="page === currentPage"
-        (click)="goToPage(page)"
-      ></span>
+      <span class="dot" *ngFor="let page of pages" [class.active]="page === currentPage"
+        (click)="goToPage(page)"></span>
 
       <ion-button fill="clear" size="small" (click)="nextPage()" [disabled]="currentPage === totalPages">
         Sau
@@ -113,4 +80,3 @@
   </div>
 
 </ion-content>
-
