@@ -46,8 +46,6 @@
       </ion-button>
     </div>
 
-    <!-- Danh sách posts (phân trang, tối đa 5 item mỗi trang) -->
-    <ion-card *ngFor="let post of displayedPosts; trackBy: trackByPostId" class="post-card"> </ion-card>
     <!-- Job Posts List -->
     <ion-card *ngFor="let post of filteredPosts; trackBy: trackByPostId" class="post-card" (click)="onViewDetail(post)">
       <ion-card-content>
@@ -101,19 +99,6 @@
       </ion-card-content>
     </ion-card>
 
-    <!-- Pagination controls -->
-    <div class="pagination-dots" *ngIf="totalPages > 1">
-      <ion-button fill="clear" size="small" (click)="prevPage()" [disabled]="currentPage === 1">
-        Trước
-      </ion-button>
-
-      <span class="dot" *ngFor="let page of pages" [class.active]="page === currentPage"
-        (click)="goToPage(page)"></span>
-
-      <ion-button fill="clear" size="small" (click)="nextPage()" [disabled]="currentPage === totalPages">
-        Sau
-      </ion-button>
-    </div>
   </div>
 
   <!-- Floating Action Button -->

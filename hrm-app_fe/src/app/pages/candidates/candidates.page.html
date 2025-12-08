@@ -29,8 +29,8 @@
       <p class="empty-message">Chưa có ứng viên nào ứng tuyển cho bài đăng này</p>
     </div>
 
-    <!-- Candidates Cards (phân trang, tối đa 5 item mỗi trang) -->
-    <ion-card *ngFor="let candidate of displayedCandidates" [class]="getCardColorClass(candidate.status)"
+    <!-- Candidates Cards -->
+    <ion-card *ngFor="let candidate of filteredCandidates" [class]="getCardColorClass(candidate.status)"
       class="candidate-card">
       <ion-card-content>
         <div class="candidate-header">
@@ -64,19 +64,6 @@
       </ion-card-content>
     </ion-card>
 
-    <!-- Pagination controls -->
-    <div class="pagination-dots" *ngIf="totalPages > 1">
-      <ion-button fill="clear" size="small" (click)="prevPage()" [disabled]="currentPage === 1">
-        Trước
-      </ion-button>
-
-      <span class="dot" *ngFor="let page of pages" [class.active]="page === currentPage"
-        (click)="goToPage(page)"></span>
-
-      <ion-button fill="clear" size="small" (click)="nextPage()" [disabled]="currentPage === totalPages">
-        Sau
-      </ion-button>
-    </div>
   </div>
 
 </ion-content>
