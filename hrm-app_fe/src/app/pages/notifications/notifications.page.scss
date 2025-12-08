@@ -22,6 +22,61 @@
   ion-button {
     --color: white;
   }
+
+  ion-buttons[slot="end"] {
+    display: flex;
+    align-items: center;
+  }
+
+  .sse-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    font-size: 11px;
+    font-weight: 500;
+    height: fit-content;
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse 2s infinite;
+      flex-shrink: 0;
+    }
+
+    &.connected {
+      .status-dot {
+        background-color: #4caf50;
+        box-shadow: 0 0 4px rgba(76, 175, 80, 0.6);
+      }
+    }
+
+    &.disconnected {
+      .status-dot {
+        background-color: #ff9800;
+        box-shadow: 0 0 4px rgba(255, 152, 0, 0.6);
+      }
+    }
+
+    .status-text {
+      color: white;
+      white-space: nowrap;
+    }
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
 }
 
 .notifications-content {
@@ -156,6 +211,15 @@
 
 // Responsive
 @media (max-width: 480px) {
+  .custom-header {
+    .sse-status-indicator {
+      .status-text {
+        display: none; // Ẩn text trên mobile, chỉ hiển thị dot
+      }
+      padding: 4px;
+    }
+  }
+
   .notifications-container {
     padding: 12px;
   }

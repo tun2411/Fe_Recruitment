@@ -6,6 +6,12 @@
       </ion-button>
     </ion-buttons>
     <ion-title class="header-title">THÔNG BÁO</ion-title>
+    <ion-buttons slot="end">
+      <div class="sse-status-indicator" [class.connected]="isSSEConnected" [class.disconnected]="!isSSEConnected">
+        <span class="status-dot"></span>
+        <span class="status-text">{{ isSSEConnected ? 'Đang cập nhật' : 'Đang kết nối...' }}</span>
+      </div>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 

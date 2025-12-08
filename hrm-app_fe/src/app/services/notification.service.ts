@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { SSEService } from './sse.service';
 
 export interface Notification {
   id: number;
@@ -19,8 +20,12 @@ export interface Notification {
 })
 export class NotificationService {
   private apiUrl = `${environment.apiUrl}/notifications`;
+  private sseUrl = `${environment.apiUrl}/notifications/stream`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private sseService: SSEService
+  ) {}
 
   /**
    * GET /api/notifications - Lấy danh sách notifications
@@ -40,6 +45,35 @@ export class NotificationService {
     return this.http
       .put<void>(`${this.apiUrl}/${notificationId}/read`, {})
       .pipe(catchError(this.handleError<void>('markAsRead')));
+  }
+
+  /**
+   * Kết nối đến SSE stream để nhận notifications real-time
+   * @param token JWT token để authenticate
+   */
+  connectSSE(token: string): void {
+    this.sseService.connect(this.sseUrl, token);
+  }
+
+  /**
+   * Đóng kết nối SSE
+   */
+  disconnectSSE(): void {
+    this.sseService.disconnect();
+  }
+
+  /**
+   * Observable để lắng nghe notifications từ SSE
+   */
+  getSSENotifications(): Observable<Notification> {
+    return this.sseService.notifications$;
+  }
+
+  /**
+   * Observable để lắng nghe trạng thái kết nối SSE
+   */
+  getSSEConnectionStatus(): Observable<boolean> {
+    return this.sseService.connectionStatus$;
   }
 
   /**
