@@ -184,6 +184,45 @@ export class LoginPage implements OnInit {
     await toast.present();
   }
 
+  /**
+   * Xử lý lỗi và trả về thông báo lỗi thân thiện với user
+   */
+  private getErrorMessage(error: any, defaultMessage: string): string {
+    // Kiểm tra lỗi network
+    if (error?.status === 0) {
+      return 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng và thử lại.';
+    }
+
+    // Kiểm tra lỗi Failed to fetch hoặc ERR_INTERNET_DISCONNECTED
+    if (
+      error?.message?.includes('Failed to fetch') ||
+      error?.message?.includes('ERR_INTERNET_DISCONNECTED') ||
+      error?.message?.includes('NetworkError') ||
+      error?.name === 'NetworkError'
+    ) {
+      return 'Không có kết nối mạng. Vui lòng kiểm tra kết nối internet và thử lại.';
+    }
+
+    // Kiểm tra lỗi từ HttpErrorResponse
+    if (error?.error) {
+      // Lỗi từ server
+      if (error.error?.message) {
+        return error.error.message;
+      }
+      if (typeof error.error === 'string') {
+        return error.error;
+      }
+    }
+
+    // Kiểm tra error.message
+    if (error?.message) {
+      return error.message;
+    }
+
+    // Thông báo mặc định
+    return defaultMessage;
+  }
+
   async onGoogleLogin() {
     this.isLoading = true;
     this.errorMessage = '';
@@ -223,13 +262,16 @@ export class LoginPage implements OnInit {
               this.isLoading = false;
               this.loginProvider = null;
 
-              this.errorMessage =
-                error.message ||
-                'Đăng nhập bằng Google thất bại. Vui lòng thử lại.';
+              this.errorMessage = this.getErrorMessage(
+                error,
+                'Đăng nhập bằng Google thất bại. Vui lòng thử lại.'
+              );
+
+              console.error('Google login error:', error);
 
               const toast = await this.toastController.create({
                 message: this.errorMessage,
-                duration: 3000,
+                duration: 4000,
                 color: 'danger',
                 position: 'top',
               });
@@ -241,13 +283,16 @@ export class LoginPage implements OnInit {
           this.isLoading = false;
           this.loginProvider = null;
 
-          this.errorMessage =
-            error.message ||
-            'Không thể đăng nhập bằng Google. Vui lòng thử lại.';
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể đăng nhập bằng Google. Vui lòng thử lại.'
+          );
+
+          console.error('Google sign-in error:', error);
 
           const toast = await this.toastController.create({
             message: this.errorMessage,
-            duration: 3000,
+            duration: 4000,
             color: 'danger',
             position: 'top',
           });
@@ -257,12 +302,16 @@ export class LoginPage implements OnInit {
       this.isLoading = false;
       this.loginProvider = null;
 
-      this.errorMessage =
-        error.message || 'Đăng nhập bằng Google thất bại. Vui lòng thử lại.';
+      this.errorMessage = this.getErrorMessage(
+        error,
+        'Đăng nhập bằng Google thất bại. Vui lòng thử lại.'
+      );
+
+      console.error('Google login catch error:', error);
 
       const toast = await this.toastController.create({
         message: this.errorMessage,
-        duration: 3000,
+        duration: 4000,
         color: 'danger',
         position: 'top',
       });
@@ -308,13 +357,16 @@ export class LoginPage implements OnInit {
               this.isLoading = false;
               this.loginProvider = null;
 
-              this.errorMessage =
-                error.message ||
-                'Đăng nhập bằng Facebook thất bại. Vui lòng thử lại.';
+              this.errorMessage = this.getErrorMessage(
+                error,
+                'Đăng nhập bằng Facebook thất bại. Vui lòng thử lại.'
+              );
+
+              console.error('Facebook login error:', error);
 
               const toast = await this.toastController.create({
                 message: this.errorMessage,
-                duration: 3000,
+                duration: 4000,
                 color: 'danger',
                 position: 'top',
               });
@@ -326,13 +378,16 @@ export class LoginPage implements OnInit {
           this.isLoading = false;
           this.loginProvider = null;
 
-          this.errorMessage =
-            error.message ||
-            'Không thể đăng nhập bằng Facebook. Vui lòng thử lại.';
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể đăng nhập bằng Facebook. Vui lòng thử lại.'
+          );
+
+          console.error('Facebook sign-in error:', error);
 
           const toast = await this.toastController.create({
             message: this.errorMessage,
-            duration: 3000,
+            duration: 4000,
             color: 'danger',
             position: 'top',
           });
@@ -342,12 +397,16 @@ export class LoginPage implements OnInit {
       this.isLoading = false;
       this.loginProvider = null;
 
-      this.errorMessage =
-        error.message || 'Đăng nhập bằng Facebook thất bại. Vui lòng thử lại.';
+      this.errorMessage = this.getErrorMessage(
+        error,
+        'Đăng nhập bằng Facebook thất bại. Vui lòng thử lại.'
+      );
+
+      console.error('Facebook login catch error:', error);
 
       const toast = await this.toastController.create({
         message: this.errorMessage,
-        duration: 3000,
+        duration: 4000,
         color: 'danger',
         position: 'top',
       });
