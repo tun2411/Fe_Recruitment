@@ -18,7 +18,6 @@ import {
   IonToggle,
   IonItem,
   ToastController,
-  LoadingController,
   AlertController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -49,6 +48,7 @@ import {
 import { TemplateService } from '../../services/template.service';
 import { firstValueFrom } from 'rxjs';
 import { AppHeaderComponent } from '../../components/app-header/app-header.component';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-configure-rounds',
@@ -82,8 +82,8 @@ export class ConfigureRoundsPage implements OnInit {
     private jobPostService: JobPostService,
     private templateService: TemplateService,
     private toastController: ToastController,
-    private loadingController: LoadingController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private authService: AuthService
   ) {
     addIcons({
       arrowBackOutline,
@@ -925,12 +925,6 @@ export class ConfigureRoundsPage implements OnInit {
    * Lưu rounds và quay về edit-post
    */
   private async saveRoundsAndBackToEdit() {
-    const loading = await this.loadingController.create({
-      message: 'Đang lưu cấu hình...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     try {
       // Load job data hiện tại từ API để đảm bảo có đầy đủ thông tin
       const currentJob = await firstValueFrom(
@@ -1085,8 +1079,6 @@ export class ConfigureRoundsPage implements OnInit {
         this.jobPostService.updateJobPost(this.jobId!, updateJobRequest)
       );
 
-      await loading.dismiss();
-
       const toast = await this.toastController.create({
         message: 'Cập nhật cấu hình vòng tuyển dụng thành công!',
         duration: 2000,
@@ -1103,8 +1095,6 @@ export class ConfigureRoundsPage implements OnInit {
         this.router.navigate(['/home']);
       }
     } catch (error: any) {
-      await loading.dismiss();
-
       // Log chi tiết lỗi để debug
       console.error('[ConfigureRounds] Error saving rounds:', {
         error,
@@ -1401,18 +1391,14 @@ export class ConfigureRoundsPage implements OnInit {
       '[ConfigureRounds] Creating complete job with all data from state'
     );
 
-    const loading = await this.loadingController.create({
-      message: 'Đang tạo job hoàn chỉnh...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     // Lấy job data từ state
     const jobData = this.jobCreationState.getJobData();
     const rounds = this.jobCreationState.getRounds();
+    // QUAN TRỌNG: Lấy roundCount từ state (đã được cập nhật khi thêm/xóa vòng)
+    // KHÔNG dùng jobData.roundCount vì nó có thể đã cũ
+    const roundCountFromState = this.jobCreationState.getRoundCount();
 
     if (!jobData || !rounds || rounds.length === 0) {
-      await loading.dismiss();
       const toast = await this.toastController.create({
         message: 'Thiếu thông tin job hoặc rounds. Vui lòng thử lại.',
         duration: 3000,
@@ -1421,6 +1407,53 @@ export class ConfigureRoundsPage implements OnInit {
       });
       await toast.present();
       return;
+    }
+
+    // Validation: Đảm bảo roundCount khớp với số rounds thực tế
+    const actualRoundCount = rounds.length;
+    const expectedRoundCount = roundCountFromState || actualRoundCount;
+
+    if (actualRoundCount !== expectedRoundCount) {
+      console.warn(
+        `[ConfigureRounds] Round count mismatch: state has ${expectedRoundCount}, but rounds array has ${actualRoundCount}. Using actual count.`
+      );
+    }
+
+    // Sử dụng số rounds thực tế để đảm bảo khớp với backend validation
+    const finalRoundCount = actualRoundCount;
+
+    // QUAN TRỌNG: Kiểm tra và đảm bảo token hợp lệ trước khi gọi API
+    console.log('[ConfigureRounds] Validating token before creating job...');
+    try {
+      const isTokenValid = await this.authService.ensureValidToken();
+
+      if (!isTokenValid) {
+        // ensureValidToken đã logout user và redirect về login
+        // Không cần hiển thị toast vì user đã được redirect
+        console.warn(
+          '[ConfigureRounds] Token validation failed, user logged out'
+        );
+        return; // Dừng ngay, không gọi API
+      }
+
+      console.log(
+        '[ConfigureRounds] Token validated, proceeding with job creation'
+      );
+    } catch (error) {
+      console.error('[ConfigureRounds] Error validating token:', error);
+      // Nếu có lỗi không mong đợi trong quá trình validate, kiểm tra lại token
+      const hasToken = this.authService.getToken();
+      if (!hasToken) {
+        // Token không tồn tại, user có thể đã bị logout
+        console.warn(
+          '[ConfigureRounds] No token found after validation error, stopping'
+        );
+        return; // Dừng ngay, không gọi API
+      }
+      // Nếu vẫn còn token, tiếp tục và để interceptor xử lý nếu có vấn đề
+      console.warn(
+        '[ConfigureRounds] Continuing despite validation error, interceptor will handle'
+      );
     }
 
     // Build CompleteJobRequest từ state
@@ -1434,7 +1467,8 @@ export class ConfigureRoundsPage implements OnInit {
       workTime: jobData.workTime,
       yoe: jobData.yoe,
       unit: jobData.unit,
-      roundCount: jobData.roundCount!,
+      // QUAN TRỌNG: Sử dụng số rounds thực tế thay vì jobData.roundCount (có thể đã cũ)
+      roundCount: finalRoundCount,
       deadline: jobData.deadline!,
       status: (jobData.status as any) || 'inactive',
       rounds: rounds.map((round: RoundConfiguration) => {
@@ -1494,7 +1528,29 @@ export class ConfigureRoundsPage implements OnInit {
       }),
     };
 
-    console.log('[ConfigureRounds] CompleteJobRequest:', completeRequest);
+    console.log('[ConfigureRounds] CompleteJobRequest:', {
+      roundCount: completeRequest.roundCount,
+      roundsLength: completeRequest.rounds.length,
+      rounds: completeRequest.rounds.map((r) => ({
+        index: r.roundIndex,
+        name: r.roundName,
+      })),
+    });
+
+    // Validation cuối cùng: Đảm bảo roundCount khớp với rounds.length
+    if (completeRequest.roundCount !== completeRequest.rounds.length) {
+      console.error(
+        `[ConfigureRounds] CRITICAL: Round count mismatch! roundCount=${completeRequest.roundCount}, rounds.length=${completeRequest.rounds.length}`
+      );
+      const toast = await this.toastController.create({
+        message: `Lỗi: Số vòng không khớp (${completeRequest.roundCount} vs ${completeRequest.rounds.length}). Vui lòng thử lại.`,
+        duration: 3000,
+        color: 'danger',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
 
     // Tạo job hoàn chỉnh mới trước (không xóa draft job trước)
     // Chỉ xóa draft job sau khi tạo thành công để tránh mất dữ liệu nếu tạo thất bại
@@ -1506,8 +1562,6 @@ export class ConfigureRoundsPage implements OnInit {
         );
 
         // Không cần xóa draft job nữa vì không tạo draft job
-
-        await loading.dismiss();
 
         // Clear state
         this.jobCreationState.clear();
@@ -1525,12 +1579,44 @@ export class ConfigureRoundsPage implements OnInit {
       },
       error: async (error: any) => {
         console.error('[ConfigureRounds] Error creating complete job', error);
-        await loading.dismiss();
 
-        // Không có draft job để xóa (không tạo draft nữa)
+        // Xử lý lỗi 401/403 - Interceptor đã cố refresh token nhưng có thể fail
+        if (error.status === 401 || error.status === 403) {
+          console.warn(
+            '[ConfigureRounds] Received 401/403 after interceptor attempt'
+          );
+
+          // Kiểm tra xem interceptor đã logout user chưa
+          // Nếu refresh token cũng hết hạn, interceptor sẽ logout user
+          const currentToken = this.authService.getToken();
+          if (!currentToken) {
+            // User đã bị logout bởi interceptor
+            console.warn(
+              '[ConfigureRounds] User already logged out by interceptor, no need to show error'
+            );
+            return;
+          }
+
+          // Nếu vẫn còn token, có thể là lỗi khác (không phải do token expired)
+          // Hoặc interceptor đã retry nhưng vẫn fail vì lý do khác
+          console.warn(
+            '[ConfigureRounds] Still have token after 401, might be other issue'
+          );
+        }
+
+        // Hiển thị error message cho user
+        let errorMessage = 'Tạo job thất bại. Vui lòng thử lại.';
+        if (error.status === 401 || error.status === 403) {
+          errorMessage =
+            'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại và thử lại.';
+        } else if (error.message) {
+          errorMessage = error.message;
+        } else if (error.error?.message) {
+          errorMessage = error.error.message;
+        }
 
         const toast = await this.toastController.create({
-          message: error.message || 'Tạo job thất bại. Vui lòng thử lại.',
+          message: errorMessage,
           duration: 3000,
           color: 'danger',
           position: 'top',

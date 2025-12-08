@@ -12,7 +12,6 @@ import {
   IonButton,
   AlertController,
   ToastController,
-  LoadingController,
   ModalController,
 } from '@ionic/angular/standalone';
 import { JobPostService, JobRoundDTO } from '../../services/job-post.service';
@@ -117,7 +116,6 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private alertCtrl: AlertController,
     private toastController: ToastController,
-    private loadingController: LoadingController,
     private router: Router,
     private route: ActivatedRoute,
     private jobPostService: JobPostService,
@@ -550,13 +548,6 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
       return;
     }
 
-    const loading = await this.loadingController.create({
-      message: `Đang chọn template "${template.formName}"...`,
-      spinner: 'crescent',
-      duration: 2000, // Auto dismiss sau 2s nếu thành công
-    });
-    await loading.present();
-
     console.log('[EmailTemplates] Attaching template', {
       formId: template.formId,
       roundId: this.currentRoundId,
@@ -573,7 +564,6 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
             '[EmailTemplates] Template attached successfully',
             response
           );
-          await loading.dismiss();
 
           // Cập nhật state với template đã chọn
           // QUAN TRỌNG: Chỉ update round hiện tại, giữ nguyên tất cả rounds khác
@@ -672,7 +662,6 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
         },
         error: async (error) => {
           console.error('[EmailTemplates] Error attaching template', error);
-          await loading.dismiss();
 
           const toast = await this.toastController.create({
             message:
@@ -823,16 +812,9 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
     // Cập nhật rounds vào state (đảm bảo data mới nhất)
     this.jobCreationState.setRounds(this.rounds);
 
-    const loading = await this.loadingController.create({
-      message: 'Đang tạo bài đăng...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     const createJobRequest = this.jobCreationState.buildCreateJobRequest();
 
     if (!createJobRequest) {
-      await loading.dismiss();
       const toast = await this.toastController.create({
         message: 'Có lỗi xảy ra. Vui lòng thử lại.',
         duration: 3000,
@@ -845,8 +827,6 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
 
     this.jobPostService.createJob(createJobRequest).subscribe({
       next: async (response) => {
-        await loading.dismiss();
-
         // Clear state
         this.jobCreationState.clear();
 
@@ -862,8 +842,6 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
         this.router.navigate(['/home']);
       },
       error: async (error) => {
-        await loading.dismiss();
-
         const toast = await this.toastController.create({
           message: error.message || 'Tạo bài đăng thất bại. Vui lòng thử lại.',
           duration: 3000,

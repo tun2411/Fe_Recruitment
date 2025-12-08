@@ -13,7 +13,6 @@ import {
   IonCard,
   IonCardContent,
   IonBadge,
-  LoadingController,
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -95,7 +94,6 @@ export class CandidatesPage implements OnInit {
     private http: HttpClient,
     private applicationService: ApplicationService,
     private jobPostService: JobPostService,
-    private loadingController: LoadingController,
     private toastController: ToastController,
     private notificationService: NotificationService
   ) {
@@ -201,12 +199,6 @@ export class CandidatesPage implements OnInit {
       return;
     }
 
-    const loading = await this.loadingController.create({
-      message: 'Đang tải danh sách ứng viên...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     this.applicationService.getApplicationsByJobId(this.postId).subscribe({
       next: (applications: Application[]) => {
         // Map Application từ API thành Candidate để hiển thị
@@ -216,7 +208,6 @@ export class CandidatesPage implements OnInit {
         this.filteredCandidates = [...this.candidates];
         this.currentPage = 1;
         this.updatePagination();
-        loading.dismiss();
 
         if (this.candidates.length === 0) {
           this.showToast(
@@ -226,7 +217,6 @@ export class CandidatesPage implements OnInit {
         }
       },
       error: async (error) => {
-        loading.dismiss();
         console.error('Error loading candidates:', error);
         this.showToast(
           'Không thể tải danh sách ứng viên. Vui lòng thử lại sau.',
@@ -411,15 +401,9 @@ export class CandidatesPage implements OnInit {
 
       console.log('[Candidates] Downloading CV URL:', downloadUrl);
 
-      const loading = await this.loadingController.create({
-        message: 'Đang tải CV...',
-      });
-      await loading.present();
-
       // Download CV qua HttpClient
       this.http.get(downloadUrl, { responseType: 'blob' }).subscribe({
         next: async (blob) => {
-          await loading.dismiss();
 
           const fileName = `CV_${candidate.fullName || 'candidate'}.pdf`;
 
@@ -482,7 +466,6 @@ export class CandidatesPage implements OnInit {
           }
         },
         error: async (error) => {
-          await loading.dismiss();
           console.error('[Candidates] Error downloading CV:', error);
           console.error('[Candidates] Error status:', error.status);
           console.error('[Candidates] Error URL:', error.url);

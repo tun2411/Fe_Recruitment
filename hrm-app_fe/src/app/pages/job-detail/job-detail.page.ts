@@ -11,7 +11,6 @@ import {
   IonIcon,
   IonInput,
   IonItem,
-  LoadingController,
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -43,7 +42,6 @@ export class JobDetailPage implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private jobPostService: JobPostService,
-    private loadingController: LoadingController,
     private toastController: ToastController
   ) {
     addIcons({
@@ -68,19 +66,11 @@ export class JobDetailPage implements OnInit {
   async loadJobData() {
     if (!this.jobId) return;
 
-    const loading = await this.loadingController.create({
-      message: 'Đang tải dữ liệu...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     this.jobPostService.getJobPostById(this.jobId).subscribe({
       next: (job: JobResponse) => {
         this.jobData = job;
-        loading.dismiss();
       },
       error: async (error) => {
-        loading.dismiss();
         this.showToast(
           error.message || 'Không thể tải dữ liệu bài đăng',
           'danger'

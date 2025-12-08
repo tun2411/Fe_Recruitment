@@ -357,17 +357,74 @@ ion-menu {
   color: #d32f2f;
 }
 
-/* Safe Area Support - Để không che status bar và home indicator */
-/* Áp dụng cho toàn bộ app */
+/* ============================================
+   FONT CONFIGURATION - Hỗ trợ tiếng Việt
+   ============================================
+   Đảm bảo font hiển thị đúng trên tất cả thiết bị
+   ============================================ */
 html {
   /* Đảm bảo safe area insets hoạt động */
   padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
     env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  
+  /* Font family với fallback cho tất cả hệ điều hành */
+  /* Ưu tiên Noto Sans Vietnamese cho tiếng Việt, sau đó fallback về system fonts */
+  font-family: 
+    "Noto Sans Vietnamese",   /* Google Font - tiếng Việt chuyên dụng (ưu tiên cao nhất) */
+    "Noto Sans",             /* Google Font - hỗ trợ tiếng Việt tốt */
+    -apple-system,           /* iOS, macOS */
+    BlinkMacSystemFont,      /* macOS */
+    "Segoe UI",              /* Windows */
+    Roboto,                  /* Android, Chrome OS */
+    "Helvetica Neue",        /* Fallback */
+    Helvetica,               /* Fallback */
+    Arial,                   /* Fallback */
+    sans-serif;              /* Generic fallback */
+  
+  /* Đảm bảo font rendering tốt */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   /* Reset padding để các component tự quản lý safe area */
   padding: 0 !important;
+  
+  /* Kế thừa font từ html */
+  font-family: inherit;
+  
+  /* Đảm bảo font size mặc định */
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Áp dụng font cho tất cả elements */
+* {
+  font-family: inherit;
+}
+
+/* Đảm bảo Ionic components cũng dùng font đúng */
+ion-content,
+ion-header,
+ion-footer,
+ion-toolbar,
+ion-title,
+ion-button,
+ion-label,
+ion-item,
+ion-card,
+ion-card-header,
+ion-card-title,
+ion-card-content,
+ion-input,
+ion-textarea,
+ion-select,
+ion-searchbar,
+ion-badge,
+ion-fab,
+ion-fab-button {
+  font-family: inherit;
 }
 
 // /* Ion-header safe area support */

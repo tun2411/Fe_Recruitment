@@ -17,7 +17,6 @@ import {
   IonMenuButton,
   IonRefresher,
   IonRefresherContent,
-  LoadingController,
   ToastController,
   RefresherCustomEvent,
 } from '@ionic/angular/standalone';
@@ -113,7 +112,6 @@ export class HomePage implements OnInit {
     private route: ActivatedRoute,
     private jobPostService: JobPostService,
     private applicationService: ApplicationService,
-    private loadingController: LoadingController,
     private toastController: ToastController,
     private authService: AuthService,
     private notificationService: NotificationService,
@@ -294,12 +292,6 @@ export class HomePage implements OnInit {
   }
 
   async loadPosts() {
-    const loading = await this.loadingController.create({
-      message: 'Đang tải dữ liệu...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     // Gọi API để lấy TẤT CẢ job posts của business (không filter status)
     // Sử dụng getAllJobPosts để tự động load nhiều pages nếu cần
     this.jobPostService.getAllJobPosts(undefined).subscribe({
@@ -314,7 +306,6 @@ export class HomePage implements OnInit {
           this.filteredPosts = [];
           this.currentPage = 1;
           this.updatePagination();
-          loading.dismiss();
           return;
         }
 
@@ -345,7 +336,6 @@ export class HomePage implements OnInit {
               this.filteredPosts = [];
               this.currentPage = 1;
               this.updatePagination();
-              loading.dismiss();
               return;
             }
 
@@ -382,10 +372,8 @@ export class HomePage implements OnInit {
                   '[HomePage] Mapped posts with details and candidate counts:',
                   this.posts
                 );
-                loading.dismiss();
               },
               error: async (error) => {
-                loading.dismiss();
                 console.error(
                   '[HomePage] Error loading candidate counts:',
                   error
@@ -411,7 +399,6 @@ export class HomePage implements OnInit {
             });
           },
           error: async (error) => {
-            loading.dismiss();
             console.error('[HomePage] Error loading job details:', error);
 
             // Fallback: sử dụng dữ liệu cơ bản nếu không load được chi tiết
@@ -442,7 +429,6 @@ export class HomePage implements OnInit {
         });
       },
       error: async (error) => {
-        loading.dismiss();
         console.error('Error loading job posts:', error);
 
         // Hiển thị thông báo lỗi

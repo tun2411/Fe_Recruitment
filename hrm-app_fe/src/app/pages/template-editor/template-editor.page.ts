@@ -14,7 +14,6 @@ import {
   IonFooter,
   IonToolbar,
   ToastController,
-  LoadingController,
 } from '@ionic/angular/standalone';
 import { firstValueFrom } from 'rxjs';
 import { JobPostService, JobRoundDTO } from '../../services/job-post.service';
@@ -77,8 +76,7 @@ export class TemplateEditorPage implements OnInit {
     private jobPostService: JobPostService,
     private jobCreationState: JobCreationStateService,
     private templateService: TemplateService,
-    private toastController: ToastController,
-    private loadingController: LoadingController
+    private toastController: ToastController
   ) {
     this.templateForm = this.fb.group({
       formName: [''],
@@ -225,12 +223,6 @@ export class TemplateEditorPage implements OnInit {
       return;
     }
 
-    const loading = await this.loadingController.create({
-      message: this.isEditMode ? 'Đang cập nhật template...' : 'Đang tạo template...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     // Build request cho cả tạo mới và cập nhật
     const baseRequest: CreateTemplateRequest = {
       formName:
@@ -268,7 +260,6 @@ export class TemplateEditorPage implements OnInit {
             : '[TemplateEditor] Template created successfully',
           response
         );
-        await loading.dismiss();
 
         // Nếu đang trong flow tạo job (configure-rounds), cập nhật state; nếu chỉ edit từ email-management thì state có thể rỗng
         if (!this.isEditMode) {
@@ -315,7 +306,6 @@ export class TemplateEditorPage implements OnInit {
       },
       error: async (error) => {
         console.error('[TemplateEditor] Error creating template', error);
-        await loading.dismiss();
 
         const toast = await this.toastController.create({
           message: error.message || 'Tạo template thất bại. Vui lòng thử lại.',

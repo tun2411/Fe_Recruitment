@@ -48,6 +48,41 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     token = directToken;
   }
 
+  // Logging để debug
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const exp = payload.exp * 1000;
+      const now = Date.now();
+      const timeUntilExpiry = exp - now;
+      const minutesUntilExpiry = Math.floor(timeUntilExpiry / 60000);
+
+      if (timeUntilExpiry < 0) {
+        console.warn(
+          '[AuthInterceptor] Token đã hết hạn. Exp:',
+          new Date(exp),
+          'Now:',
+          new Date(now)
+        );
+      } else if (minutesUntilExpiry < 5) {
+        console.warn(
+          `[AuthInterceptor] Token sắp hết hạn trong ${minutesUntilExpiry} phút`
+        );
+      } else {
+        console.log(
+          `[AuthInterceptor] Token còn hiệu lực trong ${minutesUntilExpiry} phút`
+        );
+      }
+    } catch (e) {
+      console.warn(
+        '[AuthInterceptor] Không thể decode token để check expiry:',
+        e
+      );
+    }
+  } else {
+    console.warn('[AuthInterceptor] Không có token trong request:', url);
+  }
+
   let authReq = req;
 
   if (token) {
@@ -56,12 +91,20 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         Authorization: `Bearer ${token}`,
       },
     });
+  } else {
+    console.error('[AuthInterceptor] Request không có token:', url);
   }
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       // Chỉ xử lý lỗi auth (401, 403)
       if (error.status === 401 || error.status === 403) {
+        console.warn(
+          `[AuthInterceptor] Received ${error.status} error for:`,
+          url,
+          error
+        );
+
         const isRefreshRequest =
           url.includes('/auth/refresh-token') ||
           url.includes('/api/auth/refresh-token');
@@ -70,12 +113,16 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
         // Nếu không có refresh token hoặc chính là call refresh-token thì logout luôn
         if (!currentRefreshToken || isRefreshRequest) {
+          console.error(
+            '[AuthInterceptor] Không có refresh token hoặc đang refresh, logout'
+          );
           handleLogout(authService, toastController);
           return throwError(() => error);
         }
 
         // Nếu chưa refresh -> bắt đầu refresh
         if (!isRefreshing) {
+          console.log('[AuthInterceptor] Bắt đầu refresh token...');
           isRefreshing = true;
           refreshTokenSubject.next(null);
 
@@ -89,10 +136,16 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
               const newToken = resp.token || authService.getToken();
 
               if (!newToken) {
+                console.error(
+                  '[AuthInterceptor] Refresh token thành công nhưng không có token mới'
+                );
                 handleLogout(authService, toastController);
                 return throwError(() => error);
               }
 
+              console.log(
+                '[AuthInterceptor] Refresh token thành công, retry request'
+              );
               refreshTokenSubject.next(newToken);
 
               const retryReq = req.clone({
@@ -106,6 +159,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             catchError((refreshError) => {
               isRefreshing = false;
               refreshTokenSubject.next(null);
+              console.error(
+                '[AuthInterceptor] Refresh token thất bại:',
+                refreshError
+              );
               handleLogout(authService, toastController);
               return throwError(() => refreshError);
             })
@@ -113,10 +170,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         }
 
         // Đang refresh: chờ token mới
+        console.log('[AuthInterceptor] Đang chờ token mới từ refresh...');
         return refreshTokenSubject.pipe(
           filter((t) => t !== null),
           take(1),
           switchMap((newToken) => {
+            console.log('[AuthInterceptor] Nhận token mới, retry request');
             const retryReq = req.clone({
               setHeaders: {
                 Authorization: `Bearer ${newToken}`,

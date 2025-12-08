@@ -15,7 +15,6 @@ import {
   IonRow,
   IonCol,
   IonSpinner,
-  LoadingController,
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -68,7 +67,6 @@ export class LoginPage implements OnInit {
     private facebookSignInService: FacebookSignInService,
     private router: Router,
     private http: HttpClient,
-    private loadingController: LoadingController,
     private toastController: ToastController
   ) {
     // Auto-select service dựa trên platform
@@ -191,12 +189,6 @@ export class LoginPage implements OnInit {
     this.errorMessage = '';
     this.loginProvider = 'google';
 
-    const loading = await this.loadingController.create({
-      message: 'Đang đăng nhập bằng Google...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     try {
       // Sử dụng activeGoogleService (auto-selected based on platform)
       this.activeGoogleService
@@ -210,7 +202,6 @@ export class LoginPage implements OnInit {
 
           this.authService.googleLogin(googleLoginRequest).subscribe({
             next: async () => {
-              await loading.dismiss();
               this.isLoading = false;
               this.loginProvider = null;
 
@@ -229,7 +220,6 @@ export class LoginPage implements OnInit {
                 });
             },
             error: async (error: any) => {
-              await loading.dismiss();
               this.isLoading = false;
               this.loginProvider = null;
 
@@ -248,7 +238,6 @@ export class LoginPage implements OnInit {
           });
         })
         .catch(async (error: any) => {
-          await loading.dismiss();
           this.isLoading = false;
           this.loginProvider = null;
 
@@ -265,7 +254,6 @@ export class LoginPage implements OnInit {
           await toast.present();
         });
     } catch (error: any) {
-      await loading.dismiss();
       this.isLoading = false;
       this.loginProvider = null;
 
@@ -287,12 +275,6 @@ export class LoginPage implements OnInit {
     this.errorMessage = '';
     this.loginProvider = 'facebook';
 
-    const loading = await this.loadingController.create({
-      message: 'Đang đăng nhập bằng Facebook...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     try {
       // Sử dụng Facebook Sign-In Service để lấy access token thật
       this.facebookSignInService
@@ -305,7 +287,6 @@ export class LoginPage implements OnInit {
 
           this.authService.facebookLogin(facebookLoginRequest).subscribe({
             next: async () => {
-              await loading.dismiss();
               this.isLoading = false;
               this.loginProvider = null;
 
@@ -324,7 +305,6 @@ export class LoginPage implements OnInit {
                 });
             },
             error: async (error: any) => {
-              await loading.dismiss();
               this.isLoading = false;
               this.loginProvider = null;
 
@@ -343,7 +323,6 @@ export class LoginPage implements OnInit {
           });
         })
         .catch(async (error: any) => {
-          await loading.dismiss();
           this.isLoading = false;
           this.loginProvider = null;
 
@@ -360,7 +339,6 @@ export class LoginPage implements OnInit {
           await toast.present();
         });
     } catch (error: any) {
-      await loading.dismiss();
       this.isLoading = false;
       this.loginProvider = null;
 

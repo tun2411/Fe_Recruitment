@@ -58,7 +58,6 @@ export class NotificationsPage implements OnInit {
     private router: Router,
     private location: Location,
     private notificationService: NotificationService,
-    private loadingController: LoadingController,
     private toastController: ToastController
   ) {
     addIcons({
@@ -80,11 +79,6 @@ export class NotificationsPage implements OnInit {
 
   async loadNotifications() {
     this.isLoading = true;
-    const loading = await this.loadingController.create({
-      message: 'Đang tải thông báo...',
-      spinner: 'crescent',
-    });
-    await loading.present();
 
     this.notificationService.getNotifications().subscribe({
       next: (notifications) => {
@@ -93,11 +87,9 @@ export class NotificationsPage implements OnInit {
           (a, b) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-        loading.dismiss();
         this.isLoading = false;
       },
       error: async (error) => {
-        await loading.dismiss();
         this.isLoading = false;
         const toast = await this.toastController.create({
           message: error.message || 'Không thể tải thông báo',

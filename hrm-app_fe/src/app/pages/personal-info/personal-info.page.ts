@@ -18,7 +18,6 @@ import {
   IonInput,
   IonLabel,
   ToastController,
-  LoadingController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { personOutline, arrowBackOutline } from 'ionicons/icons';
@@ -51,7 +50,6 @@ export class PersonalInfoPage implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private toastController: ToastController,
-    private loadingController: LoadingController,
     private businessService: BusinessService
   ) {
     addIcons({
@@ -74,12 +72,6 @@ export class PersonalInfoPage implements OnInit {
   }
 
   async loadPersonalInfo() {
-    const loading = await this.loadingController.create({
-      message: 'Đang tải thông tin...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     this.businessService.getCurrentBusiness().subscribe({
       next: (business) => {
         this.personalInfoForm.patchValue({
@@ -87,10 +79,8 @@ export class PersonalInfoPage implements OnInit {
           phoneNumber: business.phone || '',
           email: business.email || '',
         });
-        loading.dismiss();
       },
       error: async (error) => {
-        await loading.dismiss();
         const toast = await this.toastController.create({
           message: error.message || 'Không thể tải thông tin',
           duration: 3000,
@@ -116,12 +106,6 @@ export class PersonalInfoPage implements OnInit {
       return;
     }
 
-    const loading = await this.loadingController.create({
-      message: 'Đang cập nhật thông tin...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     const updateRequest = {
       companyName: this.personalInfoForm.value.companyName,
       phone: this.personalInfoForm.value.phoneNumber,
@@ -130,8 +114,6 @@ export class PersonalInfoPage implements OnInit {
 
     this.businessService.updateBusiness(updateRequest).subscribe({
       next: async () => {
-        await loading.dismiss();
-
         const toast = await this.toastController.create({
           message: 'Cập nhật thông tin thành công!',
           duration: 2000,
@@ -145,8 +127,6 @@ export class PersonalInfoPage implements OnInit {
         this.navigateBackToMenu();
       },
       error: async (error) => {
-        await loading.dismiss();
-
         const toast = await this.toastController.create({
           message: error.message || 'Cập nhật thông tin thất bại',
           duration: 3000,

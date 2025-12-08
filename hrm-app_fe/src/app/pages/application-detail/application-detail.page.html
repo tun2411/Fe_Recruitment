@@ -6,11 +6,7 @@
 ></app-header>
 
 <ion-content [fullscreen]="true" class="ion-padding has-bottom-actions no-bottom-nav">
-    <div *ngIf="loading" class="loading-container">
-        <ion-spinner></ion-spinner>
-    </div>
-
-    <div *ngIf="!loading && application" class="container">
+    <div *ngIf="application" class="container">
         <!-- Thông tin ứng viên -->
         <ion-card>
             <ion-card-header>

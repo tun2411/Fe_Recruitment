@@ -25,7 +25,6 @@ import {
   IonModal,
   IonDatetime,
   ToastController,
-  LoadingController,
   AlertController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -144,7 +143,6 @@ export class EditPostPage implements OnInit {
     private route: ActivatedRoute,
     private jobPostService: JobPostService,
     private toastController: ToastController,
-    private loadingController: LoadingController,
     private jobCreationState: JobCreationStateService,
     private templateService: TemplateService,
     private alertController: AlertController,
@@ -203,20 +201,12 @@ export class EditPostPage implements OnInit {
   async loadJobData() {
     if (!this.jobId) return;
 
-    const loading = await this.loadingController.create({
-      message: 'Đang tải dữ liệu...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     this.jobPostService.getJobPostById(this.jobId).subscribe({
       next: (job: JobResponse) => {
         this.jobData = job;
         this.populateForm(job);
-        loading.dismiss();
       },
       error: async (error) => {
-        loading.dismiss();
         this.showToast(
           error.message || 'Không thể tải dữ liệu bài đăng',
           'danger'
@@ -400,12 +390,6 @@ export class EditPostPage implements OnInit {
       return;
     }
 
-    const loading = await this.loadingController.create({
-      message: 'Đang cập nhật bài đăng...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     const formValue = this.editPostForm.value;
 
     // Parse salaryFrom và salaryTo từ form (backend yêu cầu number)
@@ -543,7 +527,6 @@ export class EditPostPage implements OnInit {
           // Load lại job data từ backend để lấy rounds mới
           this.jobPostService.getJobPostById(this.jobId!).subscribe({
             next: async (updatedJob) => {
-              await loading.dismiss();
 
               // Cập nhật state với job data và rounds mới
               this.jobCreationState.setJobId(updatedJob.id!);
@@ -658,7 +641,6 @@ export class EditPostPage implements OnInit {
               });
             },
             error: async (error) => {
-              await loading.dismiss();
               const toast = await this.toastController.create({
                 message:
                   'Cập nhật thành công nhưng không thể tải dữ liệu rounds mới',
@@ -672,7 +654,6 @@ export class EditPostPage implements OnInit {
           });
         } else {
           // Không thay đổi số vòng, chỉ hiển thị thông báo và quay về home
-          await loading.dismiss();
 
           const toast = await this.toastController.create({
             message: response.message || 'Cập nhật bài đăng thành công!',
@@ -687,7 +668,6 @@ export class EditPostPage implements OnInit {
         }
       },
       error: async (error) => {
-        await loading.dismiss();
 
         const toast = await this.toastController.create({
           message:
@@ -759,12 +739,6 @@ export class EditPostPage implements OnInit {
     }
 
     // Load lại job data để đảm bảo có dữ liệu mới nhất
-    const loading = await this.loadingController.create({
-      message: 'Đang tải cấu hình...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     try {
       // Load job data mới nhất từ backend
       const job = await firstValueFrom(
@@ -809,8 +783,6 @@ export class EditPostPage implements OnInit {
       });
       this.jobCreationState.setRoundIds(roundIds);
 
-      await loading.dismiss();
-
       // Navigate đến trang configure-rounds
       this.router.navigate(['/configure-rounds'], {
         queryParams: {
@@ -819,7 +791,6 @@ export class EditPostPage implements OnInit {
         },
       });
     } catch (error) {
-      await loading.dismiss();
       console.error('Error loading rounds config:', error);
       const toast = await this.toastController.create({
         message: 'Không thể tải cấu hình vòng tuyển dụng',

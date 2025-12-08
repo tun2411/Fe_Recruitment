@@ -12,7 +12,6 @@ import {
   IonList,
   IonItem,
   IonMenu,
-  LoadingController,
   ToastController,
 } from '@ionic/angular/standalone';
 import { MenuController } from '@ionic/angular';
@@ -114,7 +113,6 @@ export class EmailManagementPage implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private templateService: TemplateService,
-    private loadingController: LoadingController,
     private toastController: ToastController,
     private authService: AuthService,
     private businessService: BusinessService,
@@ -219,12 +217,6 @@ export class EmailManagementPage implements OnInit {
   }
 
   async loadEmailTemplates() {
-    const loading = await this.loadingController.create({
-      message: 'Đang tải danh sách email...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     try {
       // Load tất cả templates (không filter)
       const response = await firstValueFrom(
@@ -254,10 +246,7 @@ export class EmailManagementPage implements OnInit {
           this.templatesByCategory[template.type].push(template);
         }
       });
-
-      await loading.dismiss();
     } catch (error: any) {
-      await loading.dismiss();
       console.error('Error loading email templates:', error);
 
       // Fallback: khởi tạo empty arrays

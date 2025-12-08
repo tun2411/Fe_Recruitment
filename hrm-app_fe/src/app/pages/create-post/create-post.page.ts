@@ -25,7 +25,6 @@ import {
   IonModal,
   IonDatetime,
   ToastController,
-  LoadingController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -126,7 +125,6 @@ export class CreatePostPage implements OnInit {
     private router: Router,
     private jobPostService: JobPostService,
     private toastController: ToastController,
-    private loadingController: LoadingController,
     private jobCreationState: JobCreationStateService,
     private notificationService: NotificationService
   ) {
@@ -315,12 +313,6 @@ export class CreatePostPage implements OnInit {
       }
     }
 
-    const loading = await this.loadingController.create({
-      message: 'Đang tạo job...',
-      spinner: 'crescent',
-    });
-    await loading.present();
-
     // Lấy giá trị từ form
     const formValue = this.createPostForm.value;
 
@@ -376,7 +368,6 @@ export class CreatePostPage implements OnInit {
 
     // Không tạo draft job nữa, chỉ lưu data vào state
     // Job sẽ được tạo hoàn chỉnh khi user submit ở configure-rounds
-    await loading.dismiss();
 
     // Lưu job data vào state (KHÔNG tạo job trong database)
     this.jobCreationState.setJobData(createJobRequest);

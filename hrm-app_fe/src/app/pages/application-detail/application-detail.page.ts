@@ -16,13 +16,11 @@ import {
   IonItem,
   IonLabel,
   IonTextarea,
-  IonSpinner,
   IonCard,
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
   IonBadge,
-  LoadingController,
   ToastController,
   IonButtons,
   IonBackButton,
@@ -70,7 +68,6 @@ import { AppHeaderComponent } from '../../components/app-header/app-header.compo
     IonItem,
     IonLabel,
     IonTextarea,
-    IonSpinner,
     IonCard,
     IonCardContent,
     IonCardHeader,
@@ -100,7 +97,6 @@ export class ApplicationDetailPage implements OnInit {
     private applicationService: ApplicationService,
     private jobPostService: JobPostService,
     private notificationService: NotificationService,
-    private loadingController: LoadingController,
     private toastController: ToastController
   ) {
     addIcons({
@@ -197,10 +193,6 @@ export class ApplicationDetailPage implements OnInit {
     if (!this.applicationId) return;
 
     this.loading = true;
-    const loading = await this.loadingController.create({
-      message: 'Đang tải thông tin...',
-    });
-    await loading.present();
 
     // Load application directly by ID (more efficient)
     this.applicationService.getApplicationById(this.applicationId).subscribe({
@@ -221,12 +213,10 @@ export class ApplicationDetailPage implements OnInit {
 
         await this.loadStatusHistory();
         this.loading = false;
-        await loading.dismiss();
       },
       error: async (error) => {
         console.error('Error loading application:', error);
         this.loading = false;
-        await loading.dismiss();
 
         // Handle 401/403 errors gracefully
         if (error.status === 401 || error.status === 403) {
@@ -424,16 +414,11 @@ export class ApplicationDetailPage implements OnInit {
     }
 
     this.processing = true;
-    const loading = await this.loadingController.create({
-      message: 'Đang xử lý...',
-    });
-    await loading.present();
 
     this.applicationService
       .updateApplicationStatus(this.applicationId, request)
       .subscribe({
         next: async (response) => {
-          await loading.dismiss();
           this.processing = false;
 
           // Reset note sau khi update thành công
@@ -449,7 +434,6 @@ export class ApplicationDetailPage implements OnInit {
           await this.loadApplication();
         },
         error: async (error) => {
-          await loading.dismiss();
           this.processing = false;
 
           console.error('[ApplicationDetail] Error updating status:', error);
@@ -510,14 +494,8 @@ export class ApplicationDetailPage implements OnInit {
       }
 
       // Web hoặc fallback: Dùng blob approach
-      const loading = await this.loadingController.create({
-        message: 'Đang tải CV...',
-      });
-      await loading.present();
-
       this.http.get(viewUrl, { responseType: 'blob' }).subscribe({
         next: async (blob) => {
-          await loading.dismiss();
 
           // Tạo blob URL và mở trong tab mới
           const blobUrl = URL.createObjectURL(blob);
@@ -528,7 +506,6 @@ export class ApplicationDetailPage implements OnInit {
           setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
         },
         error: async (error) => {
-          await loading.dismiss();
           console.error('[ApplicationDetail] Error loading CV:', error);
           console.error('[ApplicationDetail] Error status:', error.status);
           console.error('[ApplicationDetail] Error URL:', error.url);
@@ -557,15 +534,9 @@ export class ApplicationDetailPage implements OnInit {
 
       console.log('[ApplicationDetail] Downloading CV URL:', downloadUrl);
 
-      const loading = await this.loadingController.create({
-        message: 'Đang tải CV...',
-      });
-      await loading.present();
-
       // Download CV qua HttpClient
       this.http.get(downloadUrl, { responseType: 'blob' }).subscribe({
         next: async (blob) => {
-          await loading.dismiss();
 
           const fileName = `CV_${
             this.application?.candidateFullName || 'candidate'
@@ -636,7 +607,6 @@ export class ApplicationDetailPage implements OnInit {
           }
         },
         error: async (error) => {
-          await loading.dismiss();
           console.error('[ApplicationDetail] Error downloading CV:', error);
           console.error('[ApplicationDetail] Error status:', error.status);
           console.error('[ApplicationDetail] Error URL:', error.url);
