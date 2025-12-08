@@ -6,12 +6,17 @@
   right: 0;
   z-index: 1000; // Thấp hơn menu (menu có z-index: 2000)
   width: 100%;
+  /* Thêm padding-top cho safe-area (notch/status bar) */
+  padding-top: env(safe-area-inset-top, 0px);
 
   ion-toolbar {
     --background: transparent;
     --color: white;
     padding: 0;
     margin: 0;
+    /* Đảm bảo toolbar không override safe-area */
+    --padding-top: 0;
+    padding-top: 0;
   }
 
   .profile-card {
@@ -95,11 +100,17 @@
 
 // Standard Type Styles
 .header-standard {
+  /* Thêm padding-top cho safe-area (notch/status bar) */
+  padding-top: env(safe-area-inset-top, 0px);
+  
   ion-toolbar {
     // Dùng cùng gradient như dashboard để đồng bộ màu
     --background: linear-gradient(135deg, #3880ff 0%, #2c5aa0 100%);
     --color: white;
     padding: 0;
+    /* Đảm bảo toolbar không override safe-area */
+    --padding-top: 0;
+    padding-top: 0;
 
     .header-content {
       display: flex;
@@ -210,11 +221,17 @@
 
 // Simple Type Styles
 .header-simple {
+  /* Thêm padding-top cho safe-area (notch/status bar) */
+  padding-top: env(safe-area-inset-top, 0px);
+  
   ion-toolbar {
     // Dùng cùng gradient như dashboard để đồng bộ màu
     --background: linear-gradient(135deg, #3880ff 0%, #2c5aa0 100%);
     --color: white;
     padding: 0;
+    /* Đảm bảo toolbar không override safe-area */
+    --padding-top: 0;
+    padding-top: 0;
 
     .header-title {
       text-align: center;

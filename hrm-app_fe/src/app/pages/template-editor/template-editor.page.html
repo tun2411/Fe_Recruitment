@@ -5,7 +5,7 @@
   backButtonDefaultHref="/email-management"
 ></app-header>
 
-<ion-content [fullscreen]="true" class="template-editor-content no-bottom-nav has-bottom-actions">
+<ion-content [fullscreen]="true" class="template-editor-content has-header-simple no-bottom-nav has-bottom-actions">
   <!-- List mẫu email (nếu có) -->
   <ion-list *ngIf="samples && samples.length > 0">
     <ion-item button *ngFor="let sample of samples" (click)="selectSample(sample)">

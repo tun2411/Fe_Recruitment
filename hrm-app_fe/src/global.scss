@@ -363,24 +363,16 @@ ion-menu {
    Đảm bảo font hiển thị đúng trên tất cả thiết bị
    ============================================ */
 html {
-  /* Đảm bảo safe area insets hoạt động */
-  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
-    env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
-  
+  /* KHÔNG đặt padding trên html - để các component tự quản lý safe area */
   /* Font family với fallback cho tất cả hệ điều hành */
   /* Ưu tiên Noto Sans Vietnamese cho tiếng Việt, sau đó fallback về system fonts */
-  font-family: 
-    "Noto Sans Vietnamese",   /* Google Font - tiếng Việt chuyên dụng (ưu tiên cao nhất) */
-    "Noto Sans",             /* Google Font - hỗ trợ tiếng Việt tốt */
-    -apple-system,           /* iOS, macOS */
-    BlinkMacSystemFont,      /* macOS */
-    "Segoe UI",              /* Windows */
-    Roboto,                  /* Android, Chrome OS */
-    "Helvetica Neue",        /* Fallback */
-    Helvetica,               /* Fallback */
-    Arial,                   /* Fallback */
-    sans-serif;              /* Generic fallback */
-  
+  font-family: "Noto Sans Vietnamese",
+    /* Google Font - tiếng Việt chuyên dụng (ưu tiên cao nhất) */ "Noto Sans",
+    /* Google Font - hỗ trợ tiếng Việt tốt */ -apple-system,
+    /* iOS, macOS */ BlinkMacSystemFont, /* macOS */ "Segoe UI",
+    /* Windows */ Roboto, /* Android, Chrome OS */ "Helvetica Neue",
+    /* Fallback */ Helvetica, /* Fallback */ Arial, /* Fallback */ sans-serif; /* Generic fallback */
+
   /* Đảm bảo font rendering tốt */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -390,10 +382,10 @@ html {
 body {
   /* Reset padding để các component tự quản lý safe area */
   padding: 0 !important;
-  
+
   /* Kế thừa font từ html */
   font-family: inherit;
-  
+
   /* Đảm bảo font size mặc định */
   font-size: 16px;
   line-height: 1.5;
@@ -427,25 +419,60 @@ ion-fab-button {
   font-family: inherit;
 }
 
-// /* Ion-header safe area support */
-// ion-header {
-//   /* Header sẽ tự động có padding-top từ safe-area-inset-top */
-//   padding-top: env(safe-area-inset-top, 0px);
-// }
+/* ============================================
+   HEADER HEIGHTS - CSS Variables (Toàn cục, dễ chỉnh sửa)
+   ============================================
+   Định nghĩa chiều cao header cho từng type
+   Có thể thay đổi ở đây để áp dụng cho toàn bộ app
+   ============================================ */
+:root {
+  /* Dashboard header: profile-card (15px top + 15px bottom + ~50px content) = ~80px */
+  --header-dashboard-height: 80px;
 
-/* Ion-content safe area support */
-ion-content {
-  /* Thêm padding bottom cho safe area (home indicator) */
-  --padding-bottom: calc(
-    var(--ion-safe-area-bottom, 0px) + var(--padding-bottom, 0px)
-  );
+  /* Standard header: toolbar với header-content (padding 8px top + 8px bottom + ~40px content) = ~56px */
+  --header-standard-height: 56px;
+
+  /* Simple header: toolbar với title (~56px) */
+  --header-simple-height: 56px;
+
+  /* Bottom navigation height: 8px top + 56px content + 8px bottom = 72px */
+  --bottom-nav-height: 72px;
 }
+
+/* ============================================
+   ION-HEADER SAFE AREA SUPPORT - TOÀN CỤC
+   ============================================
+   Đảm bảo TẤT CẢ ion-header có safe-area padding-top
+   Áp dụng cho tất cả header types (dashboard, standard, simple)
+   ============================================ */
+ion-header {
+  /* Thêm padding-top cho safe-area (notch/status bar) */
+  /* Áp dụng cho TẤT CẢ header types */
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+ion-toolbar {
+  /* Đảm bảo toolbar không override safe-area từ header */
+  /* Toolbar sẽ không có padding-top riêng, dùng từ header */
+  --padding-top: 0;
+  padding-top: 0;
+}
+
+/* ============================================
+   ION-CONTENT SAFE AREA SUPPORT
+   ============================================
+   Đảm bảo content không bị tràn vào home indicator
+   Lưu ý: Không tự động thêm padding-bottom cho tất cả content
+   Chỉ thêm khi có class cụ thể (.has-bottom-nav, .no-bottom-nav, etc.)
+   ============================================ */
+/* ion-content: Không tự động thêm padding-bottom - để các class cụ thể quản lý */
+/* Safe-area sẽ được thêm bởi các class utility bên dưới */
 
 /* ============================================
    BOTTOM NAVIGATION - Global Styles
    ============================================
    Component: app-bottom-nav
-   Chiều cao: ~88px (bao gồm safe-area-inset-bottom)
+   Chiều cao: ~72px (content) + safe-area-inset-bottom
    ============================================ */
 .bottom-nav {
   position: fixed;
@@ -457,8 +484,10 @@ ion-content {
   display: flex;
   justify-content: space-around;
   align-items: center;
+  /* Padding-bottom bao gồm safe-area để tránh bị che bởi home indicator */
   padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
-  margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
+  /* Bỏ margin-bottom để tránh tạo khoảng trống không cần thiết */
+  margin-bottom: 0;
   z-index: 100;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 
@@ -504,20 +533,113 @@ ion-content {
 }
 
 /* ============================================
-   CONTENT PADDING UTILITIES
+   CONTENT PADDING UTILITIES - TOÀN CỤC
    ============================================
-   Sử dụng các class này để đảm bảo padding-bottom đúng
+   Tự động tính padding-top dựa trên header type
+   Sử dụng CSS variables để dễ chỉnh sửa
    ============================================ */
 
-/* Trang CÓ bottom-nav: padding-bottom = 88px */
+/* ============================================
+   HEADER TYPE DETECTION - Tự động padding-top
+   ============================================
+   Khi có app-header với type, content sẽ tự động có padding-top đúng
+   Sử dụng :has() selector để detect header type (modern browsers)
+   Fallback: sử dụng class trên ion-content
+   ============================================ */
+/* Method 1: Sử dụng :has() selector (modern browsers) */
+:has(app-header[type="dashboard"]) ion-content {
+  --padding-top: calc(
+    var(--header-dashboard-height) + env(safe-area-inset-top, 0px)
+  );
+  padding-top: calc(
+    var(--header-dashboard-height) + env(safe-area-inset-top, 0px)
+  );
+}
+
+:has(app-header[type="standard"]) ion-content {
+  --padding-top: calc(
+    var(--header-standard-height) + env(safe-area-inset-top, 0px)
+  );
+  padding-top: calc(
+    var(--header-standard-height) + env(safe-area-inset-top, 0px)
+  );
+}
+
+:has(app-header[type="simple"]) ion-content {
+  --padding-top: calc(
+    var(--header-simple-height) + env(safe-area-inset-top, 0px)
+  );
+  padding-top: calc(
+    var(--header-simple-height) + env(safe-area-inset-top, 0px)
+  );
+}
+
+/* Method 2: Sử dụng class trên ion-content (fallback và dễ sử dụng hơn) */
+ion-content.has-header-dashboard {
+  --padding-top: calc(
+    var(--header-dashboard-height) + env(safe-area-inset-top, 0px)
+  );
+  padding-top: calc(
+    var(--header-dashboard-height) + env(safe-area-inset-top, 0px)
+  );
+}
+
+ion-content.has-header-standard {
+  --padding-top: calc(
+    var(--header-standard-height) + env(safe-area-inset-top, 0px)
+  );
+  padding-top: calc(
+    var(--header-standard-height) + env(safe-area-inset-top, 0px)
+  );
+}
+
+ion-content.has-header-simple {
+  --padding-top: calc(
+    var(--header-simple-height) + env(safe-area-inset-top, 0px)
+  );
+  padding-top: calc(
+    var(--header-simple-height) + env(safe-area-inset-top, 0px)
+  );
+}
+
+/* ============================================
+   BOTTOM NAVIGATION PADDING
+   ============================================
+   Trang CÓ bottom-nav: padding-bottom = chiều cao bottom-nav + safe-area
+   ============================================ */
 ion-content.has-bottom-nav {
-  --padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  /* Đảm bảo content không scroll quá bottom-nav */
+  --padding-bottom: calc(
+    var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px)
+  );
+  /* Đảm bảo scroll area được giới hạn đúng */
+  /* Ionic sẽ tự động handle scroll bounds với padding-bottom */
 }
 
 /* Trang KHÔNG có bottom-nav: padding-bottom = 24px (hoặc giá trị tùy chỉnh) */
 ion-content.no-bottom-nav {
   --padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 }
+
+/* ============================================
+   SCROLL BEHAVIOR FIX
+   ============================================
+   Đảm bảo content không scroll tràn lên header và bottom-nav
+   ============================================ */
+ion-content {
+  /* Đảm bảo scroll bounds đúng với padding đã set */
+  /* Ionic sẽ tự động handle scroll với padding-top và padding-bottom */
+
+  /* Fix scroll overflow: Đảm bảo content không scroll quá padding */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  /* Đảm bảo scroll area được giới hạn đúng */
+  /* Content sẽ không scroll quá padding-top và padding-bottom */
+}
+
+/* Fix cho fullscreen mode: Đảm bảo content không scroll tràn */
+/* Fullscreen mode vẫn tôn trọng padding - Ionic sẽ tự động handle scroll bounds */
 
 /* Trang có action buttons fixed ở bottom (như application-detail) */
 ion-content.has-bottom-actions {

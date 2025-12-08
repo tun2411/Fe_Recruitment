@@ -2,9 +2,7 @@
 
 .email-management-content {
   --background: #f5f5f5;
-  // Padding-top để tránh bị che bởi fixed header (chiều cao header khoảng 85px)
-  --padding-top: 85px;
-  padding-top: 85px;
+  // Padding-top được tự động tính từ global.scss dựa trên header type="dashboard"
   // Padding-bottom được quản lý bởi class .has-bottom-nav trong global.scss
 }
 

@@ -1,6 +1,6 @@
 <app-header type="simple" title="ỨNG VIÊN" [showBackButton]="true" backButtonDefaultHref="/home"></app-header>
 
-<ion-content [fullscreen]="true" class="candidates-content">
+<ion-content [fullscreen]="true" class="candidates-content has-header-simple">
   <!-- Search Bar -->
   <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="onSearch($event)" placeholder="Tìm kiếm..."
     class="custom-searchbar" show-clear-button="focus"></ion-searchbar>

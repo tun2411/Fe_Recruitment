@@ -1,6 +1,6 @@
 <app-header type="simple" title="VÒNG TUYỂN DỤNG" (backClick)="onBack()"></app-header>
 
-<ion-content [fullscreen]="true" class="configure-rounds-content">
+<ion-content [fullscreen]="true" class="configure-rounds-content has-header-simple">
   <div class="form-container">
     <form [formGroup]="roundsForm" (ngSubmit)="onSubmit()">
       <div formArrayName="rounds" *ngFor="let round of roundsArray.controls; let i = index">
