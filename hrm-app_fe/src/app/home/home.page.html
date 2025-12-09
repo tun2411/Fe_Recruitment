@@ -11,7 +11,7 @@
 ></app-header>
 
 <!-- Main Content -->
-<ion-content [fullscreen]="true" class="home-content has-bottom-nav" id="main-content">
+<ion-content [fullscreen]="true" class="home-content has-header-dashboard has-bottom-nav" id="main-content">
 
   <!-- Search Bar - Di chuyển xuống content (giống candidates page) -->
   <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="onSearch($event)" placeholder="Tìm kiếm..."

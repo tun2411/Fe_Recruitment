@@ -557,21 +557,17 @@ ion-toolbar {
 }
 
 :has(app-header[type="standard"]) ion-content {
-  --padding-top: calc(
-    var(--header-standard-height) + env(safe-area-inset-top, 0px)
-  );
-  padding-top: calc(
-    var(--header-standard-height) + env(safe-area-inset-top, 0px)
-  );
+  /* Header standard KHÔNG fixed, nên content chỉ cần header-height */
+  /* Header đã có safe-area rồi, không cần cộng thêm */
+  --padding-top: var(--header-standard-height);
+  padding-top: var(--header-standard-height);
 }
 
 :has(app-header[type="simple"]) ion-content {
-  --padding-top: calc(
-    var(--header-simple-height) + env(safe-area-inset-top, 0px)
-  );
-  padding-top: calc(
-    var(--header-simple-height) + env(safe-area-inset-top, 0px)
-  );
+  /* Header simple KHÔNG fixed, nên content chỉ cần header-height */
+  /* Header đã có safe-area rồi, không cần cộng thêm */
+  --padding-top: var(--header-simple-height);
+  padding-top: var(--header-simple-height);
 }
 
 /* Method 2: Sử dụng class trên ion-content (fallback và dễ sử dụng hơn) */
@@ -585,21 +581,17 @@ ion-content.has-header-dashboard {
 }
 
 ion-content.has-header-standard {
-  --padding-top: calc(
-    var(--header-standard-height) + env(safe-area-inset-top, 0px)
-  );
-  padding-top: calc(
-    var(--header-standard-height) + env(safe-area-inset-top, 0px)
-  );
+  /* Header standard KHÔNG fixed, nên content chỉ cần header-height */
+  /* Header đã có safe-area rồi, không cần cộng thêm */
+  --padding-top: var(--header-standard-height);
+  padding-top: var(--header-standard-height);
 }
 
 ion-content.has-header-simple {
-  --padding-top: calc(
-    var(--header-simple-height) + env(safe-area-inset-top, 0px)
-  );
-  padding-top: calc(
-    var(--header-simple-height) + env(safe-area-inset-top, 0px)
-  );
+  /* Header simple KHÔNG fixed, nên content chỉ cần header-height */
+  /* Header đã có safe-area rồi, không cần cộng thêm */
+  --padding-top: var(--header-simple-height);
+  padding-top: var(--header-simple-height);
 }
 
 /* ============================================
