@@ -88,15 +88,20 @@
         </ion-button>
       </div>
 
-      <div class="action-buttons">
-        <ion-button fill="outline" color="primary" class="cancel-button" type="button" (click)="onBack()">
-          Quay lại
-        </ion-button>
-        <ion-button fill="solid" color="primary" class="confirm-button" type="submit" [disabled]="roundsForm.invalid">
-          <ion-icon name="checkmark-outline" slot="start"></ion-icon>
-          Xác nhận
-        </ion-button>
-      </div>
     </form>
   </div>
 </ion-content>
+
+<ion-footer class="configure-rounds-footer">
+  <ion-toolbar>
+    <div class="action-buttons">
+      <ion-button fill="outline" color="primary" class="cancel-button" type="button" (click)="onBack()">
+        Quay lại
+      </ion-button>
+      <ion-button fill="solid" color="primary" class="confirm-button" type="button" [disabled]="roundsForm.invalid" (click)="onSubmit()">
+        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+        Xác nhận
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

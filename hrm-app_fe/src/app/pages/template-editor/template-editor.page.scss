@@ -1,63 +1,131 @@
 // Header styles đã được di chuyển vào AppHeaderComponent
 
 .template-editor-content {
-  --background: #f5f5f5;
-  --padding-top: 16px;
-  --padding-start: 16px;
-  --padding-end: 16px;
+  --background: linear-gradient(to bottom, #f8f9ff 0%, #f5f5f5 100%);
+  // Padding-top để tránh bị che bởi header
+  --padding-top: 1px !important;
+  padding-top: 1px !important;
+  --padding-start: 0;
+  --padding-end: 0;
   --padding-bottom: 24px;
+
+  // Loại bỏ khoảng trắng thừa từ inner-scroll
+  ::ng-deep {
+    .inner-scroll {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+    }
+
+    .scroll-y {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+    }
+  }
 }
 
 .template-editor-container {
   max-width: 800px;
   margin: 0 auto;
+  padding: 20px 16px;
 }
 
+// Sample List
 .sample-list {
-  margin-bottom: 12px;
+  margin-bottom: 24px;
+
+  ion-list {
+    background: transparent;
+    padding: 0;
+  }
 
   ion-item {
     --background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    margin-bottom: 8px;
+    --border-radius: 14px;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --min-height: 56px;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+      border-color: rgba(102, 126, 234, 0.2);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    ion-label {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
   }
 }
 
+// Template Form Container
 .template-form {
   background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  padding: 16px;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin-bottom: 100px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
 }
 
 .form-item {
   --background: transparent;
+  --padding-start: 0;
+  --padding-end: 0;
   --inner-padding-start: 0;
   --inner-padding-end: 0;
   --inner-padding-top: 0;
   --inner-padding-bottom: 0;
-  margin-bottom: 20px;
+  --box-shadow: none;
+  --border-width: 0;
+  --border-style: none;
+  --border-color: transparent;
+  --inner-border-width: 0;
+  margin-bottom: 24px;
+  margin-left: 0;
+  margin-right: 0;
   align-items: flex-start;
   min-height: auto;
+  padding-left: 0;
+  padding-right: 0;
+  box-shadow: none !important;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
 
   // Đảm bảo label có khoảng cách với input
   ion-label {
     font-size: 14px;
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 10px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 12px;
     display: block;
     padding-bottom: 0;
     transform: none !important;
     position: relative;
     z-index: 1;
     line-height: 1.4;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: #666;
   }
 
   // Khi label ở position stacked, đảm bảo có khoảng cách
   ion-label[position="stacked"] {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     padding-bottom: 0;
     margin-top: 0;
   }
@@ -67,78 +135,317 @@
     flex-direction: column;
     align-items: stretch;
     padding: 0;
-    border: none;
+    padding-left: 0;
+    padding-right: 0;
+    margin: 0;
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    width: 100%;
+    box-shadow: none !important;
   }
 
   // Wrapper cho input/textarea
   .input-wrapper {
+    margin: 0;
     margin-top: 0;
+    padding: 0;
     padding-top: 0;
+    width: 100%;
+    box-shadow: none !important;
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: none !important;
   }
 
   ion-input,
   ion-textarea {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    --padding-start: 12px;
-    --padding-end: 12px;
-    --padding-top: 12px;
-    --padding-bottom: 12px;
-    font-size: 14px;
+    --background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+    --color: #1a1a1a;
+    --border-color: rgba(102, 126, 234, 0.1);
+    --border-width: 2px;
+    --border-style: solid;
+    --border-radius: 14px;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --padding-top: 14px;
+    --padding-bottom: 14px;
+    --box-shadow: none;
+    font-size: 15px;
+    margin: 0;
     margin-top: 0;
+    margin-left: 0;
+    margin-right: 0;
     width: 100%;
-    min-height: 44px;
+    min-height: 52px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 400;
+    display: block;
+    border: 2px solid rgba(102, 126, 234, 0.1) !important;
+    border-radius: 14px !important;
+    box-shadow: none !important;
+    background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%) !important;
+
+    &:focus {
+      --background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+      --border-color: rgba(102, 126, 234, 0.1);
+      --box-shadow: none;
+      border-color: rgba(102, 126, 234, 0.1) !important;
+      box-shadow: none !important;
+      background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%) !important;
+    }
+
+    &::placeholder {
+      color: #9ca3af;
+      font-weight: 400;
+    }
+  }
+
+  // Style phần tử native input/textarea bên trong ion-input và ion-textarea
+  ::ng-deep {
+    .form-item {
+      // Loại bỏ border từ ion-item và tất cả các phần tử con
+      .item-native {
+        border: none !important;
+        border-top: none !important;
+        border-bottom: none !important;
+        border-left: none !important;
+        border-right: none !important;
+        box-shadow: none !important;
+      }
+
+      .item-inner,
+      .input-wrapper {
+        border: none !important;
+        border-top: none !important;
+        border-bottom: none !important;
+        border-left: none !important;
+        border-right: none !important;
+        box-shadow: none !important;
+      }
+
+      // Loại bỏ border-bottom từ các phần tử có thể có border mặc định
+      &::after {
+        display: none !important;
+        border: none !important;
+      }
+
+      ion-input,
+      ion-textarea {
+        .native-input,
+        .native-textarea,
+        input,
+        textarea {
+          border: 2px solid rgba(102, 126, 234, 0.1) !important;
+          border-radius: 14px !important;
+          background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%) !important;
+          box-shadow: none !important;
+        }
+
+        input:focus,
+        textarea:focus {
+          border-color: rgba(102, 126, 234, 0.1) !important;
+          background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%) !important;
+          box-shadow: none !important;
+        }
+      }
+    }
   }
 
   // Đảm bảo textarea có đủ chiều cao
   ion-textarea {
-    min-height: 120px;
+    min-height: 200px;
+    line-height: 1.6;
+    resize: vertical;
   }
 }
 
 .placeholders-section {
   margin-top: 8px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  border-radius: 14px;
+  border: 2px solid rgba(102, 126, 234, 0.1);
 
-  .placeholders-label {
+  ion-label.placeholders-label {
     font-size: 13px;
-    color: #555;
-    margin-bottom: 8px;
+    font-weight: 600;
+    color: #667eea;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &::before {
+      content: "💡";
+      font-size: 16px;
+    }
   }
 
   .placeholders-buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
 
     ion-button {
-      --border-radius: 6px;
-      --border-color: #3880ff;
-      --color: #3880ff;
-      font-size: 11px;
-      padding-inline: 8px;
-      height: 28px;
+      --border-radius: 10px;
+      --border-color: #667eea;
+      --border-width: 2px;
+      --color: #667eea;
+      --background: white;
+      font-size: 12px;
+      font-weight: 600;
+      padding-inline: 12px;
+      height: 36px;
+      margin: 0;
+      text-transform: none;
+      letter-spacing: 0.3px;
     }
   }
 }
 
 .template-editor-footer {
   ion-toolbar {
-    --background: #ffffff;
-    --border-color: #e0e0e0;
+    --background: linear-gradient(to top, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 1) 100%);
+    --border-color: rgba(102, 126, 234, 0.1);
     --border-style: solid;
-    --border-width: 1px 0 0 0;
-    padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+    --border-width: 2px 0 0 0;
+    padding: 16px calc(16px + env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
   }
 
   .action-buttons {
     display: flex;
     gap: 12px;
+    max-width: 800px;
+    margin: 0 auto;
 
-    .cancel-button,
+    .cancel-button {
+      flex: 1;
+      --border-radius: 14px;
+      --border-width: 2px;
+      --border-color: #d1d5db;
+      --color: #6b7280;
+      --background: white;
+      height: 52px;
+      font-weight: 600;
+      font-size: 15px;
+      text-transform: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin: 0;
+
+      &:hover {
+        --border-color: #9ca3af;
+        --color: #4b5563;
+        background: #f9fafb;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+
     .confirm-button {
       flex: 1;
-      height: 44px;
-      font-weight: 500;
+      --border-radius: 14px;
+      --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+      height: 52px;
+      font-weight: 600;
+      font-size: 15px;
+      text-transform: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin: 0;
+
+      &:hover {
+        --box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        transform: translateY(-2px);
+      }
+
+      &:active {
+        transform: translateY(0);
+        --box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 480px) {
+  .template-editor-container {
+    padding: 16px 12px;
+  }
+
+  .template-form {
+    padding: 20px 16px;
+    border-radius: 16px;
+    margin-bottom: 120px;
+  }
+
+  .form-item {
+    margin-bottom: 20px;
+
+    ion-input,
+    ion-textarea {
+      --padding-start: 14px;
+      --padding-end: 14px;
+      --padding-top: 12px;
+      --padding-bottom: 12px;
+      font-size: 14px;
+      min-height: 48px;
+    }
+
+    ion-textarea {
+      min-height: 180px;
+    }
+  }
+
+  .placeholders-section {
+    padding: 16px;
+
+    .placeholders-buttons {
+      gap: 6px;
+
+      ion-button {
+        font-size: 11px;
+        padding-inline: 10px;
+        height: 32px;
+      }
+    }
+  }
+
+  .template-editor-footer {
+    .action-buttons {
+      gap: 10px;
+      padding: 0 12px;
+
+      .cancel-button,
+      .confirm-button {
+        height: 48px;
+        font-size: 14px;
+      }
+    }
+  }
+
+  .sample-list {
+    margin-bottom: 20px;
+
+    ion-item {
+      --min-height: 52px;
+      margin-bottom: 10px;
+
+      ion-label {
+        font-size: 14px;
+      }
     }
   }
 }

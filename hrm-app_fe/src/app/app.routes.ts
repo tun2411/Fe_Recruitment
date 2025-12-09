@@ -113,6 +113,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'confirm-email',
+        loadComponent: () =>
+          import('./pages/confirm-email/confirm-email.page').then(
+            (m) => m.ConfirmEmailPage
+          ),
+      },
+      {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full',

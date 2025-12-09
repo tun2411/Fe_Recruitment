@@ -88,6 +88,8 @@ export class ApplicationDetailPage implements OnInit {
   statusHistoryLoaded: boolean = false; // Flag để biết statusHistory đã load xong chưa
   unreadCount: number = 0;
   showNoteInput: boolean = false;
+  showFailModal: boolean = false;
+  showPassModal: boolean = false;
   private authService = inject(AuthService);
 
   constructor(
@@ -361,20 +363,26 @@ export class ApplicationDetailPage implements OnInit {
       return;
     }
 
-    // Hiển thị input note nếu chưa hiển thị
-    if (!this.showNoteInput) {
-      this.showNoteInput = true;
-      // Đợi một chút để UI render
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    // Hiển thị modal xác nhận
+    this.showPassModal = true;
+  }
+
+  async confirmPass() {
+    this.showPassModal = false;
+
+    // Chuyển hướng đến trang xác nhận email
+    if (this.applicationId) {
+      this.router.navigate(['/confirm-email'], {
+        queryParams: {
+          applicationId: this.applicationId,
+          status: 'pass',
+        },
+      });
     }
+  }
 
-    const request: UpdateApplicationStatusRequest = {
-      status: 'pass',
-      note: this.note || undefined,
-      roundIndex: this.currentRoundIndex,
-    };
-
-    await this.updateStatus(request);
+  cancelPass() {
+    this.showPassModal = false;
   }
 
   async onFail() {
@@ -391,20 +399,26 @@ export class ApplicationDetailPage implements OnInit {
       return;
     }
 
-    // Hiển thị input note nếu chưa hiển thị
-    if (!this.showNoteInput) {
-      this.showNoteInput = true;
-      // Đợi một chút để UI render
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    // Hiển thị modal xác nhận
+    this.showFailModal = true;
+  }
+
+  async confirmFail() {
+    this.showFailModal = false;
+
+    // Chuyển hướng đến trang xác nhận email
+    if (this.applicationId) {
+      this.router.navigate(['/confirm-email'], {
+        queryParams: {
+          applicationId: this.applicationId,
+          status: 'fail',
+        },
+      });
     }
+  }
 
-    const request: UpdateApplicationStatusRequest = {
-      status: 'fail',
-      note: this.note || undefined,
-      roundIndex: this.currentRoundIndex,
-    };
-
-    await this.updateStatus(request);
+  cancelFail() {
+    this.showFailModal = false;
   }
 
   async updateStatus(request: UpdateApplicationStatusRequest) {
@@ -698,5 +712,29 @@ export class ApplicationDetailPage implements OnInit {
 
   onNotificationClick() {
     this.router.navigate(['/notifications']);
+  }
+
+  getNextRoundName(): string {
+    if (!this.statusHistory || this.statusHistory.length === 0) {
+      return '';
+    }
+
+    // Tìm round hiện tại (round đang được xử lý)
+    const currentRound = this.statusHistory.find(r => r.isCurrentRound);
+    
+    if (!currentRound) {
+      return '';
+    }
+
+    // Tìm index của round hiện tại
+    const currentRoundIndex = this.statusHistory.findIndex(r => r.roundId === currentRound.roundId);
+    
+    if (currentRoundIndex === -1 || currentRoundIndex >= this.statusHistory.length - 1) {
+      return '';
+    }
+
+    // Lấy round tiếp theo
+    const nextRound = this.statusHistory[currentRoundIndex + 1];
+    return nextRound?.roundName || '';
   }
 }

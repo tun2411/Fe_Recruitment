@@ -13,6 +13,7 @@
 .container {
   // Padding-bottom được quản lý bởi class .has-bottom-nav và .has-bottom-actions trong global.scss
   // Không cần set padding-bottom ở đây nữa
+  width: 100%;
 }
 
 ion-card {
@@ -242,5 +243,99 @@ ion-badge {
   strong {
     color: var(--ion-color-dark);
     font-weight: 600;
+  }
+}
+
+// Modal Overlay
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-container {
+  width: 100%;
+  max-width: 400px;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.modal-description {
+  font-size: 14px;
+  color: #000;
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modal-button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.modal-button-cancel {
+  background: white;
+  color: #000;
+  border: 1px solid #e0e0e0;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+}
+
+.modal-button-confirm {
+  background: #3880ff;
+  color: white;
+
+  &:hover {
+    background: #3171e0;
   }
 }

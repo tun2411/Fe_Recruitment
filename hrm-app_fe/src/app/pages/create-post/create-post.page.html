@@ -1,18 +1,6 @@
-<ion-header class="custom-header">
-  <ion-toolbar color="primary">
-    <div class="header-content">
-      <div class="header-icon-circle">
-        <ion-icon name="person-outline"></ion-icon>
-      </div>
-      <ion-title class="header-title">TẠO BÀI ĐĂNG</ion-title>
-      <div class="notification-wrapper" (click)="onNotificationClick()">
-        <ion-icon name="notifications-outline" class="notification-icon"></ion-icon>
-      </div>
-    </div>
-  </ion-toolbar>
-</ion-header>
+<app-header type="simple" title="TẠO BÀI ĐĂNG" [showBackButton]="true" (backClick)="onBack()"></app-header>
 
-<ion-content [fullscreen]="true" class="create-post-content">
+<ion-content [fullscreen]="true" class="create-post-content has-header-simple">
   <div class="form-container">
     <form [formGroup]="createPostForm" (ngSubmit)="onSubmit()">
       <!-- Tiêu đề -->

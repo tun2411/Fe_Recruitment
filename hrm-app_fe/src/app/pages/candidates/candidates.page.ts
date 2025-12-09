@@ -27,6 +27,7 @@ import {
   star,
   eyeOutline,
   downloadOutline,
+  chevronDownOutline,
 } from 'ionicons/icons';
 import {
   ApplicationService,
@@ -82,6 +83,9 @@ export class CandidatesPage implements OnInit {
   filterCount: number = 2;
   postId: number | null = null;
   jobTitle: string = '';
+  userInfo: any = null;
+  userName: string = '';
+  currentDate: string = '';
   private authService = inject(AuthService);
 
   constructor(
@@ -104,6 +108,7 @@ export class CandidatesPage implements OnInit {
       star,
       eyeOutline,
       downloadOutline,
+      chevronDownOutline,
     });
   }
 
@@ -122,7 +127,8 @@ export class CandidatesPage implements OnInit {
       return;
     }
 
-    // Load notification count
+    this.updateCurrentDate();
+    this.loadUserInfo();
     this.loadNotificationCount();
 
     // Lấy postId từ query params nếu có
@@ -141,6 +147,35 @@ export class CandidatesPage implements OnInit {
         this.filteredCandidates = [];
         this.router.navigate(['/home']);
       }
+    });
+  }
+
+  updateCurrentDate() {
+    const today = new Date();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    this.currentDate = `${days[today.getDay()]}, ${today.getDate()} ${
+      months[today.getMonth()]
+    }`;
+  }
+
+  loadUserInfo() {
+    this.authService.currentUser$.subscribe((user) => {
+      this.userInfo = user;
+      this.userName = user?.fullName || user?.username || 'User';
     });
   }
 
@@ -191,13 +226,6 @@ export class CandidatesPage implements OnInit {
           this.mapApplicationToCandidate(app)
         );
         this.filteredCandidates = [...this.candidates];
-
-        if (this.candidates.length === 0) {
-          this.showToast(
-            'Chưa có ứng viên nào ứng tuyển cho bài đăng này',
-            'info'
-          );
-        }
       },
       error: async (error) => {
         console.error('Error loading candidates:', error);
@@ -459,7 +487,7 @@ export class CandidatesPage implements OnInit {
   // getFullCVUrl() đã bị xóa - Backend trả về full URL sẵn, không cần xử lý
 
   onNotificationClick() {
-    console.log('Notification clicked');
+    this.router.navigate(['/notifications']);
   }
 
   onAddCandidate() {

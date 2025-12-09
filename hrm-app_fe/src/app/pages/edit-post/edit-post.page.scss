@@ -1,5 +1,10 @@
 .edit-post-content {
   --background: #f5f5f5;
+  // Padding-top để tránh bị che bởi header
+  --padding-top: 1px !important;
+  padding-top: 1px !important;
+  --padding-start: 0;
+  --padding-end: 0;
   // Chừa khoảng dưới đồng bộ với các màn không có bottom nav
   --padding-bottom: 24px;
 }

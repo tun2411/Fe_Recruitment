@@ -59,6 +59,7 @@ import {
   Notification,
 } from '../../services/notification.service';
 import { JdFormatPipe } from '../../pipes/jd-format.pipe';
+import { AppHeaderComponent } from '../../components/app-header/app-header.component';
 
 @Component({
   selector: 'app-create-post',
@@ -88,6 +89,7 @@ import { JdFormatPipe } from '../../pipes/jd-format.pipe';
     MatDatepickerModule,
     MatIconModule,
     JdFormatPipe,
+    AppHeaderComponent,
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter },

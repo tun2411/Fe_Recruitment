@@ -10,10 +10,22 @@ import {
   IonLabel,
   IonList,
   IonButton,
+  IonCard,
+  IonCardContent,
+  IonIcon,
   AlertController,
   ToastController,
   ModalController,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  checkmarkCircleOutline,
+  closeCircleOutline,
+  documentTextOutline,
+  mailOutline,
+  addOutline,
+  chevronForwardOutline,
+} from 'ionicons/icons';
 import { JobPostService, JobRoundDTO } from '../../services/job-post.service';
 import {
   JobCreationStateService,
@@ -37,10 +49,10 @@ import { AppHeaderComponent } from '../../components/app-header/app-header.compo
     CommonModule,
     ReactiveFormsModule,
     IonContent,
-    IonItem,
-    IonLabel,
-    IonList,
+    IonCard,
+    IonCardContent,
     IonButton,
+    IonIcon,
     AppHeaderComponent,
   ],
 })
@@ -123,7 +135,16 @@ export class EmailTemplatesPage implements OnInit, OnDestroy {
     private templateService: TemplateService,
     private cdr: ChangeDetectorRef,
     private modalController: ModalController
-  ) {}
+  ) {
+    addIcons({
+      checkmarkCircleOutline,
+      closeCircleOutline,
+      documentTextOutline,
+      mailOutline,
+      addOutline,
+      chevronForwardOutline,
+    });
+  }
 
   ngOnInit() {
     // Kiểm tra queryParams trước khi load data

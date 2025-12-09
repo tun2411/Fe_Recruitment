@@ -441,8 +441,8 @@ ion-fab-button {
   /* Standard header: toolbar với header-content (padding 8px top + 8px bottom + ~40px content) = ~56px */
   --header-standard-height: 56px;
 
-  /* Simple header: toolbar với title (~56px) */
-  --header-simple-height: 56px;
+  /* Simple header: toolbar với title (padding 15px top + 15px bottom + ~50px content) = ~80px */
+  --header-simple-height: 80px;
 
   /* Bottom navigation height: 8px top + 56px content + 8px bottom = 72px */
   --bottom-nav-height: 72px;
@@ -465,6 +465,28 @@ ion-toolbar {
   /* Toolbar sẽ không có padding-top riêng, dùng từ header */
   --padding-top: 0;
   padding-top: 0;
+}
+
+/* Đảm bảo app-header component full width */
+app-header {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  
+  &[type="simple"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    
+    ion-toolbar {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+    }
+  }
 }
 
 /* ============================================

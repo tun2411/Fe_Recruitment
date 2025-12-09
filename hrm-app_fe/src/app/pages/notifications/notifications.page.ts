@@ -33,6 +33,7 @@ import {
 } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
+import { AppHeaderComponent } from '../../components/app-header/app-header.component';
 
 @Component({
   selector: 'app-notifications',
@@ -41,15 +42,12 @@ import { Subscription } from 'rxjs';
   standalone: true,
   imports: [
     CommonModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonButton,
-    IonButtons,
     IonIcon,
     IonCard,
     IonCardContent,
+    AppHeaderComponent,
   ],
 })
 export class NotificationsPage implements OnInit, OnDestroy {

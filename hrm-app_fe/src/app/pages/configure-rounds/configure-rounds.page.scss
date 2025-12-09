@@ -1,7 +1,13 @@
 .configure-rounds-content {
   --background: linear-gradient(to bottom, #f8f9ff 0%, #f5f5f5 100%);
-  // Dùng padding-bottom của ion-content để chừa khoảng cách đồng bộ (không quá thụt)
-  --padding-bottom: 24px;
+  // Padding-top để tránh bị che bởi header
+  --padding-top: 1px !important;
+  padding-top: 1px !important;
+  --padding-start: 0;
+  --padding-end: 0;
+  // Padding-bottom để chừa khoảng cho footer cố định
+  --padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
 }
 
 .form-container {
@@ -274,21 +280,30 @@
   }
 }
 
+.configure-rounds-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+
+  ion-toolbar {
+    --background: linear-gradient(to top, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 1) 100%);
+    --border-color: rgba(102, 126, 234, 0.1);
+    --border-style: solid;
+    --border-width: 2px 0 0 0;
+    padding: 16px calc(16px + env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+  }
+}
+
 .action-buttons {
   display: flex;
   gap: 12px;
-  margin-top: 32px;
   padding: 0 4px;
-  position: sticky;
-  bottom: 20px;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(248, 249, 255, 0.95) 20%,
-    rgba(248, 249, 255, 1) 100%
-  );
-  padding-top: 20px;
-  margin-bottom: 20px;
+  max-width: 800px;
+  margin: 0 auto;
 
   .cancel-button {
     flex: 1;

@@ -1,67 +1,27 @@
-.custom-header {
-  ion-toolbar {
-    --background: #3880ff;
-    --color: white;
-    border-radius: 0 0 16px 16px;
-    padding: 0;
-    min-height: 60px;
-  }
-
-  .header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 16px;
-    width: 100%;
-  }
-
-  .header-icon-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-
-    ion-icon {
-      font-size: 24px;
-      color: #3880ff;
-    }
-  }
-
-  .header-title {
-    flex: 1;
-    text-align: center;
-    font-weight: 600;
-    font-size: 18px;
-    color: white;
-    margin: 0;
-    text-transform: uppercase;
-  }
-
-  .notification-wrapper {
-    position: relative;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-
-  .notification-icon {
-    font-size: 24px;
-    color: white;
-  }
-}
+// Header styles đã được di chuyển vào AppHeaderComponent
 
 .create-post-content {
   --background: #f5f5f5;
+  // Padding-top để tránh bị che bởi header
+  --padding-top: 1px !important;
+  padding-top: 1px !important;
+  --padding-start: 0;
+  --padding-end: 0;
   // Chừa khoảng dưới giống configure-rounds / edit-post (không có bottom nav)
   --padding-bottom: 24px;
+
+  // Loại bỏ khoảng trắng thừa từ inner-scroll
+  ::ng-deep {
+    .inner-scroll {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+    }
+
+    .scroll-y {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+    }
+  }
 }
 
 .form-container {

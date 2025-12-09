@@ -4,20 +4,54 @@
   (backClick)="backToRounds()"
 ></app-header>
 
-<ion-content [fullscreen]="true" class="ion-padding has-header-simple no-bottom-nav">
+<ion-content [fullscreen]="true" class="email-templates-content has-header-simple no-bottom-nav">
   <!-- Chỉ hiển thị nội dung khi có query params hợp lệ -->
-  <div *ngIf="hasValidParams">
-    <!-- Hiển thị list samples -->
-    <div *ngIf="showSamplesList">
-    <ion-list>
-      <ion-item button *ngFor="let sample of (samples || []); let i = index" (click)="selectTemplate(sample)">
-        <ion-label>{{getTemplateDisplayName(sample) || 'Template ' + (i + 1)}}</ion-label>
-      </ion-item>
-    </ion-list>
-    <ion-button expand="block" fill="outline" (click)="openTemplateEditor()" style="margin-top: 20px;">
-      Tạo mới
-    </ion-button>
-  </div>
+  <div *ngIf="hasValidParams" class="templates-wrapper">
+    <!-- Header Section với thông tin Round và Type -->
+    <div class="info-header" *ngIf="currentRoundIndex >= 0">
+      <div class="info-badge" [class.pass-badge]="currentType === 'pass'" [class.fail-badge]="currentType === 'fail'">
+        <ion-icon [name]="currentType === 'pass' ? 'checkmark-circle-outline' : 'close-circle-outline'"></ion-icon>
+        <span class="badge-text">{{ currentType === 'pass' ? 'Email Pass' : 'Email Fail' }}</span>
+      </div>
+      <h2 class="round-title">Vòng {{ currentRoundIndex + 1 }}</h2>
+      <p class="round-subtitle">Chọn template email để sử dụng</p>
+    </div>
+
+    <!-- Templates List -->
+    <div *ngIf="showSamplesList" class="templates-section">
+      <!-- Empty State -->
+      <div *ngIf="!samples || samples.length === 0" class="empty-state">
+        <div class="empty-icon-wrapper">
+          <ion-icon name="mail-outline" class="empty-icon"></ion-icon>
+        </div>
+        <h3 class="empty-title">Chưa có template nào</h3>
+        <p class="empty-message">Tạo template mới để bắt đầu sử dụng email tự động</p>
+      </div>
+
+      <!-- Templates Grid -->
+      <div *ngIf="samples && samples.length > 0" class="templates-grid">
+        <ion-card 
+          *ngFor="let sample of samples; let i = index" 
+          (click)="selectTemplate(sample)"
+          class="template-card"
+        >
+          <ion-card-content>
+            <div class="template-card-content">
+              <div class="template-icon-wrapper">
+                <ion-icon name="document-text-outline" class="template-icon"></ion-icon>
+              </div>
+              <div class="template-info">
+                <h3 class="template-name">{{ getTemplateDisplayName(sample) || 'Template ' + (i + 1) }}</h3>
+                <p class="template-subject" *ngIf="sample.subject">
+                  {{ sample.subject.length > 60 ? (sample.subject.substring(0, 60) + '...') : sample.subject }}
+                </p>
+              </div>
+              <ion-icon name="chevron-forward-outline" class="template-arrow"></ion-icon>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
   </div>
 </ion-content>
 

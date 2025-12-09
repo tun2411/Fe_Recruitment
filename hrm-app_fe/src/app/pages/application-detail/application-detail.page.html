@@ -154,4 +154,48 @@
             </ion-card-content>
         </ion-card>
     </div>
+
+    <!-- Fail Confirmation Modal -->
+    <div class="modal-overlay" *ngIf="showFailModal" (click)="cancelFail()">
+        <div class="modal-container" (click)="$event.stopPropagation()">
+            <div class="modal-content">
+                <h2 class="modal-title">
+                    Bạn có chắc muốn đánh dấu ứng viên {{ application?.candidateFullName }} là Fail?
+                </h2>
+                <p class="modal-description">
+                    Ứng viên sẽ bị loại khỏi quy trình tuyển dụng và sẽ nhận email thông báo.
+                </p>
+                <div class="modal-buttons">
+                    <button class="modal-button modal-button-cancel" (click)="cancelFail()">
+                        Hủy
+                    </button>
+                    <button class="modal-button modal-button-confirm" (click)="confirmFail()">
+                        Xác nhận
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pass Confirmation Modal -->
+    <div class="modal-overlay" *ngIf="showPassModal" (click)="cancelPass()">
+        <div class="modal-container" (click)="$event.stopPropagation()">
+            <div class="modal-content">
+                <h2 class="modal-title">
+                    Bạn có muốn chuyển ứng viên {{ application?.candidateFullName }} sang vòng tiếp theo ({{ getNextRoundName() }}) không?
+                </h2>
+                <p class="modal-description">
+                    Hệ thống sẽ tự gửi email thông báo cho ứng viên.
+                </p>
+                <div class="modal-buttons">
+                    <button class="modal-button modal-button-cancel" (click)="cancelPass()">
+                        Hủy
+                    </button>
+                    <button class="modal-button modal-button-confirm" (click)="confirmPass()">
+                        Xác nhận
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </ion-content>

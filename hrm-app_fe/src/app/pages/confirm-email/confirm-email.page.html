@@ -1,0 +1,64 @@
+<app-header
+  type="simple"
+  [title]="status === 'pass' ? 'Mail tự động (PASS)' : 'Mail tự động (FAIL)'"
+  [showBackButton]="true"
+  backButtonDefaultHref="/candidates"
+></app-header>
+
+<ion-content [fullscreen]="true" class="ion-padding has-header-simple">
+  <div *ngIf="loading" class="loading-container">
+    <p>Đang tải...</p>
+  </div>
+
+  <div *ngIf="!loading && template" class="container">
+    <!-- Subject Input -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Tiêu đề</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-input
+            [(ngModel)]="subject"
+            placeholder="Tiêu đề mail"
+            readonly
+          ></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Email Content -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Nội dung email</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="email-content">
+          <pre class="email-text">{{ content }}</pre>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <ion-button
+        expand="block"
+        fill="outline"
+        (click)="onCancel()"
+        [disabled]="processing"
+      >
+        Hủy
+      </ion-button>
+      <ion-button
+        expand="block"
+        color="primary"
+        (click)="onConfirm()"
+        [disabled]="processing"
+      >
+        <span *ngIf="!processing">Xác nhận</span>
+        <span *ngIf="processing">Đang xử lý...</span>
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
+

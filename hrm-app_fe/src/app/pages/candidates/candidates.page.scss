@@ -1,63 +1,116 @@
 // Header styles đã được di chuyển vào AppHeaderComponent
 
-.candidates-content {
-  --background: #f5f5f5;
-}
-
+// ============================================
+// SEARCH BAR - Di chuyển xuống content (giống home page)
+// ============================================
 .custom-searchbar {
   padding: 12px 16px;
   --background: white;
   --border-radius: 12px;
   --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin: 8px 16px;
+  margin: 8px auto;
+  max-width: 600px;
+  width: calc(100% - 32px);
+  display: block;
+  transition: box-shadow 0.3s ease;
+
+  &:focus-within {
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  .searchbar-input {
+    background: #ffffff !important;
+    font-size: 15px;
+  }
 }
 
-.action-bar {
+// ============================================
+// SORT & FILTER BAR (Light Blue) - Dưới header
+// ============================================
+.sort-filter-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  gap: 8px;
+  padding: 10px 16px;
+  gap: 10px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-bottom: 1px solid rgba(56, 128, 255, 0.2);
+  min-height: 60px;
+  height: 60px;
+  position: relative;
+  z-index: 1;
 
-  .action-button {
+  .action-btn {
     flex: 1;
     --border-radius: 12px;
     --background: white;
-    --color: #333;
+    --color: #3880ff;
+    --border-color: #3880ff;
+    --border-width: 1.5px;
     font-size: 14px;
+    font-weight: 600;
     height: 40px;
     margin: 0;
     position: relative;
+    --box-shadow: 0 2px 4px rgba(56, 128, 255, 0.1);
+    transition: all 0.2s ease;
+
+    &:active {
+      --box-shadow: 0 1px 2px rgba(56, 128, 255, 0.2);
+      transform: scale(0.98);
+    }
 
     ion-icon {
       font-size: 18px;
     }
-  }
 
-  .refresh-button {
-    --color: #3880ff;
-    width: 40px;
-    height: 40px;
-    margin: 0;
-
-    ion-icon {
-      font-size: 24px;
+    .chevron-icon {
+      font-size: 14px;
+      margin-left: 4px;
     }
   }
 
   .filter-badge {
     position: absolute;
-    top: -4px;
-    right: -4px;
+    top: -6px;
+    right: -6px;
     font-size: 10px;
+    font-weight: 700;
     min-width: 18px;
     height: 18px;
     border-radius: 9px;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.4);
+    border: 2px solid white;
+  }
+}
+
+// ============================================
+// CONTENT AREA
+// ============================================
+.candidates-content {
+  --background: #f5f5f5;
+  // Padding-top để tránh bị che bởi header
+  --padding-top: 1px !important;
+  padding-top: 1px !important;
+  --padding-start: 0;
+  --padding-end: 0;
+
+  // Loại bỏ khoảng trắng thừa từ inner-scroll
+  ::ng-deep {
+    .inner-scroll {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+    }
+
+    .scroll-y {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+    }
   }
 }
 
 .candidates-container {
-  padding: 0 16px 100px;
+  padding: 16px 16px 100px;
 
   .empty-state {
     display: flex;
