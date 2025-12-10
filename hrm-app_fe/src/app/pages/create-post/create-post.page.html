@@ -74,8 +74,8 @@
 
       <!-- Thời gian làm việc -->
       <div class="form-field">
-        <ion-label class="field-label">Thời gian làm việc</ion-label>
-        <ion-select formControlName="workTime" placeholder="Chọn thời gian làm việc" class="custom-select"
+        <ion-label class="field-label">Loại hình làm việc</ion-label>
+        <ion-select formControlName="workTime" placeholder="Chọn loại hình làm việc" class="custom-select"
           [class.invalid]="isFieldInvalid('workTime')">
           <ion-select-option *ngFor="let option of workTimeOptions" [value]="option.value">
             {{ option.label }}

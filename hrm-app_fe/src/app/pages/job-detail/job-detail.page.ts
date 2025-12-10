@@ -195,3 +195,6 @@ export class JobDetailPage implements OnInit {
     await toast.present();
   }
 }
+
+
+
