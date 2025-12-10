@@ -64,10 +64,10 @@
           </div>
         </div>
 
-        <div class="job-meta-row" *ngIf="jobData.yoe">
+        <div class="job-meta-row">
           <div class="meta-label">Kinh nghiệm</div>
           <div class="meta-value">
-            {{ jobData.yoe + ' ' + (jobData.unit || 'năm') }}
+            {{ formatExperience() }}
           </div>
         </div>
 

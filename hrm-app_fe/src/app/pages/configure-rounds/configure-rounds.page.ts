@@ -17,8 +17,6 @@ import {
   IonLabel,
   IonToggle,
   IonItem,
-  IonFooter,
-  IonToolbar,
   ToastController,
   AlertController,
 } from '@ionic/angular/standalone';
@@ -68,8 +66,6 @@ import { AuthService } from '../../services/auth.service';
     IonToggle,
     IonItem,
     IonLabel,
-    IonFooter,
-    IonToolbar,
     AppHeaderComponent,
   ],
 })

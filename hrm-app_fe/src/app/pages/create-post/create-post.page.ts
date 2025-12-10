@@ -59,7 +59,6 @@ import {
   Notification,
 } from '../../services/notification.service';
 import { JdFormatPipe } from '../../pipes/jd-format.pipe';
-import { AppHeaderComponent } from '../../components/app-header/app-header.component';
 
 @Component({
   selector: 'app-create-post',
@@ -89,7 +88,6 @@ import { AppHeaderComponent } from '../../components/app-header/app-header.compo
     MatDatepickerModule,
     MatIconModule,
     JdFormatPipe,
-    AppHeaderComponent,
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter },
@@ -141,16 +139,16 @@ export class CreatePostPage implements OnInit {
 
     this.createPostForm = this.formBuilder.group({
       title: ['', [Validators.required]],
-      salaryFrom: ['', [Validators.required]],
-      salaryTo: ['', [Validators.required]],
+      salaryFrom: [''], // Không bắt buộc
+      salaryTo: [''], // Không bắt buộc
       address: ['', [Validators.required]],
-      minExperience: [''],
+      minExperience: [''], // Không bắt buộc
       experienceUnit: ['year'],
       workTime: ['', [Validators.required]],
-      status: ['inactive'], // Mặc định inactive khi tạo job cơ bản
+      status: ['active'], // Mặc định active
       deadline: ['', [Validators.required]],
       content: ['', [Validators.required]],
-      roundCount: ['', [Validators.required, Validators.min(1)]], // Thêm roundCount
+      roundCount: ['1', [Validators.required, Validators.min(1)]], // Mặc định 1 vòng
     });
   }
 
@@ -278,18 +276,22 @@ export class CreatePostPage implements OnInit {
       return;
     }
 
-    // Validation: salaryFrom < salaryTo
-    const salaryFrom = parseInt(this.createPostForm.value.salaryFrom);
-    const salaryTo = parseInt(this.createPostForm.value.salaryTo);
-    if (salaryFrom >= salaryTo) {
-      const toast = await this.toastController.create({
-        message: 'Mức lương "Từ" phải nhỏ hơn "Đến"',
-        duration: 2000,
-        color: 'warning',
-        position: 'top',
-      });
-      await toast.present();
-      return;
+    // Validation: salaryFrom < salaryTo (chỉ validate khi cả hai đều có giá trị)
+    const salaryFromValue = this.createPostForm.value.salaryFrom;
+    const salaryToValue = this.createPostForm.value.salaryTo;
+    if (salaryFromValue && salaryToValue) {
+      const salaryFrom = parseInt(salaryFromValue);
+      const salaryTo = parseInt(salaryToValue);
+      if (!isNaN(salaryFrom) && !isNaN(salaryTo) && salaryFrom >= salaryTo) {
+        const toast = await this.toastController.create({
+          message: 'Mức lương "Từ" phải nhỏ hơn "Đến"',
+          duration: 2000,
+          color: 'warning',
+          position: 'top',
+        });
+        await toast.present();
+        return;
+      }
     }
 
     // Validation: deadline phải lớn hơn ngày hiện tại

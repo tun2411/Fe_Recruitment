@@ -392,6 +392,24 @@ export class EditPostPage implements OnInit {
 
     const formValue = this.editPostForm.value;
 
+    // Validation: salaryFrom < salaryTo (chỉ validate khi cả hai đều có giá trị)
+    const salaryFromValue = formValue.salaryFrom;
+    const salaryToValue = formValue.salaryTo;
+    if (salaryFromValue && salaryToValue) {
+      const salaryFrom = parseInt(salaryFromValue);
+      const salaryTo = parseInt(salaryToValue);
+      if (!isNaN(salaryFrom) && !isNaN(salaryTo) && salaryFrom >= salaryTo) {
+        const toast = await this.toastController.create({
+          message: 'Mức lương "Từ" phải nhỏ hơn "Đến"',
+          duration: 2000,
+          color: 'warning',
+          position: 'top',
+        });
+        await toast.present();
+        return;
+      }
+    }
+
     // Parse salaryFrom và salaryTo từ form (backend yêu cầu number)
     let salaryFrom: number | undefined = undefined;
     let salaryTo: number | undefined = undefined;
@@ -527,7 +545,6 @@ export class EditPostPage implements OnInit {
           // Load lại job data từ backend để lấy rounds mới
           this.jobPostService.getJobPostById(this.jobId!).subscribe({
             next: async (updatedJob) => {
-
               // Cập nhật state với job data và rounds mới
               this.jobCreationState.setJobId(updatedJob.id!);
               this.jobCreationState.setRoundCount(
@@ -668,7 +685,6 @@ export class EditPostPage implements OnInit {
         }
       },
       error: async (error) => {
-
         const toast = await this.toastController.create({
           message:
             error.message || 'Cập nhật bài đăng thất bại. Vui lòng thử lại.',

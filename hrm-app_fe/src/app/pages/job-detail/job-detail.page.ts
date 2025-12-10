@@ -126,7 +126,7 @@ export class JobDetailPage implements OnInit {
       this.jobData.salaryTo !== undefined &&
       this.jobData.salaryTo !== null
     ) {
-      return `Đến ${this.formatCurrency(this.jobData.salaryTo)} VNĐ`;
+      return `Lên tới ${this.formatCurrency(this.jobData.salaryTo)} VNĐ`;
     }
     return 'Thỏa thuận';
   }
@@ -147,6 +147,14 @@ export class JobDetailPage implements OnInit {
     return (
       workTimeMap[this.jobData.workTime.toLowerCase()] || this.jobData.workTime
     );
+  }
+
+  formatExperience(): string {
+    if (!this.jobData) return 'Không yêu cầu';
+    if (this.jobData.yoe !== undefined && this.jobData.yoe !== null) {
+      return `${this.jobData.yoe} ${this.jobData.unit || 'năm'}`;
+    }
+    return 'Không yêu cầu';
   }
 
   onBack() {
@@ -187,5 +195,3 @@ export class JobDetailPage implements OnInit {
     await toast.present();
   }
 }
-
-
