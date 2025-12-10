@@ -22,6 +22,7 @@ import {
 import { addIcons } from 'ionicons';
 import { personOutline, arrowBackOutline } from 'ionicons/icons';
 import { BusinessService } from '../../services/business.service';
+import { AppHeaderComponent } from '../../components/app-header/app-header.component';
 
 @Component({
   selector: 'app-personal-info',
@@ -32,14 +33,12 @@ import { BusinessService } from '../../services/business.service';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonButton,
     IonIcon,
     IonInput,
     IonLabel,
+    AppHeaderComponent,
   ],
 })
 export class PersonalInfoPage implements OnInit {

@@ -1,16 +1,11 @@
-<div class="personal-label">cá nhân</div>
-<ion-header class="custom-header">
-  <ion-toolbar color="primary">
-    <div class="header-content">
-      <div class="header-icon-circle">
-        <ion-icon name="person-outline"></ion-icon>
-      </div>
-      <ion-title class="header-title">THÔNG TIN CÁ NHÂN</ion-title>
-    </div>
-  </ion-toolbar>
-</ion-header>
+<app-header
+  type="simple"
+  title="THÔNG TIN CÁ NHÂN"
+  [showBackButton]="true"
+  (backClick)="onBack()"
+></app-header>
 
-<ion-content [fullscreen]="true" class="personal-info-content">
+<ion-content [fullscreen]="true" class="personal-info-content has-header-simple">
   <div class="form-container">
     <form [formGroup]="personalInfoForm">
       <!-- Tên Công ty/ Doanh nghiệp -->
