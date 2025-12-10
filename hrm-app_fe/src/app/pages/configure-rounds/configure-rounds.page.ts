@@ -865,6 +865,53 @@ export class ConfigureRoundsPage implements OnInit {
       return;
     }
 
+    // Validation: Kiểm tra email template Pass/Fail cho từng round
+    const roundsArray = this.roundsArray;
+    const roundsFromState = this.jobCreationState.getRounds();
+    const missingTemplates: number[] = [];
+
+    for (let i = 0; i < roundsArray.length; i++) {
+      const roundControl = roundsArray.at(i);
+      const passTemplate = roundControl.get('passEmailTemplate')?.value;
+      const failTemplate = roundControl.get('failEmailTemplate')?.value;
+
+      // Kiểm tra từ form value
+      const hasPassTemplate = passTemplate && passTemplate.trim() !== '';
+      const hasFailTemplate = failTemplate && failTemplate.trim() !== '';
+
+      // Kiểm tra từ state (nếu form chưa có nhưng state có)
+      const roundFromState = roundsFromState.find((r) => r.roundIndex === i);
+      const hasPassFromState =
+        roundFromState?.passEmailTemplate?.formName &&
+        roundFromState.passEmailTemplate.formName.trim() !== '';
+      const hasFailFromState =
+        roundFromState?.failEmailTemplate?.formName &&
+        roundFromState.failEmailTemplate.formName.trim() !== '';
+
+      // Nếu không có template nào (cả Pass và Fail đều không có)
+      if (
+        !hasPassTemplate &&
+        !hasFailTemplate &&
+        !hasPassFromState &&
+        !hasFailFromState
+      ) {
+        missingTemplates.push(i + 1); // Lưu số vòng (1-indexed) để hiển thị
+      }
+    }
+
+    // Nếu có round nào thiếu template, hiển thị thông báo lỗi
+    if (missingTemplates.length > 0) {
+      const roundNumbers = missingTemplates.join(', ');
+      const toast = await this.toastController.create({
+        message: `Vui lòng chọn ít nhất một mẫu email (Pass hoặc Fail) cho vòng ${roundNumbers}`,
+        duration: 3000,
+        color: 'warning',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+
     // Kiểm tra xem job đã tồn tại chưa (có jobId và từ edit-post hoặc job đã publish)
     const roundIds = this.jobCreationState.getRoundIds();
     const hasExistingRounds = Object.keys(roundIds).length > 0;
@@ -956,6 +1003,50 @@ export class ConfigureRoundsPage implements OnInit {
 
       const roundIds = this.jobCreationState.getRoundIds();
       const roundsFromState = this.jobCreationState.getRounds();
+
+      // Validation: Kiểm tra email template Pass/Fail cho từng round
+      const missingTemplates: number[] = [];
+      for (let i = 0; i < roundsArray.length; i++) {
+        const roundControl = roundsArray.at(i);
+        const passTemplate = roundControl.get('passEmailTemplate')?.value;
+        const failTemplate = roundControl.get('failEmailTemplate')?.value;
+
+        // Kiểm tra từ form value
+        const hasPassTemplate = passTemplate && passTemplate.trim() !== '';
+        const hasFailTemplate = failTemplate && failTemplate.trim() !== '';
+
+        // Kiểm tra từ state
+        const roundFromState = roundsFromState.find((r) => r.roundIndex === i);
+        const hasPassFromState =
+          roundFromState?.passEmailTemplate?.formName &&
+          roundFromState.passEmailTemplate.formName.trim() !== '';
+        const hasFailFromState =
+          roundFromState?.failEmailTemplate?.formName &&
+          roundFromState.failEmailTemplate.formName.trim() !== '';
+
+        // Nếu không có template nào (cả Pass và Fail đều không có)
+        if (
+          !hasPassTemplate &&
+          !hasFailTemplate &&
+          !hasPassFromState &&
+          !hasFailFromState
+        ) {
+          missingTemplates.push(i + 1); // Lưu số vòng (1-indexed) để hiển thị
+        }
+      }
+
+      // Nếu có round nào thiếu template, hiển thị thông báo lỗi
+      if (missingTemplates.length > 0) {
+        const roundNumbers = missingTemplates.join(', ');
+        const toast = await this.toastController.create({
+          message: `Vui lòng chọn ít nhất một mẫu email (Pass hoặc Fail) cho vòng ${roundNumbers}`,
+          duration: 3000,
+          color: 'warning',
+          position: 'top',
+        });
+        await toast.present();
+        return;
+      }
 
       console.log(
         '[ConfigureRounds] RoundIds from state before mapping:',
@@ -1403,6 +1494,36 @@ export class ConfigureRoundsPage implements OnInit {
         message: 'Thiếu thông tin job hoặc rounds. Vui lòng thử lại.',
         duration: 3000,
         color: 'danger',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+
+    // Validation: Kiểm tra email template Pass/Fail cho từng round
+    const missingTemplates: number[] = [];
+    for (let i = 0; i < rounds.length; i++) {
+      const round = rounds[i];
+      const hasPassTemplate =
+        round.passEmailTemplate?.formName &&
+        round.passEmailTemplate.formName.trim() !== '';
+      const hasFailTemplate =
+        round.failEmailTemplate?.formName &&
+        round.failEmailTemplate.formName.trim() !== '';
+
+      // Nếu không có template nào (cả Pass và Fail đều không có)
+      if (!hasPassTemplate && !hasFailTemplate) {
+        missingTemplates.push(i + 1); // Lưu số vòng (1-indexed) để hiển thị
+      }
+    }
+
+    // Nếu có round nào thiếu template, hiển thị thông báo lỗi
+    if (missingTemplates.length > 0) {
+      const roundNumbers = missingTemplates.join(', ');
+      const toast = await this.toastController.create({
+        message: `Vui lòng chọn ít nhất một mẫu email (Pass hoặc Fail) cho vòng ${roundNumbers}`,
+        duration: 3000,
+        color: 'warning',
         position: 'top',
       });
       await toast.present();

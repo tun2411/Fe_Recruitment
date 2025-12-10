@@ -179,7 +179,6 @@ export class CandidatesPage implements OnInit {
     });
   }
 
-
   /**
    * Load job title để hiển thị position cho ứng viên
    */
@@ -383,12 +382,33 @@ export class CandidatesPage implements OnInit {
    */
   private fixUrlForMobile(url: string): string {
     const apiUrl = environment.apiUrl;
-    // Lấy phần host:port từ apiUrl, ví dụ http://192.168.1.22:8080/api -> http://192.168.1.22:8080
-    const hostMatch = apiUrl.match(/^(http:\/\/[^/]+:\d+)/);
-    const targetBase = hostMatch ? hostMatch[1] : 'http://192.168.1.22:8080';
 
-    // Thay mọi host :8080 (localhost hoặc IP cũ) bằng host mới
-    return url.replace(/http:\/\/[^/]+:8080/g, targetBase);
+    // Lấy base URL từ environment.apiUrl
+    let targetBase: string;
+
+    // Nếu apiUrl là full URL (http://IP:port/api)
+    const hostMatch = apiUrl.match(/^(https?:\/\/[^/]+:\d+)/);
+    if (hostMatch) {
+      targetBase = hostMatch[1];
+    } else {
+      // Nếu apiUrl là relative URL (/api), cần lấy từ window.location hoặc environment
+      if (typeof window !== 'undefined') {
+        // Web: dùng window.location.origin
+        targetBase = window.location.origin;
+      } else {
+        // Fallback: thử parse từ environment (nếu có YOUR_COMPUTER_IP)
+        // Hoặc dùng localhost mặc định
+        targetBase = 'http://localhost:8080';
+      }
+    }
+
+    // Nếu URL không có protocol (relative URL), thêm base URL
+    if (!url.match(/^https?:\/\//)) {
+      return `${targetBase}${url.startsWith('/') ? '' : '/'}${url}`;
+    }
+
+    // Thay mọi host:port (localhost:8080 hoặc IP:8080 cũ) bằng host mới từ environment
+    return url.replace(/https?:\/\/[^/]+:\d+/g, targetBase);
   }
 
   async onDownload(candidate: Candidate) {
@@ -410,7 +430,6 @@ export class CandidatesPage implements OnInit {
       // Download CV qua HttpClient
       this.http.get(downloadUrl, { responseType: 'blob' }).subscribe({
         next: async (blob) => {
-
           const fileName = `CV_${candidate.fullName || 'candidate'}.pdf`;
 
           // Trên mobile: Lưu vào Filesystem
@@ -547,5 +566,4 @@ export class CandidatesPage implements OnInit {
       },
     });
   }
-
 }
