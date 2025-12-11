@@ -283,6 +283,88 @@
       z-index: 2;
     }
 
+    .post-url-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+      border-radius: 10px;
+      border: 1px solid #e0e4e8;
+      position: relative;
+      z-index: 1;
+
+      .url-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0; // Cho phép truncate
+
+        .url-label {
+          font-size: 11px;
+          color: #666;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          flex-shrink: 0;
+
+          ion-icon {
+            font-size: 14px;
+            color: #3880ff;
+          }
+        }
+
+        .url-value {
+          font-size: 12px;
+          color: #1a1a1a;
+          font-weight: 500;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          flex: 1;
+          min-width: 0;
+          pointer-events: none; // Bỏ click event trên link
+          user-select: text; // Vẫn cho phép select text để copy
+        }
+      }
+
+      .url-actions {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+
+        .url-action-btn {
+          --padding-start: 8px;
+          --padding-end: 8px;
+          --padding-top: 8px;
+          --padding-bottom: 8px;
+          margin: 0;
+          height: 32px;
+          width: 32px;
+          --color: #3880ff;
+          --background: white;
+          --border-radius: 8px;
+          --box-shadow: 0 2px 4px rgba(56, 128, 255, 0.15);
+          transition: all 0.2s ease;
+
+          &:active {
+            --box-shadow: 0 1px 2px rgba(56, 128, 255, 0.25);
+            transform: scale(0.95);
+          }
+
+          ion-icon {
+            font-size: 16px;
+          }
+        }
+      }
+    }
+
     .post-footer {
       display: flex;
       align-items: center;

@@ -74,6 +74,7 @@ export interface CreateJobRequest {
 export interface CreateJobResponse {
   jobId: number;
   roundCount: number;
+  applyUrl?: string; // Full URL để dán vào browser
 }
 
 export interface UpdateJobRequest {
