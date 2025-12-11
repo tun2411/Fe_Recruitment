@@ -38,6 +38,9 @@ import {
   logOutOutline,
   personCircleOutline,
   chevronForwardOutline,
+  copyOutline,
+  openOutline,
+  linkOutline,
 } from 'ionicons/icons';
 import { BottomNavComponent } from '../components/bottom-nav/bottom-nav.component';
 import { AppHeaderComponent } from '../components/app-header/app-header.component';
@@ -68,6 +71,7 @@ export interface Post {
   workTime?: string;
   roundCount?: number;
   candidateCount?: number;
+  applyUrl?: string; // Full URL để share
 }
 
 @Component({
@@ -135,6 +139,9 @@ export class HomePage implements OnInit {
       logOutOutline,
       personCircleOutline,
       chevronForwardOutline,
+      copyOutline,
+      openOutline,
+      linkOutline,
     });
   }
 
@@ -281,6 +288,7 @@ export class HomePage implements OnInit {
       workTime: workTime,
       roundCount: job.roundCount,
       candidateCount,
+      applyUrl: this.buildFullApplyUrl(job.applyUrl || ''), // Build full URL từ relative path
     };
   }
 
@@ -289,6 +297,30 @@ export class HomePage implements OnInit {
    */
   private formatCurrency(amount: number): string {
     return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  /**
+   * Build full URL từ relative applyUrl path
+   * Ví dụ: "apply/6-v-tr-th-c" -> "http://localhost:4200/apply/6-v-tr-th-c"
+   */
+  private buildFullApplyUrl(applyUrl: string): string {
+    if (!applyUrl || applyUrl.trim() === '') {
+      return '';
+    }
+
+    // Nếu đã là full URL, trả về nguyên
+    if (applyUrl.startsWith('http://') || applyUrl.startsWith('https://')) {
+      return applyUrl;
+    }
+
+    // Lấy base URL từ environment hoặc default
+    // Candidate webapp thường chạy trên port 4200
+    const candidateWebappUrl = 'http://localhost:4200'; // Có thể config trong environment nếu cần
+
+    // Đảm bảo applyUrl bắt đầu bằng /
+    const path = applyUrl.startsWith('/') ? applyUrl : '/' + applyUrl;
+
+    return candidateWebappUrl + path;
   }
 
   async loadPosts() {
@@ -412,6 +444,7 @@ export class HomePage implements OnInit {
               workTime: '',
               roundCount: jobPost.roundCount,
               candidateCount: 0,
+              applyUrl: '', // Không có URL trong fallback case
             }));
             this.filteredPosts = [...this.posts];
             this.currentPage = 1;
@@ -554,6 +587,76 @@ export class HomePage implements OnInit {
   prevPage() {
     if (this.currentPage > 1) {
       this.currentPage--;
+    }
+  }
+
+  /**
+   * Copy URL to clipboard
+   */
+  async onCopyUrl(post: Post, event: Event) {
+    event.stopPropagation(); // Prevent card click
+
+    if (!post.applyUrl) {
+      const toast = await this.toastController.create({
+        message: 'Chưa có URL để copy',
+        duration: 2000,
+        color: 'warning',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(post.applyUrl);
+      const toast = await this.toastController.create({
+        message: 'Đã copy URL vào clipboard',
+        duration: 2000,
+        color: 'success',
+        position: 'top',
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      const toast = await this.toastController.create({
+        message: 'Không thể copy URL',
+        duration: 2000,
+        color: 'danger',
+        position: 'top',
+      });
+      await toast.present();
+    }
+  }
+
+  /**
+   * Open URL in new browser tab/window
+   */
+  async onOpenUrl(post: Post, event: Event) {
+    event.stopPropagation(); // Prevent card click
+
+    if (!post.applyUrl) {
+      const toast = await this.toastController.create({
+        message: 'Chưa có URL để mở',
+        duration: 2000,
+        color: 'warning',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+
+    try {
+      // Mở link trong tab/window mới
+      window.open(post.applyUrl, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      console.error('Error opening URL:', error);
+      const toast = await this.toastController.create({
+        message: 'Không thể mở link',
+        duration: 2000,
+        color: 'danger',
+        position: 'top',
+      });
+      await toast.present();
     }
   }
 }
