@@ -6,6 +6,7 @@ import android.webkit.WebView;
 import android.util.Log;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Bridge;
+import com.codetrixstudio.capacitor.GoogleAuth.GoogleAuth;
 
 public class MainActivity extends BridgeActivity {
     private static final String TAG = "MainActivity";
@@ -13,6 +14,10 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Register GoogleAuth plugin explicitly for Capacitor 7
+        // This ensures the plugin is properly initialized when using scopes
+        this.registerPlugin(GoogleAuth.class);
     }
 
     @Override

@@ -76,9 +76,6 @@
                 <span class="field-value">{{ post.address || 'Chưa có địa chỉ' }}</span>
               </div>
             </div>
-            <ion-badge color="danger" class="post-badge" *ngIf="post.candidateCount !== undefined">
-              {{ post.candidateCount }}
-            </ion-badge>
           </div>
           <div class="post-footer">
             <span class="post-date">
@@ -86,9 +83,14 @@
               {{ post.updatedAt }}
             </span>
             <div class="post-actions">
-              <ion-button fill="outline" size="small" (click)="onViewList(post); $event.stopPropagation()">
-                List
-              </ion-button>
+              <div class="list-button-wrapper">
+                <ion-button fill="outline" size="small" (click)="onViewList(post); $event.stopPropagation()">
+                  List
+                </ion-button>
+                <ion-badge color="danger" class="list-badge" *ngIf="post.candidateCount !== undefined">
+                  {{ post.candidateCount }}
+                </ion-badge>
+              </div>
               <ion-button fill="solid" color="primary" size="small"
                 (click)="onViewDetail(post); $event.stopPropagation()">
                 Detail

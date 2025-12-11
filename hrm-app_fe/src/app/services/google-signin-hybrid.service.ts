@@ -25,6 +25,10 @@ declare global {
 export class GoogleSignInHybridService {
   private readonly GOOGLE_CLIENT_ID_WEB =
     '314046144776-pfepr9d4bj6btmjfnd4kqjo6qciu5te9.apps.googleusercontent.com';
+  
+  // Android Client ID - nếu có Client ID riêng cho Android thì dùng, không thì dùng Web Client ID
+  private readonly GOOGLE_CLIENT_ID_ANDROID =
+    '314046144776-8obdffstu3en9ighi2j1khar67d4q9d7.apps.googleusercontent.com';
 
   private isInitialized = false;
 
@@ -39,8 +43,16 @@ export class GoogleSignInHybridService {
       // Plugin tự động detect platform:
       // - Native (Android/iOS): Dùng native Google Sign-In
       // - Web: Dùng Google JavaScript SDK
+      const clientId = Capacitor.isNativePlatform() 
+        ? this.GOOGLE_CLIENT_ID_ANDROID 
+        : this.GOOGLE_CLIENT_ID_WEB;
+      
+      console.log('🔧 Initializing Google Auth with clientId:', clientId);
+      console.log('🔧 Platform:', Capacitor.getPlatform());
+      console.log('🔧 Is Native:', Capacitor.isNativePlatform());
+      
       await GoogleAuth.initialize({
-        clientId: this.GOOGLE_CLIENT_ID_WEB,
+        clientId: clientId,
         scopes: ['profile', 'email'],
         grantOfflineAccess: true,
       });

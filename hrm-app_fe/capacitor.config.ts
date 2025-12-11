@@ -28,6 +28,16 @@ const config: CapacitorConfig = {
     cleartext: true,
     androidScheme: 'http',
   },
+
+  plugins: {
+    GoogleAuth: {
+      scopes: ['profile', 'email'],
+      clientId: '314046144776-pfepr9d4bj6btmjfnd4kqjo6qciu5te9.apps.googleusercontent.com', // Web Client ID (fallback)
+      androidClientId: '314046144776-8obdffstu3en9ighi2j1khar67d4q9d7.apps.googleusercontent.com', // Android Client ID
+      serverClientId: '314046144776-pfepr9d4bj6btmjfnd4kqjo6qciu5te9.apps.googleusercontent.com', // Server Client ID for offline access
+      forceCodeForRefreshToken: true,
+    },
+  },
 };
 
 export default config;

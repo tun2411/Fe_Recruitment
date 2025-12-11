@@ -152,6 +152,8 @@ export class EmailManagementPage implements OnInit {
           )
         );
     }
+    // Reload templates khi quay lại từ template-editor
+    this.loadEmailTemplates();
   }
 
   updateCurrentDate() {

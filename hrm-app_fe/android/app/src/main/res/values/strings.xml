@@ -4,4 +4,6 @@
     <string name="title_activity_main">HRM+</string>
     <string name="package_name">com.hrm.app</string>
     <string name="custom_url_scheme">com.hrm.app</string>
+    <!-- Google Sign-In Client ID (fallback if not in capacitor.config.ts) -->
+    <string name="server_client_id">314046144776-8obdffstu3en9ighi2j1khar67d4q9d7.apps.googleusercontent.com</string>
 </resources>
