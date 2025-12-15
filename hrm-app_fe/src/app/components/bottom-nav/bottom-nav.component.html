@@ -1,0 +1,15 @@
+<div class="bottom-nav">
+  <div class="nav-item" [class.active]="activeTab === 'dashboard'" (click)="navigateToDashboard()">
+    <ion-icon name="grid-outline"></ion-icon>
+    <span>Dashboard</span>
+  </div>
+  <div class="nav-item" [class.active]="activeTab === 'jobs'" (click)="navigateToJobs()">
+    <ion-icon name="briefcase-outline"></ion-icon>
+    <span>Jobs</span>
+  </div>
+  <div class="nav-item" [class.active]="activeTab === 'mail'" (click)="navigateToMail()">
+    <ion-icon name="mail-outline"></ion-icon>
+    <span>Mail</span>
+  </div>
+</div>
+

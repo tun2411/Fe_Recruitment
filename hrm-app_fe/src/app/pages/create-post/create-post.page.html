@@ -1,0 +1,155 @@
+<app-header type="simple" title="TẠO BÀI ĐĂNG" [showBackButton]="true" (backClick)="onBack()"></app-header>
+
+<ion-content [fullscreen]="true" class="create-post-content has-header-simple">
+  <div class="form-container">
+    <form [formGroup]="createPostForm" (ngSubmit)="onSubmit()">
+      <!-- Tiêu đề -->
+      <div class="form-field">
+        <ion-label class="field-label">Tiêu đề</ion-label>
+        <ion-input formControlName="title" placeholder="Tiêu đề/ Vị trí tuyển dụng" class="custom-input"
+          [class.invalid]="isFieldInvalid('title')"></ion-input>
+      </div>
+
+      <!-- Mức lương -->
+      <div class="form-field">
+        <ion-label class="field-label">Mức lương</ion-label>
+        <div class="salary-range-container">
+          <div class="salary-input-wrapper">
+            <ion-label class="salary-label">Từ</ion-label>
+            <ion-input formControlName="salaryFrom" placeholder="VNĐ" type="number" class="custom-input"
+              [class.invalid]="isFieldInvalid('salaryFrom')"></ion-input>
+          </div>
+          <div class="salary-input-wrapper">
+            <ion-label class="salary-label">Đến</ion-label>
+            <ion-input formControlName="salaryTo" placeholder="VNĐ" type="number" class="custom-input"
+              [class.invalid]="isFieldInvalid('salaryTo')"></ion-input>
+          </div>
+        </div>
+      </div>
+
+      <!-- Địa chỉ -->
+      <div class="form-field">
+        <ion-label class="field-label">Địa chỉ</ion-label>
+        <ion-input formControlName="address" placeholder="Địa chỉ..." class="custom-input"
+          [class.invalid]="isFieldInvalid('address')"></ion-input>
+      </div>
+
+      <!-- Số kinh nghiệm tối thiểu -->
+      <div class="form-field">
+        <ion-label class="field-label">Số kinh nghiệm tối thiểu</ion-label>
+        <div class="experience-container">
+          <div class="experience-input-wrapper">
+            <ion-input formControlName="minExperience" type="number" class="custom-input"
+              [class.invalid]="isFieldInvalid('minExperience')"></ion-input>
+          </div>
+          <div class="experience-unit-wrapper">
+            <ion-label class="experience-unit-label">Đơn vị</ion-label>
+            <ion-select formControlName="experienceUnit" placeholder="Năm / tháng" class="custom-select"
+              [class.invalid]="isFieldInvalid('experienceUnit')">
+              <ion-select-option *ngFor="let option of experienceUnitOptions" [value]="option.value">
+                {{ option.label }}
+              </ion-select-option>
+            </ion-select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Số vòng tuyển dụng -->
+      <div class="form-field">
+        <ion-label class="field-label">Số vòng tuyển dụng</ion-label>
+        <ion-input formControlName="roundCount" type="number" placeholder="Nhập số vòng (tối thiểu 1)" min="1"
+          class="custom-input" [class.invalid]="isFieldInvalid('roundCount')"></ion-input>
+      </div>
+
+      <!-- Trạng thái -->
+      <div class="form-field">
+        <ion-label class="field-label">Trạng thái</ion-label>
+        <ion-select formControlName="status" placeholder="Trạng thái" class="custom-select"
+          [class.invalid]="isFieldInvalid('status')">
+          <ion-select-option *ngFor="let option of statusOptions" [value]="option.value">
+            {{ option.label }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+
+      <!-- Thời gian làm việc -->
+      <div class="form-field">
+        <ion-label class="field-label">Loại hình làm việc</ion-label>
+        <ion-select formControlName="workTime" placeholder="Chọn loại hình làm việc" class="custom-select"
+          [class.invalid]="isFieldInvalid('workTime')">
+          <ion-select-option *ngFor="let option of workTimeOptions" [value]="option.value">
+            {{ option.label }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+
+      <!-- Hạn bài đăng -->
+      <div class="form-field">
+        <ion-label class="field-label">Hạn bài đăng</ion-label>
+        <mat-form-field appearance="outline" class="datepicker-field">
+          <input matInput [matDatepicker]="picker" formControlName="deadline" placeholder="Chọn ngày" readonly
+            [min]="minDateValue" [class.invalid]="isFieldInvalid('deadline')" (dateChange)="onDatePickerChange($event)">
+          <mat-datepicker-toggle matIconSuffix [for]="picker">
+          </mat-datepicker-toggle>
+          <mat-datepicker #picker [startAt]="minDateValue"></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <!-- Nội dung JD -->
+      <div class="form-field">
+        <ion-label class="field-label">Nội dung JD</ion-label>
+        <ion-textarea
+          formControlName="content"
+          placeholder="Dán toàn bộ JD từ TopCV, VietnamWorks, ITviec, JD OCR từ ảnh..."
+          rows="20"
+          autoGrow="true"
+          class="custom-textarea"
+          [class.invalid]="isFieldInvalid('content')"
+        ></ion-textarea>
+      </div>
+
+      <!-- PREVIEW JD -->
+      <div class="jd-preview-container" *ngIf="createPostForm.get('content')?.value">
+        <h3 class="jd-preview-title">Xem trước (giống hệt candidate sẽ thấy)</h3>
+        <div
+          class="jd-preview"
+          [innerHTML]="createPostForm.get('content')?.value | jdFormat"
+        ></div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <ion-button fill="solid" color="primary" class="cancel-button" type="button" (click)="onCancel()">
+          Cancel
+        </ion-button>
+        <ion-button fill="solid" color="primary" class="confirm-button" type="submit"
+          [disabled]="createPostForm.invalid">
+          Confirm
+        </ion-button>
+      </div>
+    </form>
+  </div>
+</ion-content>
+
+<!-- Date Picker Modal -->
+<ion-modal #dateModal trigger="open-date-modal">
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Chọn ngày hết hạn</ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="dateModal.dismiss()">
+          <ion-icon name="close-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content class="date-picker-content">
+    <ion-datetime presentation="date" [min]="minDate" [value]="createPostForm.get('deadline')?.value || minDate"
+      (ionChange)="onDateChange($event)" showDefaultButtons="false" class="date-picker-modal">
+      <ion-buttons slot="buttons">
+        <ion-button fill="clear" (click)="dateModal.dismiss()">Hủy</ion-button>
+        <ion-button fill="solid" color="primary" (click)="confirmDate(dateModal)">Xác nhận</ion-button>
+      </ion-buttons>
+    </ion-datetime>
+  </ion-content>
+</ion-modal>

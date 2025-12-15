@@ -1,0 +1,78 @@
+<app-header
+  type="simple"
+  [title]="isEditMode ? 'CHỈNH SỬA MAIL' : 'TẠO MAIL'"
+  [showBackButton]="true"
+  backButtonDefaultHref="/email-management"
+></app-header>
+
+<ion-content [fullscreen]="true" class="template-editor-content has-header-simple no-bottom-nav has-bottom-actions">
+  <div class="template-editor-container">
+    <!-- List mẫu email (nếu có) -->
+    <div class="sample-list" *ngIf="samples && samples.length > 0">
+      <ion-list>
+        <ion-item button *ngFor="let sample of samples" (click)="selectSample(sample)">
+          <ion-label>{{sample.sampleName || sample.name}}</ion-label>
+        </ion-item>
+      </ion-list>
+    </div>
+
+    <!-- Form editor -->
+    <form [formGroup]="templateForm" class="template-form">
+      <!-- Tên form -->
+      <ion-item class="form-item">
+        <ion-label position="stacked">Tên form</ion-label>
+        <ion-input formControlName="formName" placeholder="Nhập tên template"></ion-input>
+      </ion-item>
+
+      <!-- Tiêu đề -->
+      <ion-item class="form-item">
+        <ion-label position="stacked">Tiêu đề</ion-label>
+        <ion-input formControlName="subject" placeholder="Nhập tiêu đề email"></ion-input>
+      </ion-item>
+
+      <!-- Nội dung -->
+      <ion-item class="form-item">
+        <ion-label position="stacked">Nội dung</ion-label>
+        <ion-textarea formControlName="content" rows="12" placeholder="Nhập nội dung email..."></ion-textarea>
+      </ion-item>
+
+      <!-- Placeholders helper -->
+      <div class="form-item placeholders-section">
+        <ion-label class="placeholders-label">Placeholders có sẵn:</ion-label>
+        <div class="placeholders-buttons">
+          <ion-button
+            size="small"
+            fill="outline"
+            *ngFor="let placeholder of placeholders"
+            (click)="insertPlaceholder(placeholder)">
+            {{placeholder}}
+          </ion-button>
+        </div>
+      </div>
+    </form>
+  </div>
+</ion-content>
+
+<ion-footer class="template-editor-footer">
+  <ion-toolbar>
+    <div class="action-buttons">
+      <ion-button expand="block" fill="outline" (click)="onCancel()" class="cancel-button">
+        Cancel
+      </ion-button>
+      <ion-button expand="block" color="primary" (click)="onConfirm()" class="confirm-button">
+        Confirm
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>
+
+
+
+
+
+
+
+
+
+
+

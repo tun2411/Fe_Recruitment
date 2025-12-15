@@ -1,0 +1,148 @@
+// Header styles đã được di chuyển vào AppHeaderComponent
+
+.job-detail-content {
+  --background: #f5f5f5;
+  // Padding-top để tránh bị che bởi header
+  --padding-top: 1px !important;
+  padding-top: 1px !important;
+  --padding-start: 0;
+  --padding-end: 0;
+  // Padding-bottom được quản lý bởi class .no-bottom-nav trong global.scss
+  // Không cần set --padding-bottom ở đây nữa
+
+  // Loại bỏ khoảng trắng thừa từ inner-scroll
+  ::ng-deep {
+    .inner-scroll {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+    }
+
+    .scroll-y {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+    }
+  }
+}
+
+.job-detail-wrapper {
+  padding: 16px;
+}
+
+.job-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px 16px 20px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e0e0e0;
+  margin-bottom: 16px;
+}
+
+.job-card-header {
+  font-size: 16px;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 12px;
+}
+
+.job-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.job-meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.meta-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #757575;
+}
+
+.meta-value {
+  font-size: 14px;
+  color: #212121;
+}
+
+.meta-value.highlight-value {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.url-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .custom-input {
+    flex: 1;
+    --background: #f5f5f5;
+    --color: #333333;
+    --border-radius: 8px;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+    border: 1px solid #e0e0e0;
+    width: 100%;
+    font-size: 14px;
+  }
+
+  .copy-button {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    margin: 0;
+    min-width: 40px;
+    height: 40px;
+    --color: #3880ff;
+
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  color: #666;
+  font-size: 16px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  margin-bottom: 24px; // Thêm margin-bottom để có khoảng cách với bottom
+  padding: 0;
+
+  .cancel-button,
+  .update-button {
+    flex: 1;
+    --border-radius: 8px;
+    height: 48px;
+    font-weight: 500;
+    margin: 0;
+    --background: #3880ff;
+    --color: white;
+    text-transform: none;
+  }
+}
+
+
+
+
+
+
+
+
+

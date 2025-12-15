@@ -1,0 +1,227 @@
+.custom-header {
+  ion-toolbar {
+    --background: linear-gradient(135deg, #3880ff 0%, #2c6dd5 50%, #1e5bb8 100%);
+    --color: white;
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 4px 12px rgba(56, 128, 255, 0.3);
+  }
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    width: 100%;
+
+    .back-button {
+      --color: white;
+      width: 48px;
+      height: 48px;
+      margin: 0;
+
+      ion-icon {
+        font-size: 24px;
+      }
+    }
+
+    .header-title {
+      flex: 1;
+      text-align: center;
+      font-weight: 700;
+      font-size: 20px;
+      color: white;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+.select-rounds-content {
+  --background: #f5f5f5;
+  padding-bottom: 100px;
+}
+
+.form-container {
+  background: white;
+  margin: 20px 16px;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.rounds-form-container {
+  padding: 16px;
+}
+
+.form-field {
+  margin-bottom: 24px;
+
+  .field-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+  }
+
+  .custom-input {
+    --background: #ffffff;
+    --color: #000000;
+    --border-radius: 12px;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --padding-top: 14px;
+    --padding-bottom: 14px;
+    border: 2px solid #e0e0e0;
+    width: 100%;
+    font-size: 16px;
+    color: #000000;
+    transition: all 0.3s ease;
+
+    &:focus {
+      border-color: #3880ff;
+      box-shadow: 0 0 0 3px rgba(56, 128, 255, 0.1);
+    }
+
+    &.invalid {
+      border-color: #eb445a;
+    }
+  }
+
+  .hint-text {
+    font-size: 12px;
+    color: #999;
+    margin-top: 6px;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+
+  .cancel-button,
+  .confirm-button {
+    flex: 1;
+    --border-radius: 12px;
+    height: 48px;
+    font-weight: 600;
+    margin: 0;
+    text-transform: none;
+  }
+
+  .confirm-button {
+    --box-shadow: 0 4px 12px rgba(56, 128, 255, 0.3);
+  }
+}
+
+.round-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+
+  .round-header {
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f0f0;
+
+    .round-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+  }
+
+  .round-content {
+    .form-field {
+      margin-bottom: 20px;
+
+      .field-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .custom-input {
+        --background: #ffffff;
+        --color: #000000;
+        --border-radius: 12px;
+        --padding-start: 16px;
+        --padding-end: 16px;
+        --padding-top: 14px;
+        --padding-bottom: 14px;
+        border: 2px solid #e0e0e0;
+        width: 100%;
+        font-size: 15px;
+        color: #000000;
+        transition: all 0.3s ease;
+
+        &:focus {
+          border-color: #3880ff;
+          box-shadow: 0 0 0 3px rgba(56, 128, 255, 0.1);
+        }
+
+        &.invalid {
+          border-color: #eb445a;
+        }
+      }
+
+      &.toggle-field {
+        margin-bottom: 0;
+      }
+    }
+
+    .template-item {
+      --background: #f8f9fa;
+      --border-radius: 12px;
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --min-height: 48px;
+      border: 2px solid #e0e0e0;
+      margin: 0;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: #3880ff;
+        background: #f5f8ff;
+      }
+
+      .template-placeholder {
+        color: #999;
+        font-size: 15px;
+      }
+
+      ion-icon {
+        color: #666;
+        font-size: 20px;
+      }
+    }
+
+    .toggle-item {
+      --background: transparent;
+      --padding-start: 0;
+      --padding-end: 0;
+      --min-height: 48px;
+      margin: 0;
+
+      ion-label {
+        strong {
+          font-size: 15px;
+          color: #333;
+        }
+      }
+    }
+  }
+}
+
+

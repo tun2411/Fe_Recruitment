@@ -1,0 +1,656 @@
+// Header styles đã được di chuyển vào AppHeaderComponent
+
+.create-post-content {
+  --background: #f5f5f5;
+  // Padding-top để tránh bị che bởi header
+  --padding-top: 1px !important;
+  padding-top: 1px !important;
+  --padding-start: 0;
+  --padding-end: 0;
+  // Chừa khoảng dưới giống configure-rounds / edit-post (không có bottom nav)
+  --padding-bottom: 24px;
+
+  // Loại bỏ khoảng trắng thừa từ inner-scroll
+  ::ng-deep {
+    .inner-scroll {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+    }
+
+    .scroll-y {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+    }
+  }
+}
+
+.form-container {
+  background: white;
+  margin: 0;
+  border-radius: 0;
+  padding: 20px 16px;
+  box-shadow: none;
+}
+
+.form-field {
+  margin-bottom: 20px;
+
+  .field-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 6px;
+  }
+
+  .custom-input,
+  .custom-select,
+  .custom-textarea {
+    --background: #ffffff;
+    --color: #000000;
+    --border-radius: 8px;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    border: 1px solid #e0e0e0;
+    width: 100%;
+    font-size: 14px;
+    color: #000000;
+
+    &.invalid {
+      border-color: #eb445a;
+    }
+
+    &::placeholder {
+      color: #999999;
+    }
+  }
+
+  .custom-select {
+    --padding-start: 12px;
+    --padding-end: 40px;
+    --color: #000000;
+    position: relative;
+    color: #000000;
+
+    &::part(text) {
+      color: #000000;
+    }
+  }
+
+  .custom-textarea {
+    min-height: 120px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+  }
+
+  // Salary range container
+  .salary-range-container {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .salary-input-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .salary-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      margin: 0;
+    }
+  }
+
+  // Experience container
+  .experience-container {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    align-items: flex-end;
+  }
+
+  .experience-input-wrapper {
+    flex: 1;
+  }
+
+  .experience-unit-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .experience-unit-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      margin: 0;
+    }
+  }
+
+  .date-picker-wrapper {
+    --background: #ffffff;
+    --border-radius: 8px;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin: 0;
+    width: 100%;
+    --color: #000000;
+
+    &.invalid {
+      border-color: #eb445a;
+    }
+
+    .date-placeholder {
+      color: #999999;
+    }
+
+    .date-value {
+      color: #000000;
+    }
+
+    ion-icon {
+      color: #666;
+      font-size: 18px;
+    }
+  }
+
+  // Angular Material Datepicker styles
+  .datepicker-field {
+    width: 100%;
+
+    ::ng-deep {
+      .mat-mdc-form-field {
+        width: 100%;
+      }
+
+      .mat-mdc-text-field-wrapper {
+        background-color: #ffffff !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 8px !important;
+        padding: 0 12px !important;
+        min-height: 48px;
+        box-shadow: none !important;
+      }
+
+      .mat-mdc-form-field-focus-overlay {
+        background-color: transparent !important;
+      }
+
+      .mat-mdc-form-field-subscript-wrapper {
+        display: none;
+      }
+
+      .mat-mdc-text-field-wrapper.mdc-text-field--outlined {
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+      }
+
+      .mat-mdc-text-field-wrapper.mdc-text-field--outlined::before {
+        display: none !important;
+      }
+
+      .mat-mdc-text-field-wrapper.mdc-text-field--outlined::after {
+        display: none !important;
+      }
+
+      .mat-mdc-text-field-wrapper.mdc-text-field--outlined.mdc-text-field--focused {
+        border: 1px solid #3880ff !important;
+        border-width: 1px !important;
+        box-shadow: none !important;
+      }
+
+      .mat-mdc-form-field-infix {
+        padding: 12px 0;
+        min-height: auto;
+      }
+
+      .mat-mdc-input-element {
+        font-size: 14px;
+        color: #000000;
+        padding: 0;
+      }
+
+      .mat-mdc-form-field-label {
+        color: #999999;
+      }
+
+      .mat-mdc-form-field-label.mdc-floating-label--float-above {
+        color: #3880ff;
+      }
+
+      .mat-datepicker-toggle {
+        color: #666;
+      }
+
+      input.invalid + .mat-mdc-text-field-wrapper,
+      .mat-mdc-text-field-wrapper.invalid {
+        border-color: #eb445a !important;
+      }
+
+      // Loại bỏ outline border mặc định của Material
+      .mdc-notched-outline {
+        display: none !important;
+      }
+
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        display: none !important;
+      }
+    }
+  }
+}
+
+.jd-preview-container {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+
+  .jd-preview-title {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+  }
+}
+
+// Angular Material Datepicker Popup Styles
+::ng-deep {
+  // Backdrop để làm tối nền phía sau
+  .cdk-overlay-backdrop.cdk-overlay-backdrop-showing {
+    background: rgba(0, 0, 0, 0.4) !important;
+  }
+
+  // Light mode styles
+  .mat-datepicker-popup {
+    background: white !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    overflow: hidden;
+    z-index: 1000 !important;
+
+    .mat-calendar {
+      background: white !important;
+    }
+  }
+
+  .cdk-overlay-pane {
+    z-index: 1000 !important;
+
+    .mat-datepicker-popup {
+      background: white !important;
+      border-radius: 8px !important;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    }
+  }
+
+  .mat-calendar {
+    background: white !important;
+    border-radius: 8px;
+
+    .mat-calendar-header {
+      background: white !important;
+      padding: 16px;
+      color: #1f2937 !important;
+    }
+
+    .mat-calendar-content {
+      background: white !important;
+      padding: 8px;
+    }
+
+    .mat-calendar-table {
+      background: white !important;
+    }
+
+    .mat-calendar-body-cell {
+      background: white !important;
+    }
+
+    .mat-calendar-body-cell-content {
+      color: #1f2937 !important;
+    }
+
+    .mat-calendar-body-selected {
+      background-color: #3880ff !important;
+      color: white !important;
+    }
+
+    .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+      border-color: #3880ff !important;
+    }
+
+    .mat-calendar-arrow {
+      border-top-color: #1f2937 !important;
+    }
+
+    .mat-calendar-table-header {
+      color: #6b7280 !important;
+    }
+  }
+
+  // Dark mode styles
+  @media (prefers-color-scheme: dark) {
+    .mat-datepicker-popup {
+      background: #1e1e1e !important;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+
+      .mat-calendar {
+        background: #1e1e1e !important;
+      }
+    }
+
+    .cdk-overlay-pane {
+      .mat-datepicker-popup {
+        background: #1e1e1e !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+      }
+    }
+
+    .mat-calendar {
+      background: #1e1e1e !important;
+
+      .mat-calendar-header {
+        background: #1e1e1e !important;
+        color: #ffffff !important;
+      }
+
+      .mat-calendar-content {
+        background: #1e1e1e !important;
+      }
+
+      .mat-calendar-table {
+        background: #1e1e1e !important;
+      }
+
+      .mat-calendar-body-cell {
+        background: #1e1e1e !important;
+      }
+
+      .mat-calendar-body-cell-content {
+        color: #ffffff !important;
+      }
+
+      .mat-calendar-body-selected {
+        background-color: #3880ff !important;
+        color: white !important;
+      }
+
+      .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+        border-color: #3880ff !important;
+      }
+
+      .mat-calendar-arrow {
+        border-top-color: #ffffff !important;
+      }
+
+      .mat-calendar-table-header {
+        color: #9ca3af !important;
+      }
+
+      .mat-calendar-body-disabled {
+        color: #4b5563 !important;
+        opacity: 0.5;
+      }
+    }
+  }
+
+  // Dark mode với class (nếu app dùng class-based dark mode)
+  :host-context(.dark),
+  :host-context([data-theme="dark"]) {
+    .mat-datepicker-popup {
+      background: #1e1e1e !important;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+
+      .mat-calendar {
+        background: #1e1e1e !important;
+      }
+    }
+
+    .mat-calendar {
+      background: #1e1e1e !important;
+
+      .mat-calendar-header {
+        background: #1e1e1e !important;
+        color: #ffffff !important;
+      }
+
+      .mat-calendar-content {
+        background: #1e1e1e !important;
+      }
+
+      .mat-calendar-table {
+        background: #1e1e1e !important;
+      }
+
+      .mat-calendar-body-cell {
+        background: #1e1e1e !important;
+      }
+
+      .mat-calendar-body-cell-content {
+        color: #ffffff !important;
+      }
+
+      .mat-calendar-arrow {
+        border-top-color: #ffffff !important;
+      }
+
+      .mat-calendar-table-header {
+        color: #9ca3af !important;
+      }
+    }
+  }
+}
+
+// Date Picker Modal Styles
+ion-modal {
+  --width: 90%;
+  --max-width: 420px;
+  --height: auto;
+  --max-height: 90vh;
+  --border-radius: 16px;
+  --box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --backdrop-opacity: 0.4;
+}
+
+.date-picker-content {
+  --background: #ffffff;
+  --padding: 0;
+  --overflow: visible;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.date-picker-modal {
+  width: 100%;
+  flex: 1;
+  --background: #ffffff;
+  --color: #1f2937;
+  display: block;
+  min-height: 400px;
+
+  // Style cho selected day
+  --calendar-day-selected-background: #3880ff;
+  --calendar-day-selected-color: #ffffff;
+
+  // Style cho today
+  --calendar-day-today-background: transparent;
+  --calendar-day-today-color: #3880ff;
+  --calendar-day-today-border-color: #3880ff;
+  --calendar-day-today-border-width: 2px;
+  --calendar-day-today-border-style: solid;
+
+  // Style cho disabled days
+  --calendar-day-disabled-color: #d1d5db;
+  --calendar-day-disabled-opacity: 0.5;
+
+  // Style cho days outside current month
+  --calendar-day-prev-month-color: #d1d5db;
+  --calendar-day-next-month-color: #d1d5db;
+
+  // Style cho week header
+  --calendar-weekday-color: #6b7280;
+  --calendar-weekday-font-weight: 600;
+  --calendar-weekday-font-size: 12px;
+
+  // Style cho month/year header
+  --datetime-month-year-color: #1f2937;
+  --datetime-month-year-font-weight: 600;
+  --datetime-month-year-font-size: 16px;
+
+  // Style cho navigation buttons
+  --datetime-navigation-button-color: #3880ff;
+}
+
+// Dark mode styles cho Ionic Datetime modal
+@media (prefers-color-scheme: dark) {
+  .date-picker-content {
+    --background: #1e1e1e;
+  }
+
+  .date-picker-modal {
+    --background: #1e1e1e;
+    --color: #ffffff;
+
+    // Style cho selected day (giữ nguyên màu primary)
+    --calendar-day-selected-background: #3880ff;
+    --calendar-day-selected-color: #ffffff;
+
+    // Style cho today
+    --calendar-day-today-background: transparent;
+    --calendar-day-today-color: #3880ff;
+    --calendar-day-today-border-color: #3880ff;
+
+    // Style cho disabled days
+    --calendar-day-disabled-color: #4b5563;
+    --calendar-day-disabled-opacity: 0.5;
+
+    // Style cho days outside current month
+    --calendar-day-prev-month-color: #4b5563;
+    --calendar-day-next-month-color: #4b5563;
+
+    // Style cho week header
+    --calendar-weekday-color: #9ca3af;
+
+    // Style cho month/year header
+    --datetime-month-year-color: #ffffff;
+
+    // Style cho navigation buttons
+    --datetime-navigation-button-color: #3880ff;
+  }
+
+  ion-modal {
+    --background: #1e1e1e;
+
+    ion-header {
+      ion-toolbar {
+        --background: #2d2d2d;
+        --color: #ffffff;
+      }
+    }
+  }
+}
+
+:host-context(.dark),
+:host-context([data-theme="dark"]) {
+  .date-picker-content {
+    --background: #1e1e1e;
+  }
+
+  .date-picker-modal {
+    --background: #1e1e1e;
+    --color: #ffffff;
+    --datetime-month-year-color: #ffffff;
+    --calendar-weekday-color: #9ca3af;
+    --calendar-day-prev-month-color: #4b5563;
+    --calendar-day-next-month-color: #4b5563;
+  }
+
+  ion-modal {
+    --background: #1e1e1e;
+  }
+}
+
+// Style cho buttons trong datetime
+ion-datetime ion-buttons {
+  padding: 12px 16px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+
+  ion-button {
+    font-weight: 500;
+    text-transform: none;
+    margin: 0;
+    height: 40px;
+
+    &[fill="clear"] {
+      --color: #6b7280;
+    }
+
+    &[fill="solid"] {
+      --background: #3880ff;
+      --color: #ffffff;
+    }
+  }
+}
+
+// Dark mode cho buttons trong datetime
+@media (prefers-color-scheme: dark) {
+  ion-datetime ion-buttons {
+    border-top: 1px solid #404040;
+
+    ion-button {
+      &[fill="clear"] {
+        --color: #9ca3af;
+      }
+    }
+  }
+}
+
+:host-context(.dark),
+:host-context([data-theme="dark"]) {
+  ion-datetime ion-buttons {
+    border-top: 1px solid #404040;
+
+    ion-button {
+      &[fill="clear"] {
+        --color: #9ca3af;
+      }
+    }
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 0;
+
+  .cancel-button,
+  .confirm-button {
+    flex: 1;
+    --border-radius: 8px;
+    height: 48px;
+    font-weight: 500;
+    margin: 0;
+    --background: #3880ff;
+    --color: white;
+    text-transform: none;
+  }
+}

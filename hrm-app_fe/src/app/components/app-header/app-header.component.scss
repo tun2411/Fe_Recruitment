@@ -1,0 +1,340 @@
+// Component wrapper - đảm bảo full width
+:host {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  
+  &[type="simple"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+// Dashboard Type Styles (Fixed Header)
+.header-dashboard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000; // Thấp hơn menu (menu có z-index: 2000)
+  width: 100%;
+  /* Thêm padding-top cho safe-area (notch/status bar) */
+  padding-top: env(safe-area-inset-top, 0px);
+
+  ion-toolbar {
+    --background: transparent;
+    --color: white;
+    padding: 0;
+    margin: 0;
+    /* Đảm bảo toolbar không override safe-area */
+    --padding-top: 0;
+    padding-top: 0;
+  }
+
+  .profile-card {
+    background: linear-gradient(135deg, #3880ff 0%, #2c5aa0 100%);
+    margin: 0;
+    padding: 15px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    width: 100%;
+    min-height: 83px;
+
+    .profile-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+
+      &:active {
+        opacity: 0.7;
+      }
+
+      .profile-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        pointer-events: none; // Cho phép click event truyền lên parent
+
+        ion-icon {
+          font-size: 40px;
+          color: white;
+          pointer-events: none; // Cho phép click event truyền lên parent
+        }
+      }
+
+      .profile-text {
+        h2 {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        p {
+          margin: 4px 0 0 0;
+          font-size: 14px;
+          opacity: 0.9;
+        }
+      }
+    }
+
+    .notification-bell {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+
+      ion-icon {
+        font-size: 28px;
+        color: white;
+      }
+
+      .notification-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        font-size: 10px;
+        min-width: 18px;
+        height: 18px;
+      }
+    }
+  }
+}
+
+// Standard Type Styles
+.header-standard {
+  /* Thêm padding-top cho safe-area (notch/status bar) */
+  padding-top: env(safe-area-inset-top, 0px);
+  
+  ion-toolbar {
+    // Dùng cùng gradient như dashboard để đồng bộ màu
+    --background: linear-gradient(135deg, #3880ff 0%, #2c5aa0 100%);
+    --color: white;
+    padding: 0;
+    /* Đảm bảo toolbar không override safe-area */
+    --padding-top: 0;
+    padding-top: 0;
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      width: 100%;
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        min-width: 44px;
+
+        .menu-button {
+          --color: transparent;
+          margin: 0;
+          padding: 0;
+          width: auto;
+          height: auto;
+        }
+
+        .header-icon-circle {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          cursor: pointer;
+
+          ion-icon {
+            font-size: 22px;
+            color: #3880ff;
+          }
+        }
+
+        .header-avatar {
+          width: 40px;
+          height: 40px;
+          background: rgba(255, 255, 255, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          ion-icon {
+            font-size: 24px;
+            color: white;
+          }
+        }
+
+        ion-back-button {
+          --color: white;
+        }
+
+        ion-button {
+          --color: white;
+          margin: 0;
+        }
+      }
+
+      .header-title {
+        flex: 1;
+        text-align: center;
+        font-weight: 600;
+        font-size: 18px;
+        color: white;
+        margin: 0;
+        text-transform: uppercase;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        min-width: 44px;
+        justify-content: flex-end;
+
+        .notification-wrapper {
+          position: relative;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+
+          .notification-icon {
+            font-size: 24px;
+            color: white;
+          }
+
+          .notification-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 10px;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Simple Type Styles
+.header-simple {
+  // Dùng cùng gradient như dashboard để đồng bộ màu
+  --background: linear-gradient(135deg, #3880ff 0%, #2c5aa0 100%);
+  --color: white;
+  padding: 0 !important;
+  --padding-start: 0 !important;
+  --padding-end: 0 !important;
+  --padding-top: 0 !important;
+  --padding-bottom: 0 !important;
+  --min-height: 80px;
+  min-height: 80px;
+  position: relative;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+
+  .header-title {
+    text-align: center;
+    font-weight: 600;
+    font-size: 18px;
+    color: white;
+    margin: 0;
+    text-transform: uppercase;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    padding: 0 60px; // Padding để tránh overlap với buttons
+  }
+
+  ion-buttons {
+    position: relative;
+    z-index: 1;
+    
+    ion-button {
+      --color: white;
+    }
+  }
+
+  // Style cho toolbar-title-default (phần tử được tạo bởi Ionic cho ion-title)
+  ::ng-deep {
+    // Đảm bảo ion-toolbar full width
+    ion-toolbar {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+    }
+    
+    .toolbar-title-default {
+      height: 80px !important;
+      min-height: 80px !important;
+      position: absolute !important;
+      left: 0 !important;
+      right: 0 !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      width: 100% !important;
+      text-align: center !important;
+      padding: 0 60px !important; // Padding để tránh overlap với buttons
+    }
+
+    // Loại bỏ padding của toolbar-container
+    .toolbar-container {
+      padding: 0 !important;
+      --padding-start: 0 !important;
+      --padding-end: 0 !important;
+      --padding-top: 0 !important;
+      --padding-bottom: 0 !important;
+      position: relative;
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+    }
+    
+    // Đảm bảo toolbar-content cũng full width
+    .toolbar-content {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+    }
+    
+    // Đảm bảo các phần tử bên trong cũng full width
+    .toolbar-background {
+      width: 100% !important;
+      max-width: 100% !important;
+      left: 0 !important;
+      right: 0 !important;
+    }
+  }
+}

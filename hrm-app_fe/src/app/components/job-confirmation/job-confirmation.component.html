@@ -1,0 +1,32 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>{{ title }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onCancel()">
+        <span style="font-size: 24px;">×</span>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="confirmation-container">
+    <!-- Message Section -->
+    <div class="message-section">
+      <div class="message-content">
+        {{ getDisplayMessage() }}
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <ion-button expand="block" fill="outline" (click)="onCancel()" class="action-button cancel-button">
+        {{ cancelText }}
+      </ion-button>
+      <ion-button expand="block" color="primary" (click)="onConfirm()" class="action-button confirm-button">
+        {{ confirmText }}
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
+

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
   <meta charset="utf-8" />
@@ -8,15 +8,52 @@
   <base href="/" />
 
   <meta name="color-scheme" content="light dark" />
-  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport"
+    content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="format-detection" content="telephone=no" />
   <meta name="msapplication-tap-highlight" content="no" />
+  
+  <!-- Preconnect to Google Fonts for better performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Load Noto Sans Vietnamese font for better Vietnamese text support -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&family=Noto+Sans+Vietnamese:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Content Security Policy - Relaxed for Android WebView -->
+  <!-- Cho phép tất cả kết nối cho development với Android -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: blob: gap:;
+    script-src * 'self' 'unsafe-inline' 'unsafe-eval';
+    style-src * 'self' 'unsafe-inline';
+    img-src * 'self' data: blob: http: https:;
+    font-src * 'self' data:;
+    connect-src * 'self' http: https: ws: wss:;
+    frame-src * 'self';
+    child-src * 'self';
+    worker-src * 'self' blob:;
+  ">
 
   <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
 
   <!-- add to homescreen for ios -->
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+  <!-- Google Sign-In API -->
+  <!-- Load script trực tiếp trong HTML - cách đơn giản nhất và hoạt động tốt nhất trên Android WebView -->
+  <!-- Không dùng async defer vì có thể gây timing issues trên WebView -->
+  <script src="https://accounts.google.com/gsi/client" async></script>
+
+  <!-- Facebook SDK -->
+  <!-- Load Facebook SDK để hỗ trợ Facebook Login -->
+  <script>
+    window.fbAsyncInit = function () {
+      // FB.init sẽ được gọi trong FacebookSignInService sau khi App ID được config
+      console.log('Facebook SDK loaded');
+    };
+  </script>
+  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
 </head>
 
 <body>

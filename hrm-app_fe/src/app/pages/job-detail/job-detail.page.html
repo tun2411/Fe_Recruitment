@@ -1,0 +1,138 @@
+<app-header
+  type="simple"
+  title="TUYỂN DỤNG"
+  [showBackButton]="true"
+  (backClick)="onBack()"
+></app-header>
+
+<ion-content [fullscreen]="true" class="job-detail-content has-header-simple no-bottom-nav">
+  <div class="job-detail-wrapper" *ngIf="jobData">
+    <!-- Card: Nội dung bài tuyển dụng -->
+    <div class="job-card job-description-card">
+      <div class="job-card-header">Nội dung bài tuyển dụng</div>
+      <div class="job-card-body">
+        <div
+          class="job-description"
+          [innerHTML]="jobData.description || '' | jdFormat"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Card: Thông tin việc làm -->
+    <div class="job-card job-meta-card">
+      <div class="job-card-header">Thông tin việc làm</div>
+      <div class="job-card-body">
+        <div class="job-meta-row">
+          <div class="meta-label">Tiêu đề</div>
+          <div class="meta-value highlight-value">
+            {{ jobData.title || '' }}
+          </div>
+        </div>
+
+        <div class="job-meta-row">
+          <div class="meta-label">Mức lương</div>
+          <div class="meta-value highlight-value">
+            {{ formatSalary() }}
+          </div>
+        </div>
+
+        <div class="job-meta-row">
+          <div class="meta-label">Địa chỉ</div>
+          <div class="meta-value highlight-value">
+            {{ jobData.location || 'Không có thông tin' }}
+          </div>
+        </div>
+
+        <div class="job-meta-row">
+          <div class="meta-label">Vòng tuyển dụng</div>
+          <div class="meta-value">
+            {{ (jobData ? jobData.roundCount : 0).toString() }}
+          </div>
+        </div>
+
+        <div class="job-meta-row">
+          <div class="meta-label">Hạn bài đăng</div>
+          <div class="meta-value highlight-value">
+            {{ formatDate(jobData.deadline) }}
+          </div>
+        </div>
+
+        <div class="job-meta-row" *ngIf="jobData.workTime">
+          <div class="meta-label">Thời gian làm việc</div>
+          <div class="meta-value">
+            {{ formatWorkTime() }}
+          </div>
+        </div>
+
+        <div class="job-meta-row">
+          <div class="meta-label">Kinh nghiệm</div>
+          <div class="meta-value">
+            {{ formatExperience() }}
+          </div>
+        </div>
+
+        <div class="job-meta-row" *ngIf="jobData.applyUrl">
+          <div class="meta-label">Link URL bài đăng</div>
+          <div class="meta-value url-row">
+            <ion-input
+              [value]="jobData.applyUrl || ''"
+              placeholder="Link url của bài đăng"
+              readonly
+              class="custom-input readonly"
+            ></ion-input>
+            <ion-button
+              fill="clear"
+              size="small"
+              class="copy-button"
+              type="button"
+              (click)="copyApplyUrl()"
+            >
+              <ion-icon name="copy-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <ion-button
+        fill="solid"
+        color="primary"
+        class="cancel-button"
+        type="button"
+        (click)="onCancel()"
+      >
+        Cancel
+      </ion-button>
+      <ion-button
+        fill="solid"
+        color="primary"
+        class="update-button"
+        type="button"
+        (click)="onUpdate()"
+      >
+        Update
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <div class="loading-container" *ngIf="!jobData">
+    <p>Đang tải dữ liệu...</p>
+  </div>
+</ion-content>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

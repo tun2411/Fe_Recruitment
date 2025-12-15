@@ -1,43 +1,36 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import {
   IonContent,
-  IonInput,
   IonButton,
   IonIcon,
   IonCard,
   IonCardContent,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardSubtitle,
   IonItem,
   IonLabel,
-  IonNote,
-  IonList,
-  IonAvatar,
   IonText,
   IonGrid,
   IonRow,
   IonCol,
   IonSpinner,
-  LoadingController,
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  eyeOutline,
-  eyeOffOutline,
   alertCircleOutline,
   informationCircleOutline,
+  logoGoogle,
+  logoFacebook,
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
+// Hybrid approach: Plugin cho Android, Web approach cho ionic serve
+import { GoogleSignInService } from '../../services/google-signin.service';
+import { GoogleSignInHybridService } from '../../services/google-signin-hybrid.service';
+import { Capacitor } from '@capacitor/core';
+import { FacebookSignInService } from '../../services/facebook-signin.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -46,68 +39,139 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [
     IonContent,
-    IonInput,
     IonButton,
     IonIcon,
     IonCard,
     IonCardContent,
     IonItem,
     IonLabel,
-    IonNote,
     IonText,
     IonGrid,
     IonRow,
     IonCol,
     IonSpinner,
     CommonModule,
-    ReactiveFormsModule,
   ],
 })
 export class LoginPage implements OnInit {
-  loginForm: FormGroup;
-  showPassword = false;
   isLoading = false;
   errorMessage = '';
-  isAlreadyLoggedIn = false;
+  loginProvider: 'google' | 'facebook' | null = null;
+
+  private activeGoogleService: GoogleSignInService | GoogleSignInHybridService;
 
   constructor(
-    private formBuilder: FormBuilder,
     private authService: AuthService,
+    private googleSignInService: GoogleSignInService,
+    private googleSignInHybridService: GoogleSignInHybridService,
+    private facebookSignInService: FacebookSignInService,
     private router: Router,
-    private loadingController: LoadingController,
+    private http: HttpClient,
     private toastController: ToastController
   ) {
+    // Auto-select service dựa trên platform
+    this.activeGoogleService = Capacitor.isNativePlatform()
+      ? this.googleSignInHybridService // Android/iOS: Use plugin
+      : this.googleSignInService; // Web: Use old approach
     addIcons({
-      eyeOutline,
-      eyeOffOutline,
       alertCircleOutline,
       informationCircleOutline,
-    });
-
-    this.loginForm = this.formBuilder.group({
-      username: ['', [Validators.required]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      logoGoogle,
+      logoFacebook,
     });
   }
 
   ngOnInit() {
-    // Kiểm tra nếu đã đăng nhập
-    this.isAlreadyLoggedIn = this.authService.isAuthenticated();
-
-    if (this.isAlreadyLoggedIn) {
-      // Hiển thị thông báo và tự động redirect sau 1 giây
+    // Nếu đã đăng nhập → thông báo + chuyển thẳng về home, thay entry history
+    if (this.authService.isAuthenticated()) {
       this.showRedirectMessage();
-
-      // Sử dụng setTimeout để đảm bảo component đã render xong
-      setTimeout(() => {
-        this.router.navigate(['/home']).catch((error) => {
-          console.error('Navigation error:', error);
-          // Nếu không thể navigate, có thể token không hợp lệ, clear nó
-          this.authService.clearToken();
-          this.isAlreadyLoggedIn = false;
-        });
-      }, 1500);
+      this.router.navigate(['/home'], { replaceUrl: true }).catch((error) => {
+        console.error('Navigation error:', error);
+        // Nếu không thể navigate, có thể token không hợp lệ, clear nó để user login lại
+        this.authService.clearToken();
+      });
+      return;
     }
+
+    // Chưa đăng nhập → khởi tạo Google/Facebook Sign-In
+    this.initializeGoogleSignInWithRetry();
+    this.initializeFacebookSignInWithRetry();
+  }
+
+  /**
+   * Khởi tạo Google Sign-In với retry logic (cho Android)
+   */
+  private initializeGoogleSignInWithRetry(
+    retryCount = 0,
+    maxRetries = 3
+  ): void {
+    this.activeGoogleService
+      .initialize()
+      .then(() => {
+        console.log('Google Sign-In initialized successfully');
+      })
+      .catch((error) => {
+        console.warn(
+          'Google Sign-In initialization failed (attempt',
+          retryCount + 1,
+          '):',
+          error
+        );
+
+        if (retryCount < maxRetries) {
+          // Retry sau 2 giây
+          setTimeout(() => {
+            console.log('Retrying Google Sign-In initialization...');
+            this.initializeGoogleSignInWithRetry(retryCount + 1, maxRetries);
+          }, 2000);
+        } else {
+          console.error(
+            'Google Sign-In initialization failed after',
+            maxRetries,
+            'attempts'
+          );
+          // Không hiển thị lỗi cho user, chỉ log
+          // User vẫn có thể thử click button để trigger lại
+        }
+      });
+  }
+
+  /**
+   * Khởi tạo Facebook Sign-In với retry logic (cho Android)
+   */
+  private initializeFacebookSignInWithRetry(
+    retryCount = 0,
+    maxRetries = 3
+  ): void {
+    this.facebookSignInService
+      .initialize()
+      .then(() => {
+        console.log('Facebook Sign-In initialized successfully');
+      })
+      .catch((error) => {
+        console.warn(
+          'Facebook Sign-In initialization failed (attempt',
+          retryCount + 1,
+          '):',
+          error
+        );
+
+        if (retryCount < maxRetries) {
+          // Retry sau 2 giây
+          setTimeout(() => {
+            console.log('Retrying Facebook Sign-In initialization...');
+            this.initializeFacebookSignInWithRetry(retryCount + 1, maxRetries);
+          }, 2000);
+        } else {
+          console.error(
+            'Facebook Sign-In initialization failed after',
+            maxRetries,
+            'attempts'
+          );
+          // Không hiển thị lỗi cho user, chỉ log
+          // User vẫn có thể thử click button để trigger lại
+        }
+      });
   }
 
   async showRedirectMessage() {
@@ -120,107 +184,233 @@ export class LoginPage implements OnInit {
     await toast.present();
   }
 
-  togglePasswordVisibility() {
-    this.showPassword = !this.showPassword;
-  }
-
-  isFieldInvalid(fieldName: string): boolean {
-    const field = this.loginForm.get(fieldName);
-    return !!(field && field.invalid && (field.dirty || field.touched));
-  }
-
-  async onLogin() {
-    if (this.loginForm.invalid) {
-      this.markFormGroupTouched();
-      return;
+  /**
+   * Xử lý lỗi và trả về thông báo lỗi thân thiện với user
+   */
+  private getErrorMessage(error: any, defaultMessage: string): string {
+    // Kiểm tra lỗi network
+    if (error?.status === 0) {
+      return 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng và thử lại.';
     }
 
+    // Kiểm tra lỗi Failed to fetch hoặc ERR_INTERNET_DISCONNECTED
+    if (
+      error?.message?.includes('Failed to fetch') ||
+      error?.message?.includes('ERR_INTERNET_DISCONNECTED') ||
+      error?.message?.includes('NetworkError') ||
+      error?.name === 'NetworkError'
+    ) {
+      return 'Không có kết nối mạng. Vui lòng kiểm tra kết nối internet và thử lại.';
+    }
+
+    // Kiểm tra lỗi từ HttpErrorResponse
+    if (error?.error) {
+      // Lỗi từ server
+      if (error.error?.message) {
+        return error.error.message;
+      }
+      if (typeof error.error === 'string') {
+        return error.error;
+      }
+    }
+
+    // Kiểm tra error.message
+    if (error?.message) {
+      return error.message;
+    }
+
+    // Thông báo mặc định
+    return defaultMessage;
+  }
+
+  async onGoogleLogin() {
     this.isLoading = true;
     this.errorMessage = '';
+    this.loginProvider = 'google';
 
-    const loading = await this.loadingController.create({
-      message: 'Logging in...',
-      spinner: 'crescent',
-    });
-    await loading.present();
+    try {
+      // Sử dụng activeGoogleService (auto-selected based on platform)
+      this.activeGoogleService
+        .signIn()
+        .then(async (idToken: string) => {
+          // Gọi API Google login với idToken
+          const googleLoginRequest = {
+            idToken: idToken,
+            // accessToken và refreshToken là optional, không cần gửi
+          };
 
-    const credentials = {
-      username: this.loginForm.value.username,
-      password: this.loginForm.value.password,
-    };
+          this.authService.googleLogin(googleLoginRequest).subscribe({
+            next: async () => {
+              this.isLoading = false;
+              this.loginProvider = null;
 
-    this.authService.login(credentials).subscribe({
-      next: async (response) => {
-        await loading.dismiss();
-        this.isLoading = false;
+              const toast = await this.toastController.create({
+                message: 'Đăng nhập bằng Google thành công!',
+                duration: 2000,
+                color: 'success',
+                position: 'top',
+              });
+              await toast.present();
 
-        // Hiển thị message từ backend hoặc message mặc định
-        const successMessage = response.message || 'Đăng nhập thành công!';
+              this.router
+                .navigate(['/home'], { replaceUrl: true })
+                .catch((error) => {
+                  console.error('Navigation error after login:', error);
+                });
+            },
+            error: async (error: any) => {
+              this.isLoading = false;
+              this.loginProvider = null;
 
-        const toast = await this.toastController.create({
-          message: successMessage,
-          duration: 2000,
-          color: 'success',
-          position: 'top',
+              this.errorMessage = this.getErrorMessage(
+                error,
+                'Đăng nhập bằng Google thất bại. Vui lòng thử lại.'
+              );
+
+              console.error('Google login error:', error);
+
+              const toast = await this.toastController.create({
+                message: this.errorMessage,
+                duration: 4000,
+                color: 'danger',
+                position: 'top',
+              });
+              await toast.present();
+            },
+          });
+        })
+        .catch(async (error: any) => {
+          this.isLoading = false;
+          this.loginProvider = null;
+
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể đăng nhập bằng Google. Vui lòng thử lại.'
+          );
+
+          console.error('Google sign-in error:', error);
+
+          const toast = await this.toastController.create({
+            message: this.errorMessage,
+            duration: 4000,
+            color: 'danger',
+            position: 'top',
+          });
+          await toast.present();
         });
-        await toast.present();
+    } catch (error: any) {
+      this.isLoading = false;
+      this.loginProvider = null;
 
+      this.errorMessage = this.getErrorMessage(
+        error,
+        'Đăng nhập bằng Google thất bại. Vui lòng thử lại.'
+      );
 
-        this.router.navigate(['/home']).catch((error) => {
-          console.error('Navigation error after login:', error);
-        });
-      },
-      error: async (error) => {
-        await loading.dismiss();
-        this.isLoading = false;
+      console.error('Google login catch error:', error);
 
-
-        if (error.status === 401) {
-          this.errorMessage = 'Invalid username or password';
-        } else if (error.status === 0) {
-          this.errorMessage =
-            'Cannot connect to server. Please check your connection.';
-        } else {
-          this.errorMessage =
-            error.error?.message || 'Login failed. Please try again.';
-        }
-
-        const toast = await this.toastController.create({
-          message: this.errorMessage,
-          duration: 3000,
-          color: 'danger',
-          position: 'top',
-        });
-        await toast.present();
-      },
-    });
+      const toast = await this.toastController.create({
+        message: this.errorMessage,
+        duration: 4000,
+        color: 'danger',
+        position: 'top',
+      });
+      await toast.present();
+    }
   }
 
-  onForgotPassword() {
-    // Navigate to forgot password page (cần tạo page này nếu chưa có)
-    console.log('Forgot password clicked');
-    // this.router.navigate(['/forgot-password']);
-  }
+  async onFacebookLogin() {
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.loginProvider = 'facebook';
 
-  async clearSession() {
-    const alert = await this.toastController.create({
-      message: 'Đã xóa phiên đăng nhập',
-      duration: 2000,
-      color: 'success',
-      position: 'top',
-    });
+    try {
+      // Sử dụng Facebook Sign-In Service để lấy access token thật
+      this.facebookSignInService
+        .signIn()
+        .then(async (accessToken: string) => {
+          // Gọi API Facebook login với access token
+          const facebookLoginRequest = {
+            accessToken: accessToken,
+          };
 
-    this.authService.clearToken();
-    await alert.present();
+          this.authService.facebookLogin(facebookLoginRequest).subscribe({
+            next: async () => {
+              this.isLoading = false;
+              this.loginProvider = null;
 
-    // Reload page để reset form
-    window.location.reload();
-  }
+              const toast = await this.toastController.create({
+                message: 'Đăng nhập bằng Facebook thành công!',
+                duration: 2000,
+                color: 'success',
+                position: 'top',
+              });
+              await toast.present();
 
-  private markFormGroupTouched() {
-    Object.keys(this.loginForm.controls).forEach((key) => {
-      const control = this.loginForm.get(key);
-      control?.markAsTouched();
-    });
+              this.router
+                .navigate(['/home'], { replaceUrl: true })
+                .catch((error) => {
+                  console.error('Navigation error after login:', error);
+                });
+            },
+            error: async (error: any) => {
+              this.isLoading = false;
+              this.loginProvider = null;
+
+              this.errorMessage = this.getErrorMessage(
+                error,
+                'Đăng nhập bằng Facebook thất bại. Vui lòng thử lại.'
+              );
+
+              console.error('Facebook login error:', error);
+
+              const toast = await this.toastController.create({
+                message: this.errorMessage,
+                duration: 4000,
+                color: 'danger',
+                position: 'top',
+              });
+              await toast.present();
+            },
+          });
+        })
+        .catch(async (error: any) => {
+          this.isLoading = false;
+          this.loginProvider = null;
+
+          this.errorMessage = this.getErrorMessage(
+            error,
+            'Không thể đăng nhập bằng Facebook. Vui lòng thử lại.'
+          );
+
+          console.error('Facebook sign-in error:', error);
+
+          const toast = await this.toastController.create({
+            message: this.errorMessage,
+            duration: 4000,
+            color: 'danger',
+            position: 'top',
+          });
+          await toast.present();
+        });
+    } catch (error: any) {
+      this.isLoading = false;
+      this.loginProvider = null;
+
+      this.errorMessage = this.getErrorMessage(
+        error,
+        'Đăng nhập bằng Facebook thất bại. Vui lòng thử lại.'
+      );
+
+      console.error('Facebook login catch error:', error);
+
+      const toast = await this.toastController.create({
+        message: this.errorMessage,
+        duration: 4000,
+        color: 'danger',
+        position: 'top',
+      });
+      await toast.present();
+    }
   }
 }

@@ -1,0 +1,359 @@
+// Content styles
+.email-templates-content {
+  --background: linear-gradient(to bottom, #f8f9ff 0%, #f5f5f5 100%);
+  // Padding-top để tránh bị che bởi header
+  --padding-top: 1px !important;
+  padding-top: 1px !important;
+  --padding-start: 0;
+  --padding-end: 0;
+
+  // Loại bỏ khoảng trắng thừa từ inner-scroll
+  ::ng-deep {
+    .inner-scroll {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+    }
+
+    .scroll-y {
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+    }
+  }
+}
+
+.templates-wrapper {
+  padding: 20px 16px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+// Info Header Section
+.info-header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding: 24px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+  color: white;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  .info-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    margin-bottom: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    ion-icon {
+      font-size: 18px;
+    }
+
+    &.pass-badge {
+      background: rgba(76, 175, 80, 0.3);
+      border: 1px solid rgba(76, 175, 80, 0.5);
+    }
+
+    &.fail-badge {
+      background: rgba(244, 67, 54, 0.3);
+      border: 1px solid rgba(244, 67, 54, 0.5);
+    }
+
+    .badge-text {
+      color: white;
+    }
+  }
+
+  .round-title {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    letter-spacing: -0.5px;
+  }
+
+  .round-subtitle {
+    margin: 0;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 400;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+// Templates Section
+.templates-section {
+  margin-top: 8px;
+}
+
+// Empty State
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+
+  .empty-icon-wrapper {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(33, 150, 243, 0.2);
+
+    .empty-icon {
+      font-size: 48px;
+      color: #2196f3;
+    }
+  }
+
+  .empty-title {
+    margin: 0 0 12px 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a1a;
+    letter-spacing: -0.3px;
+  }
+
+  .empty-message {
+    margin: 0;
+    font-size: 15px;
+    color: #666;
+    line-height: 1.6;
+  }
+}
+
+// Templates Grid
+.templates-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.template-card {
+  margin: 0;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --background: white;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.2);
+
+    &::before {
+      transform: scaleY(1);
+    }
+
+    .template-icon-wrapper {
+      transform: scale(1.1) rotate(5deg);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+      .template-icon {
+        color: white;
+      }
+    }
+
+    .template-arrow {
+      transform: translateX(4px);
+      color: #667eea;
+    }
+  }
+
+  &:active {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+  }
+
+  ion-card-content {
+    padding: 20px;
+  }
+
+  .template-card-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .template-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
+
+    .template-icon {
+      font-size: 28px;
+      color: #2196f3;
+      transition: all 0.3s ease;
+    }
+  }
+
+  .template-info {
+    flex: 1;
+    min-width: 0;
+
+    .template-name {
+      margin: 0 0 6px 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.3;
+      letter-spacing: -0.3px;
+    }
+
+    .template-subject {
+      margin: 0;
+      font-size: 14px;
+      color: #666;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+
+  .template-arrow {
+    font-size: 24px;
+    color: #999;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+}
+
+
+// Responsive
+@media (max-width: 480px) {
+  .templates-wrapper {
+    padding: 16px 12px;
+  }
+
+  .info-header {
+    padding: 20px 16px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+
+    .round-title {
+      font-size: 24px;
+    }
+
+    .round-subtitle {
+      font-size: 14px;
+    }
+  }
+
+  .template-card {
+    border-radius: 14px;
+
+    ion-card-content {
+      padding: 16px;
+    }
+
+    .template-icon-wrapper {
+      width: 48px;
+      height: 48px;
+
+      .template-icon {
+        font-size: 24px;
+      }
+    }
+
+    .template-info {
+      .template-name {
+        font-size: 16px;
+      }
+
+      .template-subject {
+        font-size: 13px;
+      }
+    }
+  }
+
+}
+
+// Style cho template preview modal
+::ng-deep .email-template-preview-modal {
+  --width: 90%;
+  --max-width: 600px;
+  --height: 80%;
+  --max-height: 700px;
+  --border-radius: 16px;
+  
+  .modal-wrapper {
+    border-radius: 16px;
+  }
+}
+
+// Style cho job confirmation modal
+::ng-deep .job-confirmation-modal {
+  --width: 90%;
+  --max-width: 500px;
+  --height: auto;
+  --max-height: 500px;
+  --border-radius: 16px;
+  
+  .modal-wrapper {
+    border-radius: 16px;
+  }
+}
+
+

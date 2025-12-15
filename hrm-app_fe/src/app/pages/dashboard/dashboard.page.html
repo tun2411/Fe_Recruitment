@@ -1,0 +1,159 @@
+<!-- Header Component (Fixed) -->
+<app-header
+  type="dashboard"
+  [userName]="userName"
+  [currentDate]="currentDate"
+  [showNotification]="true"
+  [notificationCount]="notificationCount"
+  (notificationClick)="onNotificationClick()"
+></app-header>
+
+<ion-content [fullscreen]="true" class="dashboard-content has-header-dashboard has-bottom-nav" id="main-content">
+
+  <!-- Filter Buttons -->
+  <div class="filter-buttons">
+    <div class="job-select-wrapper">
+      <ion-icon name="briefcase-outline" class="select-icon"></ion-icon>
+      <ion-select
+        [value]="selectedFilter === 'week' ? null : (selectedJobId === null ? 'all' : selectedJobId.toString())"
+        (ionChange)="onJobChange($event)" placeholder="Chọn Job" class="job-select" interface="popover">
+        <ion-select-option value="all">All Jobs</ion-select-option>
+        <ion-select-option *ngFor="let job of jobs" [value]="job.id.toString()">
+          {{ job.title }}
+        </ion-select-option>
+      </ion-select>
+      <ion-icon name="chevron-down-outline" class="chevron-icon"></ion-icon>
+    </div>
+    <ion-button [class.active]="selectedFilter === 'week'" fill="outline" class="filter-button"
+      (click)="onFilterChange('week')">
+      <ion-icon name="calendar-outline" slot="start"></ion-icon>
+      This Week
+    </ion-button>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-cards">
+    <ion-card class="summary-card pending-review">
+      <ion-card-content>
+        <div class="card-content">
+          <div class="card-icon">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+          </div>
+          <div class="card-info">
+            <p class="card-label">Pending Review</p>
+            <h3 class="card-value">{{ metrics.pendingReview }}</h3>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="summary-card new-candidates">
+      <ion-card-content>
+        <div class="card-content">
+          <div class="card-icon">
+            <ion-icon name="arrow-up-outline"></ion-icon>
+            <ion-icon name="people-outline" class="people-icon"></ion-icon>
+          </div>
+          <div class="card-info">
+            <p class="card-label">New Candidates</p>
+            <h3 class="card-value">{{ metrics.newCandidates }}</h3>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="summary-card active-jobs">
+      <ion-card-content>
+        <div class="card-content">
+          <div class="card-icon">
+            <ion-icon name="briefcase-outline"></ion-icon>
+          </div>
+          <div class="card-info">
+            <p class="card-label">Active Jobs</p>
+            <h3 class="card-value">{{ metrics.activeJobs }}</h3>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="summary-card pass-all">
+      <ion-card-content>
+        <div class="card-content">
+          <div class="card-icon">
+            <ion-icon name="trophy-outline"></ion-icon>
+          </div>
+          <div class="card-info">
+            <p class="card-label">Pass hết</p>
+            <h3 class="card-value">{{ metrics.passAll }}</h3>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Pass / Fail Ratio Chart -->
+  <div class="chart-section">
+    <h3 class="chart-title">Pass / Fail Ratio</h3>
+    <div class="donut-chart-container">
+      <div class="donut-chart-wrapper">
+        <svg class="donut-chart" viewBox="0 0 200 200">
+          <circle class="donut-ring" cx="100" cy="100" r="80" fill="none" stroke="#e0e0e0" stroke-width="40"></circle>
+          <circle class="donut-segment donut-segment-pass" cx="100" cy="100" r="80" fill="none" stroke="#2dd36f"
+            stroke-width="40"
+            [attr.stroke-dasharray]="getDonutChartData().passAll * 5.026 + ' ' + (502.6 - getDonutChartData().passAll * 5.026)"
+            stroke-dashoffset="0" transform="rotate(-90 100 100)"></circle>
+          <circle class="donut-segment donut-segment-fail" cx="100" cy="100" r="80" fill="none" stroke="#eb445a"
+            stroke-width="40"
+            [attr.stroke-dasharray]="getDonutChartData().fail * 5.026 + ' ' + (502.6 - getDonutChartData().fail * 5.026)"
+            [attr.stroke-dashoffset]="-(getDonutChartData().passAll * 5.026)" transform="rotate(-90 100 100)"></circle>
+          <circle class="donut-segment donut-segment-pending" cx="100" cy="100" r="80" fill="none" stroke="#999"
+            stroke-width="40"
+            [attr.stroke-dasharray]="getDonutChartData().pending * 5.026 + ' ' + (502.6 - getDonutChartData().pending * 5.026)"
+            [attr.stroke-dashoffset]="-(getDonutChartData().passAll * 5.026 + getDonutChartData().fail * 5.026)"
+            transform="rotate(-90 100 100)"></circle>
+        </svg>
+        <!-- Center: tổng số ứng viên ứng tuyển -->
+        <div class="donut-center">
+          <div class="donut-center-value">
+            {{ totalCandidates }}
+          </div>
+          <div class="donut-center-label">Ứng viên</div>
+        </div>
+      </div>
+      <div class="donut-legend">
+        <div class="legend-item">
+          <span class="legend-color pass"></span>
+          <span class="legend-label">Pass hết</span>
+          <span class="legend-value">{{ getDonutChartData().passAll | number:'1.0-0' }}%</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color fail"></span>
+          <span class="legend-label">Fail</span>
+          <span class="legend-value">{{ getDonutChartData().fail | number:'1.0-0' }}%</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color pending"></span>
+          <span class="legend-label">Đang chờ</span>
+          <span class="legend-value">{{ getDonutChartData().pending | number:'1.0-0' }}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Insights Section -->
+  <div class="chart-section">
+    <h3 class="chart-title">Insights</h3>
+    <div class="insights-list">
+      <div class="insight-item" *ngFor="let insight of insights">
+        <div class="insight-number">{{ insight.number }}</div>
+        <div class="insight-content">
+          <h4 class="insight-title">{{ insight.title }}</h4>
+          <p class="insight-subtitle">{{ insight.subtitle }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<!-- Bottom Navigation Bar -->
+<app-bottom-nav activeTab="dashboard"></app-bottom-nav>

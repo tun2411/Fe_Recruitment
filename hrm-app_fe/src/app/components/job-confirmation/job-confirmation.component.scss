@@ -1,0 +1,69 @@
+.confirmation-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 10px 0;
+}
+
+.message-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 15px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  min-height: 100px;
+}
+
+.message-content {
+  font-size: 16px;
+  color: #333;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-family: "Noto Sans Vietnamese", "Noto Sans", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  justify-content: space-between;
+}
+
+.action-button {
+  margin: 0;
+  height: 48px;
+  font-weight: 500;
+  text-transform: none;
+  flex: 1;
+}
+
+.cancel-button {
+  max-width: none;
+}
+
+.confirm-button {
+  max-width: none;
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .message-section {
+    background: #2d2d2d;
+    border-color: #444;
+  }
+
+  .message-content {
+    color: #fff;
+  }
+
+  .action-buttons {
+    border-top-color: #444;
+  }
+}
+
